@@ -11,7 +11,7 @@ export default function AppPage() {
     <NavigationContainer>
       <Stack.Navigator initialRouteName="首页">
         <Stack.Screen
-          name="首页"
+          name="home"
           component={IndexPage}
           options={{
             headerShown: false, // 隐藏header
@@ -26,7 +26,7 @@ export default function AppPage() {
             },
           }}
         />
-        <Stack.Screen name="登录" component={Login} />
+        <Stack.Screen name="login" component={Login} />
       </Stack.Navigator>
     </NavigationContainer>
   );
