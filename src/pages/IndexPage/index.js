@@ -4,14 +4,17 @@
  * @Desc: 首页
  */
 import React, {useEffect} from 'react';
-import {
-  View,
-  Text,
-  TouchableWithoutFeedback,
-  Button,
-  Alert,
-} from 'react-native';
-// import Button from '@ant-design/react-native/lib/button';
+import {View, Text, TouchableWithoutFeedback, Alert} from 'react-native';
+import {dealFail} from '../../util/test';
+// import {
+//   Provider,
+//   Toast,
+//   WhiteSpace,
+//   WingBlank,
+//   portal,
+// } from '@ant-design/react-native';
+import {Button, Toast} from '@ant-design/react-native';
+import {IconFill, IconOutline} from '@ant-design/icons-react-native';
 
 const IndexPage = props => {
   useEffect(() => {
@@ -23,21 +26,19 @@ const IndexPage = props => {
   };
   return (
     <View>
-      <Text>首页1</Text>
+      <Text>首页222</Text>
+      <IconFill name="account-book" />
+      <IconOutline name="account-book" />
       <TouchableWithoutFeedback
         onPress={() => {
           console.log(1);
-          Login();
+          Toast.fail('Load failed !!!');
+          // Login();
+          // dealFail(props);
         }}>
         <Text style={{margin: 30, fontSize: 20}}>登录221</Text>
       </TouchableWithoutFeedback>
-      <Button
-        title="Press me"
-        onPress={() => {
-          console.log('111');
-          Login();
-        }}
-      />
+      <Button onPress={() => Toast.fail('This is a toast tips')}>Start</Button>
     </View>
   );
 };
