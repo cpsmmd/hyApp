@@ -5699,6 +5699,11 @@ react-native-swipeout@^2.3.6:
     prop-types "^15.5.10"
     react-tween-state "^0.1.5"
 
+react-native-syan-image-picker@^0.4.11:
+  version "0.4.11"
+  resolved "https://registry.yarnpkg.com/react-native-syan-image-picker/-/react-native-syan-image-picker-0.4.11.tgz#1186368fd23a73f38852384943a534d00f41033f"
+  integrity sha512-kRtdkVTglsudpfcmN1DupVGvmt/b0nrowqWEf4j6A3xPb+gRlzG2AmepulKcqtCchOwcQCavIfDn9/EQ3WvQaw==
+
 react-native-webview@^11.4.0:
   version "11.4.0"
   resolved "https://registry.yarnpkg.com/react-native-webview/-/react-native-webview-11.4.0.tgz#cf8707e751231d81c17d54c5e2df0009d84e8949"

@@ -14,6 +14,8 @@ target 'myApp' do
 
   pod 'RNGestureHandler', :path => '../node_modules/react-native-gesture-handler'
 
+  pod 'RNSyanImagePicker', :path => '../node_modules/react-native-syan-image-picker'
+
   target 'myAppTests' do
     inherit! :complete
     # Pods for testing
