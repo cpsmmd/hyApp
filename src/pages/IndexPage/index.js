@@ -97,8 +97,14 @@ const IndexPage = props => {
     console.log(parms);
     try {
       const res = await getNew(parms);
-      console.log('获取最新通知', res.data);
-      setNewsNum(res.data.data.count);
+      if (res.data.data.count !== 0) {
+        setNewsNum(res.data.data.count);
+        await AsyncStorage.setItem('newsCount', res.data.data.count);
+      } else {
+        await AsyncStorage.setItem('newsCount', res.data.data.count + '');
+        let count = await AsyncStorage.getItem('newsCount');
+        setNewsNum(count * 1);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -120,7 +126,8 @@ const IndexPage = props => {
           <View
             style={{display: 'flex', alignItems: 'flex-end', marginRight: 20}}>
             <TouchableWithoutFeedback
-              onPress={() => {
+              onPress={async () => {
+                await AsyncStorage.setItem('newsCount', '0');
                 props.navigation.push('notice');
               }}>
               {newsNum > 0 ? (

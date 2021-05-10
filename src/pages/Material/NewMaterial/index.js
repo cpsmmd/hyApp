@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-09 14:03:03
- * @LastEditTime: 2021-05-10 10:44:14
+ * @LastEditTime: 2021-05-10 18:35:00
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Material/newMaterial/index.js
@@ -27,6 +27,11 @@ import SyanImagePicker from 'react-native-syan-image-picker';
 import {upLoadFile} from '../../../api/user';
 import ModalDropdown from 'react-native-modal-dropdown';
 import {getLabel, addFileLog} from '../../../api/user';
+import {
+  LOG_TYPE,
+  TYPELOG_OPTIONS2,
+  BSAE_IMAGE_URL,
+} from '../../../util/constants';
 const {width} = Dimensions.get('window');
 const numberOfLines = 5;
 const imgOptions = {
@@ -58,8 +63,10 @@ const imgOptions = {
 export default function NewMaterial(props) {
   const users = global.userInfo;
   const [labelList, setLabelList] = useState([]);
-  const [logType, setSetLogType] = useState(0);
-  const [labelType, setSetLabelType] = useState(0);
+  const [logType, setLogType] = useState(1);
+  const [logTypeText, setLogTypeText] = useState(LOG_TYPE[0].name);
+  const [labelType, setLabelType] = useState(0);
+  const [labelTypeText, setlabelTypeText] = useState('选择标签类型');
   const [logName, setLogName] = useState('');
   const [logText, setLogText] = useState('');
   const [logPics, setLogPics] = useState([]);
@@ -70,12 +77,21 @@ export default function NewMaterial(props) {
     })();
   }, []);
   const saveAll = async () => {
+    if (logName.trim().length === 0) {
+      return Toast.fail('请填写名称');
+    }
+    if (logText.trim().length === 0) {
+      return Toast.fail('请填写详情');
+    }
     let labelIds = [];
     labelList.map(item => {
       if (item.isSelect) {
         labelIds.push(item.id);
       }
     });
+    if (labelIds.length === 0) {
+      return Toast.fail('请选择标签');
+    }
     let parms = {
       logName,
       logType,
@@ -114,12 +130,6 @@ export default function NewMaterial(props) {
     }
   };
   const showImg = async () => {
-    // try {
-    //   const photos = await SyanImagePicker.showImagePicker(imgOptions);
-    //   console.log(photos);
-    // } catch (err) {
-    //   console.log(err.message);
-    // }
     SyanImagePicker.showImagePicker(imgOptions, async (err, photos) => {
       if (err) {
         // 取消选择
@@ -149,11 +159,6 @@ export default function NewMaterial(props) {
       // ...
     });
   };
-  const TYPELOG_OPTIONS = [
-    {name: '施工日志', value: 1},
-    {name: '安全日志', value: 2},
-    {name: '其他资料', value: 3},
-  ];
   const selectLabel = info => {
     let newList = [...labelList];
     newList.map(item => {
@@ -163,12 +168,6 @@ export default function NewMaterial(props) {
     });
     setLabelList(newList);
   };
-  const TYPELABEL_OPTIONS = [
-    {name: '图纸', value: 1},
-    {name: '技术资料', value: 2},
-    {name: '事故报告', value: 3},
-    {name: '产品资料', value: 4},
-  ];
   return (
     <View>
       <KeyboardAvoidingView>
@@ -176,14 +175,18 @@ export default function NewMaterial(props) {
           onPress={() => {
             Keyboard.dismiss();
           }}>
-          <ScrollView>
+          <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.new_material}>
               <View style={styles.items}>
                 <Text style={styles.item_title}>资料类型：</Text>
-                <View style={styles.item_content}>
+                <View
+                  style={
+                    (styles.item_content,
+                    {flexDirection: 'row', alignItems: 'center'})
+                  }>
                   <ModalDropdown
-                    defaultValue={'选择日志类型'}
-                    options={TYPELOG_OPTIONS}
+                    defaultValue={logTypeText}
+                    options={LOG_TYPE}
                     renderButtonText={({name}) => name}
                     renderRow={({name}) => (
                       <Text style={styles.row_sty}>{name}</Text>
@@ -195,9 +198,11 @@ export default function NewMaterial(props) {
                       styles.dropdownTextHighlightStyle
                     }
                     onSelect={(value, item) => {
-                      setSetLogType(item.value);
+                      setLogTypeText(item.name);
+                      setLogType(item.value);
                     }}
                   />
+                  <IconOutline color="#409EFF" name="down" />
                 </View>
               </View>
               <View style={styles.items}>
@@ -246,10 +251,14 @@ export default function NewMaterial(props) {
               </View>
               <View style={styles.items}>
                 <Text style={styles.item_title}>标签类型：</Text>
-                <View style={styles.item_content}>
+                <View
+                  style={
+                    (styles.item_content,
+                    {flexDirection: 'row', alignItems: 'center'})
+                  }>
                   <ModalDropdown
-                    defaultValue={'选择标签类型'}
-                    options={TYPELABEL_OPTIONS}
+                    defaultValue={labelTypeText}
+                    options={TYPELOG_OPTIONS2}
                     renderButtonText={({name}) => name}
                     renderRow={({name}) => (
                       <Text style={styles.row_sty}>{name}</Text>
@@ -261,9 +270,11 @@ export default function NewMaterial(props) {
                       styles.dropdownTextHighlightStyle
                     }
                     onSelect={(value, item) => {
-                      setSetLabelType(item.value);
+                      setlabelTypeText(item.name);
+                      setLabelType(item.value);
                     }}
                   />
+                  <IconOutline color="#409EFF" name="down" />
                 </View>
               </View>
               <View style={styles.items}>
@@ -272,7 +283,6 @@ export default function NewMaterial(props) {
                   <View
                     style={{
                       display: 'flex',
-                      justifyContent: 'space-between',
                       flexDirection: 'row',
                       flexWrap: 'wrap',
                     }}>
@@ -299,13 +309,57 @@ export default function NewMaterial(props) {
               <View style={styles.items}>
                 <Text style={styles.item_title}>照片：</Text>
                 <View style={styles.item_content}>
-                  <TouchableWithoutFeedback onPress={() => showImg()}>
+                  {/* <TouchableWithoutFeedback onPress={() => showImg()}>
                     <Image
                       style={{height: 100, marginTop: 2}}
                       source={require('../../../assets/addPhoto.png')}
                       resizeMode="contain"
                     />
+                  </TouchableWithoutFeedback> */}
+                  <TouchableWithoutFeedback onPress={() => showImg()}>
+                    <Image
+                      style={{height: 100, marginLeft: 20, marginTop: -16}}
+                      source={require('../../../assets/addPhoto.png')}
+                      resizeMode="contain"
+                    />
                   </TouchableWithoutFeedback>
+                  <View
+                    style={{
+                      display: 'flex',
+                      flexDirection: 'row',
+                      flexWrap: 'wrap',
+                    }}>
+                    {logPics.map(item => (
+                      <View key={item} style={{position: 'relative'}}>
+                        <TouchableWithoutFeedback
+                          onPress={() => {
+                            // 删除图片
+                            let arr = [...logPics];
+                            const Index = arr.findIndex(v => v === item);
+                            arr.splice(Index, 1);
+                            setLogPics(arr);
+                          }}>
+                          <Image
+                            style={{
+                              height: 30,
+                              width: 30,
+                              position: 'absolute',
+                              right: 0,
+                              top: -10,
+                              zIndex: 100,
+                            }}
+                            source={require('../../../assets/del.png')}
+                            resizeMode="contain"
+                          />
+                        </TouchableWithoutFeedback>
+                        <Image
+                          style={{height: 160, width: 160, marginBottom: 10}}
+                          source={{uri: `${BSAE_IMAGE_URL}${item}`}}
+                          resizeMode="contain"
+                        />
+                      </View>
+                    ))}
+                  </View>
                 </View>
               </View>
               <View style={styles.items}>
@@ -336,6 +390,7 @@ export default function NewMaterial(props) {
 const styles = StyleSheet.create({
   new_material: {
     backgroundColor: '#fff',
+    paddingTop: 20,
   },
   items: {
     marginBottom: 10,
@@ -357,8 +412,8 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   dropdownText: {
-    color: '#666',
-    fontSize: 18,
+    color: '#409EFF',
+    fontSize: 16,
   },
   dropdownStyle: {
     color: 'red',
@@ -370,8 +425,11 @@ const styles = StyleSheet.create({
     fontSize: 20,
   },
   row_sty: {
-    color: '#999',
-    padding: 8,
+    color: '#666',
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 14,
+    paddingBottom: 14,
     fontSize: 16,
   },
   dropdownTextHighlightStyle: {

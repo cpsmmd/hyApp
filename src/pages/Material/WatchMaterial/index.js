@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-09 14:03:03
- * @LastEditTime: 2021-05-10 00:54:53
+ * @LastEditTime: 2021-05-10 17:58:14
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Material/newMaterial/index.js
@@ -23,8 +23,13 @@ import {
 } from 'react-native';
 import {Button, Toast} from '@ant-design/react-native';
 import {IconFill, IconOutline} from '@ant-design/icons-react-native';
+import {
+  LOG_TYPE,
+  TYPELOG_OPTIONS,
+  BSAE_IMAGE_URL,
+} from '../../../util/constants';
 import SyanImagePicker from 'react-native-syan-image-picker';
-import {upLoadFile} from '../../../api/user';
+import {upLoadFile, getSignleFileLog} from '../../../api/user';
 import ModalDropdown from 'react-native-modal-dropdown';
 import {getLabel, addFileLog} from '../../../api/user';
 const {width} = Dimensions.get('window');
@@ -55,16 +60,25 @@ const imgOptions = {
   sortAscendingByModificationDate: true, // 对照片排序，按修改时间升序，默认是YES。如果设置为NO,最新的照片会显示在最前面，内部的拍照按钮会排在第一个,
   showSelectedIndex: true,
 };
-export default function NewMaterial() {
+export default function NewMaterial(props) {
+  const id = props.route.params.id;
+  const getLogType = props.route.params.logType;
   const [labelList, setLabelList] = useState([]);
-  const [logType, setSetLogType] = useState(0);
-  const [labelType, setSetLabelType] = useState(0);
   const [logName, setLogName] = useState('');
   const [logText, setLogText] = useState('');
   const [logPics, setLogPics] = useState([]);
+  const [logDetail, setLogDeatil] = useState({
+    logPics: [],
+    fileUrl: [],
+    labels: [],
+  });
+  const [logType, setLogType] = useState(1);
+  const [labelType, setSetLabelType] = useState(1);
+  const [labelDefault, setLabenDefault] = useState('选择标签类型');
   useEffect(() => {
     (async () => {
       await getLabelList();
+      await getLogDetail();
     })();
   }, []);
   const saveAll = async () => {
@@ -102,13 +116,32 @@ export default function NewMaterial() {
       console.error(error);
     }
   };
+  const getLogDetail = async () => {
+    let parms = {
+      id,
+      logType: getLogType,
+    };
+    try {
+      const res = await getSignleFileLog(parms);
+      let info = res.data.data;
+      info.logPics = JSON.parse(info.logPics) || [];
+      info.fileUrl = JSON.parse(info.fileUrl) || [];
+      info.labels = info.labels || [];
+      console.log('info', info);
+      setLogName(info.logName);
+      setLogText(info.logText);
+      setLogDeatil(info);
+      setLogType(info.logType);
+      setSetLabelType(info.fileType);
+      // let labelTypeValue = info.fileType
+      //   ? TYPELOG_OPTIONS.find(v => v.value === info.fileType).name
+      //   : '选择标签类型';
+      // setLabenDefault(labelTypeValue);
+    } catch (error) {
+      console.error(error);
+    }
+  };
   const showImg = async () => {
-    // try {
-    //   const photos = await SyanImagePicker.showImagePicker(imgOptions);
-    //   console.log(photos);
-    // } catch (err) {
-    //   console.log(err.message);
-    // }
     SyanImagePicker.showImagePicker(imgOptions, async (err, photos) => {
       if (err) {
         // 取消选择
@@ -138,11 +171,6 @@ export default function NewMaterial() {
       // ...
     });
   };
-  const TYPELOG_OPTIONS = [
-    {name: '施工日志', value: 1},
-    {name: '安全日志', value: 2},
-    {name: '其他资料', value: 3},
-  ];
   const selectLabel = info => {
     let newList = [...labelList];
     newList.map(item => {
@@ -152,12 +180,6 @@ export default function NewMaterial() {
     });
     setLabelList(newList);
   };
-  const TYPELABEL_OPTIONS = [
-    {name: '图纸', value: 1},
-    {name: '技术资料', value: 2},
-    {name: '事故报告', value: 3},
-    {name: '产品资料', value: 4},
-  ];
   return (
     <View>
       <KeyboardAvoidingView>
@@ -165,94 +187,51 @@ export default function NewMaterial() {
           onPress={() => {
             Keyboard.dismiss();
           }}>
-          <ScrollView>
+          <ScrollView showsVerticalScrollIndicator={false}>
             <View style={styles.new_material}>
+              <View style={styles.items}>
+                <Text style={styles.item_title}>记录人：</Text>
+                <View style={styles.item_content}>
+                  <Text style={styles.title_content}>{logDetail.logUser}</Text>
+                </View>
+              </View>
+              <View style={styles.items}>
+                <Text style={styles.item_title}>时间：</Text>
+                <View style={styles.item_content}>
+                  <Text style={styles.title_content}>
+                    {logDetail.createTime}
+                  </Text>
+                </View>
+              </View>
               <View style={styles.items}>
                 <Text style={styles.item_title}>资料类型：</Text>
                 <View style={styles.item_content}>
-                  <ModalDropdown
-                    defaultValue={'选择日志类型'}
-                    options={TYPELOG_OPTIONS}
-                    renderButtonText={({name}) => name}
-                    renderRow={({name}) => (
-                      <Text style={styles.row_sty}>{name}</Text>
-                    )}
-                    textStyle={styles.dropdownText}
-                    dropdownStyle={styles.dropdownStyle}
-                    dropdownTextStyle={styles.DropDownPickerText}
-                    dropdownTextHighlightStyle={
-                      styles.dropdownTextHighlightStyle
-                    }
-                    onSelect={(value, item) => {
-                      setSetLogType(item.value);
-                    }}
-                  />
+                  <Text style={styles.title_content}>
+                    {logDetail.logType &&
+                      LOG_TYPE.find(v => v.value === logDetail.logType).name}
+                  </Text>
                 </View>
               </View>
               <View style={styles.items}>
                 <Text style={styles.item_title}>名称：</Text>
                 <View style={styles.item_content}>
-                  <TextInput
-                    style={{
-                      height: 40,
-                      backgroundColor: '#EEEEEE',
-                      borderWidth: 0,
-                      borderRadius: 5,
-                      paddingLeft: 15,
-                    }}
-                    placeholder="昵称"
-                    onChangeText={text => setLogName(text)}
-                    value={logName}
-                  />
+                  <Text style={styles.title_content}>{logName}</Text>
                 </View>
               </View>
               <View style={styles.items}>
                 <Text style={styles.item_title}>详情：</Text>
                 <View style={styles.item_content}>
-                  <TextInput
-                    style={{
-                      backgroundColor: '#EEEEEE',
-                      borderWidth: 0,
-                      borderRadius: 5,
-                      paddingLeft: 15,
-                      textAlign: 'left',
-                      textAlignVertical: 'top',
-                      androidtextAlignVertical: 'top',
-                    }}
-                    numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
-                    minHeight={
-                      Platform.OS === 'ios' && numberOfLines
-                        ? 20 * numberOfLines
-                        : null
-                    }
-                    placeholder="描述"
-                    multiline
-                    editable
-                    onChangeText={text => setLogText(text)}
-                    value={logText}
-                  />
+                  <Text style={styles.title_content}>{logText}</Text>
                 </View>
               </View>
               <View style={styles.items}>
                 <Text style={styles.item_title}>标签类型：</Text>
                 <View style={styles.item_content}>
-                  <ModalDropdown
-                    defaultValue={'选择标签类型'}
-                    options={TYPELABEL_OPTIONS}
-                    renderButtonText={({name}) => name}
-                    renderRow={({name}) => (
-                      <Text style={styles.row_sty}>{name}</Text>
-                    )}
-                    textStyle={styles.dropdownText}
-                    dropdownStyle={styles.dropdownStyle}
-                    dropdownTextStyle={styles.DropDownPickerText}
-                    dropdownTextHighlightStyle={
-                      styles.dropdownTextHighlightStyle
-                    }
-                    onSelect={(value, item) => {
-                      setSetLabelType(item.value);
-                    }}
-                  />
+                  <Text style={styles.title_content}>
+                    {logDetail.fileType &&
+                      TYPELOG_OPTIONS.find(v => v.value === logDetail.fileType)
+                        .name}
+                  </Text>
                 </View>
               </View>
               <View style={styles.items}>
@@ -265,53 +244,66 @@ export default function NewMaterial() {
                       flexDirection: 'row',
                       flexWrap: 'wrap',
                     }}>
-                    {labelList.map(item => (
-                      <TouchableWithoutFeedback
-                        onPress={() => {
-                          selectLabel(item);
-                        }}>
-                        <Text
-                          style={[
-                            styles.default_label,
-                            item.isSelect && styles.default_label_active,
-                          ]}
-                          key={item.id}>
-                          {item.labelName}
-                        </Text>
-                      </TouchableWithoutFeedback>
-                    ))}
+                    {logDetail.labels.length > 0 &&
+                      logDetail.labels.map(item => (
+                        <TouchableWithoutFeedback>
+                          <Text style={styles.default_label} key={item.id}>
+                            {item.labelName}
+                          </Text>
+                        </TouchableWithoutFeedback>
+                      ))}
                   </View>
                 </View>
               </View>
               <View style={styles.items}>
                 <Text style={styles.item_title}>照片：</Text>
                 <View style={styles.item_content}>
-                  <TouchableWithoutFeedback onPress={() => showImg()}>
-                    <Image
-                      style={{height: 100, marginTop: 2}}
-                      source={require('../../../assets/addPhoto.png')}
-                      resizeMode="contain"
-                    />
-                  </TouchableWithoutFeedback>
+                  {logDetail.logPics.length > 0 ? (
+                    <View
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        flexWrap: 'wrap',
+                      }}>
+                      {logDetail.logPics.map(item => (
+                        <View key={item}>
+                          <Image
+                            style={{height: 160, width: 160, marginBottom: 10}}
+                            source={{uri: `${BSAE_IMAGE_URL}${item}`}}
+                            resizeMode="contain"
+                          />
+                        </View>
+                      ))}
+                    </View>
+                  ) : (
+                    <Text style={styles.title_content}>无</Text>
+                  )}
                 </View>
               </View>
               <View style={styles.items}>
                 <Text style={styles.item_title}>文件：</Text>
                 <View style={styles.item_content}>
-                  <Button style={{width: 80}} type="ghost">
-                    上传
-                  </Button>
+                  {logDetail.fileUrl.length > 0 ? (
+                    <Text>文件</Text>
+                  ) : (
+                    <Text style={styles.title_content}>无</Text>
+                  )}
                 </View>
               </View>
-              <View style={{padding: 20}}>
-                <Button
-                  onPress={() => {
-                    saveAll();
-                  }}
-                  type="primary">
-                  保存提交
-                </Button>
-              </View>
+              {logDetail.idCard === global.userInfo.idCard && (
+                <View style={{padding: 20}}>
+                  <Button
+                    onPress={() => {
+                      props.navigation.push('editMaterial', {
+                        id: logDetail.id,
+                        logType: logDetail.logType,
+                      });
+                    }}
+                    type="primary">
+                    修改
+                  </Button>
+                </View>
+              )}
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>
@@ -323,6 +315,7 @@ export default function NewMaterial() {
 const styles = StyleSheet.create({
   new_material: {
     backgroundColor: '#fff',
+    paddingTop: 20,
   },
   items: {
     marginBottom: 10,
@@ -380,5 +373,9 @@ const styles = StyleSheet.create({
     color: '#52c41a',
     backgroundColor: '#f6ffed',
     borderColor: '#b7eb8f',
+  },
+  title_content: {
+    color: '#666',
+    fontSize: 16,
   },
 });

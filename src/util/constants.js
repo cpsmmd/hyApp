@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-06 13:37:26
- * @LastEditTime: 2021-05-10 13:21:11
+ * @LastEditTime: 2021-05-10 16:13:15
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/util/constants.js
@@ -20,6 +20,13 @@ export const LOG_TYPE = [
   {name: '其他资料', value: 3},
 ];
 export const TYPELOG_OPTIONS = [
+  {name: '全部', value: 0},
+  {name: '图纸', value: 1},
+  {name: '技术资料', value: 2},
+  {name: '事故报告', value: 3},
+  {name: '产品资料', value: 4},
+];
+export const TYPELOG_OPTIONS2 = [
   {name: '图纸', value: 1},
   {name: '技术资料', value: 2},
   {name: '事故报告', value: 3},

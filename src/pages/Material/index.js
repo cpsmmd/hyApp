@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-08 11:18:46
- * @LastEditTime: 2021-05-10 13:33:04
+ * @LastEditTime: 2021-05-10 21:52:05
  * @LastEditors: Please set LastEditors
  * @Description: 获取日志/资料列表页
  * @FilePath: /web/hy/hyApp/src/pages/Material/index.js
@@ -25,9 +25,14 @@ import {LOG_TYPE, TYPELOG_OPTIONS} from '../../util/constants';
 import Loading from '../../components/Loading';
 export default function Material(props) {
   const [date, setDate] = useState(new Date());
-  const [mode, setMode] = useState(' date');
+  const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
   const [lists, setLists] = useState([]);
+  // 开始时间
+  // 结束时间
+  const [dateEnd, setDateEnd] = useState(new Date());
+  const [modeEnd, setModeEnd] = useState('date');
+  const [showEnd, setShowEnd] = useState(false);
   const [drawer, setDrawer] = useState(null);
   const [labelList, setLabelList] = useState([]);
   // 搜索
@@ -43,21 +48,40 @@ export default function Material(props) {
     })();
   }, []);
   const getMaterialList = async () => {
-    setLoading(true);
+    // setLoading(true);
     let parms = {
       logType: logType,
     };
+    if (labelType !== 0) {
+      parms['fileType'] = labelType;
+    }
+    let labelIds = [];
+    labelList.map(item => {
+      if (item.isSelect) {
+        labelIds.push(item.id);
+      }
+    });
+    if (labelIds.length > 0) {
+      parms['labelIds'] = labelIds;
+    }
+    if (date) {
+      parms['startTime'] = JSON.stringify(date).substring(1, 11);
+    }
+    if (dateEnd) {
+      parms['endTime'] = JSON.stringify(dateEnd).substring(1, 11);
+    }
+    console.log('getList-parms', parms);
     try {
       const res = await getMaterials(parms);
       if (res.data.code === 200) {
-        console.log('res', JSON.stringify(res.data.data));
+        // console.log('res', JSON.stringify(res.data.data));
         setLists(res.data.data);
       } else {
         Toast.fail(res.data.message);
       }
       setLoading(false);
     } catch (error) {
-      setLoading(false);
+      // setLoading(false);
       console.log(error);
     }
   };
@@ -74,39 +98,39 @@ export default function Material(props) {
       console.error(error);
     }
   };
-  const logTypeChange = () => {};
-  const DEMO_OPTIONS_2 = [
-    {name: 'Rex', age: 30},
-    {name: 'Mary', age: 25},
-    {name: 'John', age: 41},
-    {name: 'Jim', age: 22},
-    {name: 'Susan', age: 52},
-    {name: 'Brent', age: 33},
-    {name: 'Alex', age: 16},
-    {name: 'Ian', age: 20},
-    {name: 'Phil', age: 24},
-  ];
-  const onChange = (event, selectedDate) => {
+  const onChangeBegin = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShow(Platform.OS === 'ios');
     setDate(currentDate);
-    console.log(currentDate);
+  };
+  const onChangeEnd = (event, selectedDate) => {
+    const currentDate = selectedDate || date;
+    setShowEnd(Platform.OS === 'ios');
+    setDateEnd(currentDate);
   };
 
   const showMode = currentMode => {
     setShow(true);
     setMode(currentMode);
   };
-
+  const showModeEnd = currentMode => {
+    setShowEnd(true);
+    setModeEnd(currentMode);
+  };
   const showDatepicker = () => {
     showMode('date');
   };
-
+  const showDatepickerEnd = () => {
+    showModeEnd('date');
+  };
   const showTimepicker = () => {
     showMode('time');
   };
   const onOpenChange = isOpen => {
-    console.log(isOpen);
+    if (isOpen && Platform.OS === 'ios') {
+      showMode('date');
+      showModeEnd('date');
+    }
   };
   const sidebar = (
     <ScrollView>
@@ -191,7 +215,10 @@ export default function Material(props) {
                               }}>
                               <TouchableWithoutFeedback
                                 onPress={() => {
-                                  props.navigation.push('watchMaterial');
+                                  props.navigation.push('watchMaterial', {
+                                    id: item.id,
+                                    logType: item.logType,
+                                  });
                                 }}>
                                 <Text style={{color: '#1890ff', fontSize: 16}}>
                                   查看
@@ -318,6 +345,7 @@ export default function Material(props) {
             dropdownTextStyle={styles.DropDownPickerText}
             dropdownTextHighlightStyle={styles.dropdownTextHighlightStyle}
             onSelect={(value, item) => {
+              setLogTypeText(item.name);
               setLogType(item.value);
             }}
           />
@@ -337,13 +365,28 @@ export default function Material(props) {
             onSelect={(value, item) => {
               setlabelTypeText(item.name);
               setLabelType(item.value);
-              console.log(item.value);
             }}
           />
           <IconOutline color="#409EFF" name="down" />
         </View>
-        <View style={{marginTop: 20}}>
+        <View
+          style={{
+            marginTop: 20,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}>
           <Text style={{fontSize: 20, marginRight: 10}}>开始日期：</Text>
+          {Platform.OS === 'android' && (
+            <TouchableWithoutFeedback
+              onPress={() => {
+                showDatepicker();
+              }}>
+              <Text style={{width: 200, color: '#409EFF', fontSize: 16}}>
+                {JSON.stringify(date).substring(1, 11)}
+              </Text>
+            </TouchableWithoutFeedback>
+          )}
           {show && (
             <DateTimePicker
               testID="dateTimePicker"
@@ -352,21 +395,41 @@ export default function Material(props) {
               is24Hour={true}
               display="default"
               locale="zh-CN"
-              onChange={onChange}
+              onChange={(event, selectedDate) =>
+                onChangeBegin(event, selectedDate)
+              }
             />
           )}
         </View>
-        <View style={{marginTop: 20}}>
+        <View
+          style={{
+            marginTop: 20,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+          }}>
           <Text style={{fontSize: 20, marginRight: 10}}>结束日期：</Text>
-          {show && (
+          {Platform.OS === 'android' && (
+            <TouchableWithoutFeedback
+              onPress={() => {
+                showDatepickerEnd();
+              }}>
+              <Text style={{width: 200, color: '#409EFF', fontSize: 16}}>
+                {JSON.stringify(dateEnd).substring(1, 11)}
+              </Text>
+            </TouchableWithoutFeedback>
+          )}
+          {showEnd && (
             <DateTimePicker
               testID="dateTimePicker"
-              value={date}
-              mode={mode}
+              value={dateEnd}
+              mode={modeEnd}
               is24Hour={true}
               display="default"
               locale="zh-CN"
-              onChange={onChange}
+              onChange={(event, selectedDate) =>
+                onChangeEnd(event, selectedDate)
+              }
             />
           )}
         </View>
@@ -468,16 +531,17 @@ const styles = StyleSheet.create({
     borderRadius: 5,
   },
   default_label: {
-    paddingTop: 4,
-    paddingBottom: 4,
-    paddingLeft: 8,
-    paddingRight: 8,
+    paddingTop: 5,
+    paddingBottom: 5,
+    paddingLeft: 10,
+    paddingRight: 10,
     borderWidth: 1,
     borderStyle: 'solid',
     borderColor: '#bebebe',
     borderRadius: 5,
     marginRight: 5,
     marginTop: 6,
+    fontSize: 14,
   },
   default_label_active: {
     color: '#52c41a',
