@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-09 14:03:03
- * @LastEditTime: 2021-05-10 17:58:14
+ * @LastEditTime: 2021-05-11 23:15:45
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Material/newMaterial/index.js
@@ -80,6 +80,15 @@ export default function NewMaterial(props) {
       await getLabelList();
       await getLogDetail();
     })();
+  }, []);
+  useEffect(() => {
+    const navFocusListener = props.navigation.addListener('focus', async () => {
+      await getLogDetail();
+    });
+
+    return () => {
+      navFocusListener.remove();
+    };
   }, []);
   const saveAll = async () => {
     let parms = {
@@ -280,7 +289,7 @@ export default function NewMaterial(props) {
                   )}
                 </View>
               </View>
-              <View style={styles.items}>
+              <View style={styles.items, {display: 'none'}}>
                 <Text style={styles.item_title}>文件：</Text>
                 <View style={styles.item_content}>
                   {logDetail.fileUrl.length > 0 ? (

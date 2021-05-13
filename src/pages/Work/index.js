@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 12:01:32
- * @LastEditTime: 2021-05-09 18:56:08
+ * @LastEditTime: 2021-05-11 20:44:42
  * @LastEditors: Please set LastEditors
  * @Description: 考勤
  * @FilePath: /web/hy/hyApp/src/pages/Work/index.js
@@ -21,13 +21,13 @@ import {Button, Toast} from '@ant-design/react-native';
 import {checkWork} from '../../api/user';
 import ModalDropdown from 'react-native-modal-dropdown';
 import {Table, TableWrapper, Row} from 'react-native-table-component';
+import Empty from '../../components/Empty';
 const Work = () => {
   const [startDate, setStartDate] = useState(null);
   const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
-  const [dateType, setDateType] = useState('y');
-  const [tabs, setTabs] = useState([
+  const [tabs] = useState([
     {
       title: '按月查看',
       value: 'month',
@@ -38,10 +38,12 @@ const Work = () => {
     },
   ]);
   const [curTab, setCurTab] = useState('month');
+  const [tableData, setTableData] = useState([]);
+  const [monthY, setMonthY] = useState(2021);
+  const [monthM, setMonthM] = useState('01');
   useEffect(() => {
     (async () => {
-      // showMode('date');
-      await getWorks();
+      await getWorks('2021-01');
     })();
   }, []);
   const onChange = (event, selectedDate) => {
@@ -64,16 +66,45 @@ const Work = () => {
     showMode('time');
   };
 
-  const getWorks = async () => {
+  const getWorks = async date => {
     let parms = {
-      date: '',
+      date,
       userNo: global.userInfo.userNo,
       belongProject: global.userInfo.belongProject,
     };
     try {
       const res = await checkWork(parms);
       if (res.data.code === 200) {
-        console.log(res.data.data);
+        let list = res.data.data.list || [];
+        let newArr = [];
+        list.map(item => {
+          item.firstAmTime = item.firstAmTime || '无';
+          item.firstPmTime = item.firstPmTime || '无';
+          item.lastAmTime = item.lastAmTime || '无';
+          item.lastPmTime = item.lastPmTime || '无';
+          let isisEarly = item.isEarly === 0 ? '否' : '是';
+          let isiisLate = item.isLate === 0 ? '否' : '是';
+          let reason = reason || '无';
+          let overHours = overHours || '无';
+          let timeWork = `上午(${item.firstAmTime} - ${item.firstPmTime}) 下午(${item.lastAmTime} - ${item.lastPmTime})`;
+          let daka1 = `${item.workStartAmTime} - ${item.workEndAmTime}`;
+          let daka2 = `${item.workStartPmTime} - ${item.workEndPmTime}`;
+          let arrRow = [
+            item.createTime,
+            item.userName,
+            item.idCard,
+            item.jobName,
+            timeWork,
+            daka1,
+            daka2,
+            isisEarly,
+            isiisLate,
+            reason,
+            overHours,
+          ];
+          newArr.push(arrRow);
+        });
+        setTableData(newArr);
       } else {
         Toast.fail(res.data.message);
       }
@@ -82,17 +113,20 @@ const Work = () => {
     }
   };
   const yearOption = [
-    2020,
-    2021,
-    2022,
-    2023,
-    2024,
-    2025,
-    2026,
-    2027,
-    2028,
-    2029,
-    2030,
+    '2020',
+    '2021',
+    '2022',
+    '2023',
+    '2024',
+    '2025',
+    '2026',
+    '2027',
+    '2028',
+    '2029',
+    '2030',
+    '2031',
+    '2032',
+    '2033',
   ];
   const monthOption = [
     '01',
@@ -108,31 +142,32 @@ const Work = () => {
     '12',
   ];
   const tableHead = [
-    '月份',
+    '日期',
     '姓名',
     '身份证号',
-    '出勤天数',
-    '日(月)工资',
-    '工资金额',
-    '加班(时)',
-    '加班费',
-    '其它',
-    '总合计',
-    '预支',
-    '抵扣',
-    '总余额',
+    '岗位',
+    '当日工作时间',
+    '上午打卡时间',
+    '下午打卡时间',
+    '是否迟到',
+    '是否早退',
+    '迟到/早退原因',
+    '加班时长',
   ];
-  const widthArr = [40, 60, 80, 100, 120, 140, 160, 180, 200, 40, 50, 50, 50];
-  const tableData = [];
-  for (let i = 0; i < 30; i += 1) {
-    const rowData = [];
-    for (let j = 0; j < 9; j += 1) {
-      rowData.push(`${i}${j}`);
-    }
-    tableData.push(rowData);
-  }
+  // const tableHead = [
+  //   '日期',
+  //   '姓名',
+  //   '身份证号',
+  //   '岗位',
+  //   '当日工作时间',
+  //   '迟到天数',
+  //   '早退天数',
+  //   '出勤天数',
+  //   '加班时长',
+  // ];
+  const widthArr = [100, 70, 100, 100, 120, 102, 120, 80, 80, 120, 100];
   return (
-    <View style={{backgroundColor: '#fff'}}>
+    <View style={{backgroundColor: '#fff', paddingBottom: 100}}>
       <View style={styles.tabs}>
         {tabs.map(item => (
           <TouchableWithoutFeedback
@@ -175,7 +210,7 @@ const Work = () => {
               dropdownTextStyle={styles.DropDownPickerText}
               dropdownTextHighlightStyle={styles.dropdownTextHighlightStyle}
               onSelect={selectedDate => {
-                console.log(selectedDate);
+                setMonthY(yearOption[selectedDate]);
               }}
             />
             <Text style={styles.dropdownText}> 年</Text>
@@ -183,7 +218,7 @@ const Work = () => {
               月份：
             </Text>
             <ModalDropdown
-              defaultValue={'1'}
+              defaultValue={'01'}
               options={monthOption}
               textStyle={styles.dropdownText}
               dropdownStyle={styles.dropdownStyle}
@@ -191,6 +226,9 @@ const Work = () => {
               dropdownTextHighlightStyle={styles.dropdownTextHighlightStyle}
               onSelect={selectedDate => {
                 console.log(selectedDate);
+                setMonthM(monthOption[selectedDate]);
+                let date = `${monthY}-${monthOption[selectedDate]}`;
+                getWorks(date);
               }}
             />
             <Text style={styles.dropdownText}> 月</Text>
@@ -213,52 +251,45 @@ const Work = () => {
               dropdownTextStyle={styles.DropDownPickerText}
               dropdownTextHighlightStyle={styles.dropdownTextHighlightStyle}
               onSelect={selectedDate => {
-                console.log(selectedDate);
+                getWorks(yearOption[selectedDate]);
               }}
             />
             <Text style={styles.dropdownText}> 年</Text>
           </View>
         )}
       </View>
-      {/* {show && (
-        <DateTimePicker
-          testID="dateTimePicker"
-          value={date}
-          mode={mode}
-          is24Hour={true}
-          display="default"
-          locale="zh-CN"
-          onChange={onChange}
-        />
-      )} */}
-      <ScrollView horizontal={true}>
-        <View>
-          <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
-            <Row
-              data={tableHead}
-              widthArr={widthArr}
-              style={styles.header}
-              textStyle={styles.text}
-            />
-          </Table>
-          <ScrollView style={styles.dataWrapper}>
+      {tableData.length > 0 ? (
+        <ScrollView horizontal={true}>
+          <View style={{padding: 10}}>
             <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
-              {tableData.map((rowData, index) => (
-                <Row
-                  key={index}
-                  data={rowData}
-                  widthArr={widthArr}
-                  style={[
-                    styles.row,
-                    index % 2 && {backgroundColor: '#F7F6E7'},
-                  ]}
-                  textStyle={styles.text}
-                />
-              ))}
+              <Row
+                data={tableHead}
+                widthArr={widthArr}
+                style={styles.header}
+                textStyle={styles.text}
+              />
             </Table>
-          </ScrollView>
-        </View>
-      </ScrollView>
+            <ScrollView style={styles.dataWrapper}>
+              <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
+                {tableData.map((rowData, index) => (
+                  <Row
+                    key={index}
+                    data={rowData}
+                    widthArr={widthArr}
+                    style={[
+                      styles.row,
+                      index % 2 && {backgroundColor: '#F7F6E7'},
+                    ]}
+                    textStyle={styles.text}
+                  />
+                ))}
+              </Table>
+            </ScrollView>
+          </View>
+        </ScrollView>
+      ) : (
+        <Empty title="当前无考勤记录"></Empty>
+      )}
     </View>
   );
 };

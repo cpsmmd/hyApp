@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-09 14:03:03
- * @LastEditTime: 2021-05-10 17:56:30
+ * @LastEditTime: 2021-05-11 23:15:22
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Material/newMaterial/index.js
@@ -370,7 +370,7 @@ export default function EditMaterial(props) {
                   </View>
                 </View>
               </View>
-              <View style={styles.items}>
+              <View style={styles.items,{display: 'none'}}>
                 <Text style={styles.item_title}>文件：</Text>
                 <View style={styles.item_content}>
                   <Button style={{width: 80}} type="ghost">

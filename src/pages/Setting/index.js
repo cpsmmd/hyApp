@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 10:39:14
- * @LastEditTime: 2021-05-09 17:35:29
+ * @LastEditTime: 2021-05-11 18:40:34
  * @LastEditors: Please set LastEditors
  * @Description: 个人设置
  * @FilePath: hy/hyApp/src/pages/Setting/index.js
@@ -73,7 +73,7 @@ export default function Setting(props) {
         </TouchableWithoutFeedback>
         <TouchableWithoutFeedback
           onPress={() => {
-            editPw();
+            props.navigation.push('privacy');
           }}>
           <View style={styles.listItem}>
             <View style={styles.listContentView}>

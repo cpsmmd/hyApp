@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 11:56:58
- * @LastEditTime: 2021-05-09 17:31:09
+ * @LastEditTime: 2021-05-11 22:25:28
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Account/index.js
@@ -57,9 +57,10 @@ const Account = () => {
           <View style={styles.item_content}>
             <Image
               style={{width: 80, height: 80, marginTop: 2, marginLeft: 30}}
-              source={{
-                uri: `${BSAE_IMAGE_URL}${users.icon}`,
-              }}
+              // source={{
+              //   uri: `${BSAE_IMAGE_URL}${users.icon}`,
+              // }}
+              source={require('../../assets/default_icon.png')}
               defaultSource={require('../../assets/default_icon.png')}
             />
           </View>
@@ -70,18 +71,20 @@ const Account = () => {
           <View style={styles.item_content}>
             <Image
               style={{height: 80, marginTop: 2}}
-              source={{
-                uri: `${BSAE_IMAGE_URL}${users.cardFront}`,
-              }}
+              // source={{
+              //   uri: `${BSAE_IMAGE_URL}${users.cardFront}`,
+              // }}
+              source={require('../../assets/idCardEmpty.png')}
               resizeMode="contain"
               defaultSource={require('../../assets/idCardEmpty.png')}
             />
             <Image
               style={{height: 80, marginTop: 2}}
               resizeMode="contain"
-              source={{
-                uri: `${BSAE_IMAGE_URL}${users.cardBack}`,
-              }}
+              // source={{
+              //   uri: `${BSAE_IMAGE_URL}${users.cardBack}`,
+              // }}
+              source={require('../../assets/idCardEmpty.png')}
               defaultSource={require('../../assets/idCardEmpty.png')}
             />
           </View>

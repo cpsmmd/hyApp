@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-08 11:18:46
- * @LastEditTime: 2021-05-10 21:52:05
+ * @LastEditTime: 2021-05-11 22:48:01
  * @LastEditors: Please set LastEditors
  * @Description: 获取日志/资料列表页
  * @FilePath: /web/hy/hyApp/src/pages/Material/index.js
@@ -16,13 +16,14 @@ import {
   ScrollView,
   TouchableWithoutFeedback,
 } from 'react-native';
-import {IconFill, IconOutline} from '@ant-design/icons-react-native';
+import {IconOutline} from '@ant-design/icons-react-native';
 import {Button, Toast, Drawer, Modal} from '@ant-design/react-native';
 import {getMaterials, getLabel, delFileLog} from '../../api/user';
 import ModalDropdown from 'react-native-modal-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {LOG_TYPE, TYPELOG_OPTIONS} from '../../util/constants';
 import Loading from '../../components/Loading';
+import Empty from '../../components/Empty';
 export default function Material(props) {
   const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState('date');
@@ -43,17 +44,28 @@ export default function Material(props) {
   const [loading, setLoading] = useState(true);
   useEffect(() => {
     (async () => {
-      await getMaterialList();
+      await getMaterialList(true);
       await getLabelList();
     })();
   }, []);
-  const getMaterialList = async () => {
-    // setLoading(true);
+  useEffect(() => {
+    const navFocusListener = props.navigation.addListener('focus', async () => {
+      await getMaterialList(true, true);
+    });
+
+    return () => {
+      navFocusListener.remove();
+    };
+  }, []);
+  const getMaterialList = async (isTime = false, isNotLoading = false) => {
+    if (!isNotLoading) {
+      setLoading(true);
+    }
     let parms = {
       logType: logType,
     };
     if (labelType !== 0) {
-      parms['fileType'] = labelType;
+      parms.fileType = labelType;
     }
     let labelIds = [];
     labelList.map(item => {
@@ -62,13 +74,13 @@ export default function Material(props) {
       }
     });
     if (labelIds.length > 0) {
-      parms['labelIds'] = labelIds;
+      parms.labelIds = labelIds;
     }
-    if (date) {
-      parms['startTime'] = JSON.stringify(date).substring(1, 11);
+    if (date && !isTime) {
+      parms.startTime = JSON.stringify(date).substring(1, 11);
     }
-    if (dateEnd) {
-      parms['endTime'] = JSON.stringify(dateEnd).substring(1, 11);
+    if (dateEnd && !isTime) {
+      parms.endTime = JSON.stringify(dateEnd).substring(1, 11);
     }
     console.log('getList-parms', parms);
     try {
@@ -186,134 +198,148 @@ export default function Material(props) {
             ) : (
               <>
                 {lists && lists.length > 0 ? (
-                  <ScrollView>
+                  <ScrollView showsVerticalScrollIndicator={false}>
                     <View style={{backgroundColor: '#fff'}}>
                       {lists.map(item => (
-                        <View style={styles.log_item} key={item.id}>
-                          <View style={{display: 'flex', flexDirection: 'row'}}>
-                            <Text style={styles.item_title_color}>
-                              名称：{item.logName}
-                            </Text>
-                            <Text style={{marginLeft: 'auto'}}>
-                              记录人：{item.logUser}
-                            </Text>
-                          </View>
-                          <View
-                            style={{
-                              marginTop: 10,
-                              display: 'flex',
-                              flexDirection: 'row',
-                            }}>
-                            <Text style={{color: '#999', fontSize: 14}}>
-                              日期：{item.createTime}
-                            </Text>
+                        <TouchableWithoutFeedback
+                          onPress={() => {
+                            props.navigation.push('watchMaterial', {
+                              id: item.id,
+                              logType: item.logType,
+                            });
+                          }}>
+                          <View style={styles.log_item} key={item.id}>
+                            <View
+                              style={{display: 'flex', flexDirection: 'row'}}>
+                              <Text style={styles.item_title_color}>
+                                名称：{item.logName}
+                              </Text>
+                              <Text style={{marginLeft: 'auto'}}>
+                                记录人：{item.logUser}
+                              </Text>
+                            </View>
+                            <View
+                              style={{
+                                marginTop: 10,
+                                display: 'flex',
+                                flexDirection: 'row',
+                              }}>
+                              <Text style={{color: '#999', fontSize: 14}}>
+                                日期：{item.createTime}
+                              </Text>
+                              <View
+                                style={{
+                                  display: 'flex',
+                                  flexDirection: 'row',
+                                  marginLeft: 'auto',
+                                }}>
+                                <TouchableWithoutFeedback
+                                  onPress={() => {
+                                    props.navigation.push('watchMaterial', {
+                                      id: item.id,
+                                      logType: item.logType,
+                                    });
+                                  }}>
+                                  <Text
+                                    style={{color: '#1890ff', fontSize: 16}}>
+                                    查看
+                                  </Text>
+                                </TouchableWithoutFeedback>
+                                {item.idCard === global.userInfo.idCard && (
+                                  <View
+                                    style={{
+                                      display: 'flex',
+                                      flexDirection: 'row',
+                                    }}>
+                                    <TouchableWithoutFeedback
+                                      onPress={() => {
+                                        props.navigation.push('editMaterial', {
+                                          id: item.id,
+                                          logType: item.logType,
+                                        });
+                                      }}>
+                                      <Text
+                                        style={{
+                                          marginLeft: 10,
+                                          color: '#1890ff',
+                                          fontSize: 16,
+                                        }}>
+                                        编辑
+                                      </Text>
+                                    </TouchableWithoutFeedback>
+                                    <TouchableWithoutFeedback
+                                      onPress={() => {
+                                        Modal.alert(
+                                          '提示',
+                                          '确认删除此条内容？',
+                                          [
+                                            {
+                                              text: '取消',
+                                              onPress: () =>
+                                                console.log('cancel'),
+                                              style: 'cancel',
+                                            },
+                                            {
+                                              text: '确认',
+                                              onPress: async () => {
+                                                let parms = {
+                                                  id: item.id,
+                                                };
+                                                console.log(parms);
+                                                try {
+                                                  const res = await delFileLog(
+                                                    parms,
+                                                  );
+                                                  if (res.data.code === 200) {
+                                                    getMaterials();
+                                                    Toast.success('删除成功');
+                                                  }
+                                                } catch (error) {
+                                                  getMaterials();
+                                                  console.error(error);
+                                                }
+                                              },
+                                            },
+                                          ],
+                                        );
+                                      }}>
+                                      <Text
+                                        style={{
+                                          marginLeft: 10,
+                                          color: 'red',
+                                          fontSize: 16,
+                                        }}>
+                                        删除
+                                      </Text>
+                                    </TouchableWithoutFeedback>
+                                  </View>
+                                )}
+                              </View>
+                            </View>
                             <View
                               style={{
                                 display: 'flex',
                                 flexDirection: 'row',
-                                marginLeft: 'auto',
+                                flexWrap: 'wrap',
                               }}>
-                              <TouchableWithoutFeedback
-                                onPress={() => {
-                                  props.navigation.push('watchMaterial', {
-                                    id: item.id,
-                                    logType: item.logType,
-                                  });
-                                }}>
-                                <Text style={{color: '#1890ff', fontSize: 16}}>
-                                  查看
-                                </Text>
-                              </TouchableWithoutFeedback>
-                              {item.idCard === global.userInfo.idCard && (
-                                <View
-                                  style={{
-                                    display: 'flex',
-                                    flexDirection: 'row',
-                                  }}>
-                                  <TouchableWithoutFeedback
-                                    onPress={() => {
-                                      props.navigation.push('editMaterial', {
-                                        id: item.id,
-                                        logType: item.logType,
-                                      });
-                                    }}>
-                                    <Text
-                                      style={{
-                                        marginLeft: 10,
-                                        color: '#1890ff',
-                                        fontSize: 16,
-                                      }}>
-                                      编辑
-                                    </Text>
-                                  </TouchableWithoutFeedback>
-                                  <TouchableWithoutFeedback
-                                    onPress={() => {
-                                      Modal.alert(
-                                        '提示',
-                                        '确认删除此条内容？',
-                                        [
-                                          {
-                                            text: '取消',
-                                            onPress: () =>
-                                              console.log('cancel'),
-                                            style: 'cancel',
-                                          },
-                                          {
-                                            text: '确认',
-                                            onPress: async () => {
-                                              let parms = {
-                                                id: item.id,
-                                              };
-                                              console.log(parms);
-                                              try {
-                                                const res = await delFileLog(
-                                                  parms,
-                                                );
-                                                if (res.data.code === 200) {
-                                                  getMaterials();
-                                                  Toast.success('删除成功');
-                                                }
-                                              } catch (error) {
-                                                getMaterials();
-                                                console.error(error);
-                                              }
-                                            },
-                                          },
-                                        ],
-                                      );
-                                    }}>
-                                    <Text
-                                      style={{
-                                        marginLeft: 10,
-                                        color: 'red',
-                                        fontSize: 16,
-                                      }}>
-                                      删除
-                                    </Text>
-                                  </TouchableWithoutFeedback>
-                                </View>
-                              )}
+                              {item.labels.length > 0 &&
+                                item.labels.map(v => (
+                                  <Text
+                                    style={styles.default_label2}
+                                    key={v.id}>
+                                    {v.labelName}
+                                  </Text>
+                                ))}
                             </View>
                           </View>
-                          <View
-                            style={{
-                              display: 'flex',
-                              flexDirection: 'row',
-                              flexWrap: 'wrap',
-                            }}>
-                            {item.labels.length > 0 &&
-                              item.labels.map(v => (
-                                <Text style={styles.default_label2} key={v.id}>
-                                  {v.labelName}
-                                </Text>
-                              ))}
-                          </View>
-                        </View>
+                        </TouchableWithoutFeedback>
                       ))}
                     </View>
                     <View style={{height: 160}} />
                   </ScrollView>
-                ) : null}
+                ) : (
+                  <Empty title="当前没有记录" />
+                )}
               </>
             )}
           </View>
@@ -395,6 +421,7 @@ export default function Material(props) {
               is24Hour={true}
               display="default"
               locale="zh-CN"
+              style={{width: 200}}
               onChange={(event, selectedDate) =>
                 onChangeBegin(event, selectedDate)
               }
@@ -426,6 +453,7 @@ export default function Material(props) {
               mode={modeEnd}
               is24Hour={true}
               display="default"
+              style={{width: 200}}
               locale="zh-CN"
               onChange={(event, selectedDate) =>
                 onChangeEnd(event, selectedDate)

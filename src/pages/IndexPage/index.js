@@ -21,7 +21,6 @@ import axios from 'axios';
 import {Button, Toast, Badge} from '@ant-design/react-native';
 import {IconFill, IconOutline} from '@ant-design/icons-react-native';
 import SyanImagePicker from 'react-native-syan-image-picker';
-import {getConversation} from '../../api/user';
 import {dealFail} from '../../util/test';
 const {width} = Dimensions.get('window');
 const {width: deviceWidth} = Dimensions.get('window');
@@ -32,7 +31,26 @@ const IndexPage = props => {
   const [modeLIsts, setModeLIsts] = useState([]);
   const [newsNum, setNewsNum] = useState(0);
   useEffect(() => {
-    console.log(`${BSAE_IMAGE_URL}${global.userInfo.icon}`);
+    const navFocusListener = props.navigation.addListener('focus', async () => {
+      await getNews();
+      if (JSON.stringify(global.userInfo) === '{}') {
+        let info = await AsyncStorage.getItem('userInfo');
+        if (JSON.stringify(info) === 'null') {
+          props.navigation.push('login');
+        } else {
+          global.userInfo = JSON.parse(info);
+        }
+        setUserMsg(global.userInfo);
+      } else {
+        setUserMsg(global.userInfo);
+      }
+    });
+
+    return () => {
+      navFocusListener.remove();
+    };
+  }, []);
+  useEffect(() => {
     (async () => {
       if (JSON.stringify(global.userInfo) === '{}') {
         let info = await AsyncStorage.getItem('userInfo');
@@ -45,6 +63,7 @@ const IndexPage = props => {
       } else {
         setUserMsg(global.userInfo);
       }
+      // 员工岗才能查看消息
       getNews();
       const modeLIst =
         global.userInfo.isAdmin === 1
@@ -91,22 +110,23 @@ const IndexPage = props => {
     })();
   }, []);
   const getNews = async () => {
-    let parms = {
-      idCard: global.userInfo.idCard,
-    };
-    console.log(parms);
-    try {
-      const res = await getNew(parms);
-      if (res.data.data.count !== 0) {
-        setNewsNum(res.data.data.count);
-        await AsyncStorage.setItem('newsCount', res.data.data.count);
-      } else {
-        await AsyncStorage.setItem('newsCount', res.data.data.count + '');
-        let count = await AsyncStorage.getItem('newsCount');
-        setNewsNum(count * 1);
+    if (global.userInfo.isAdmin === 1) {
+      let parms = {
+        idCard: global.userInfo.idCard,
+      };
+      try {
+        const res = await getNew(parms);
+        if (res.data.data.count !== 0) {
+          setNewsNum(res.data.data.count);
+          await AsyncStorage.setItem('newsCount', res.data.data.count + '');
+        } else {
+          await AsyncStorage.setItem('newsCount', res.data.data.count + '');
+          let count = await AsyncStorage.getItem('newsCount');
+          setNewsNum(count * 1);
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
     }
   };
   const editRoute = info => {
@@ -123,15 +143,31 @@ const IndexPage = props => {
             justifyContent: 'center',
             marginTop: Platform.OS === 'android' ? -30 : 0,
           }}>
-          <View
-            style={{display: 'flex', alignItems: 'flex-end', marginRight: 20}}>
-            <TouchableWithoutFeedback
-              onPress={async () => {
-                await AsyncStorage.setItem('newsCount', '0');
-                props.navigation.push('notice');
+          {global.userInfo.isAdmin === 1 ? (
+            <View
+              style={{
+                display: 'flex',
+                alignItems: 'flex-end',
+                marginRight: 20,
               }}>
-              {newsNum > 0 ? (
-                <Badge text={newsNum}>
+              <TouchableWithoutFeedback
+                onPress={async () => {
+                  await AsyncStorage.setItem('newsCount', '0');
+                  props.navigation.push('notice');
+                }}>
+                {newsNum > 0 ? (
+                  <Badge text={newsNum}>
+                    <View>
+                      <Image
+                        style={{
+                          width: 20,
+                          height: 20,
+                        }}
+                        source={require('../../assets/remind.png')}
+                      />
+                    </View>
+                  </Badge>
+                ) : (
                   <View>
                     <Image
                       style={{
@@ -141,27 +177,18 @@ const IndexPage = props => {
                       source={require('../../assets/remind.png')}
                     />
                   </View>
-                </Badge>
-              ) : (
-                <View>
-                  <Image
-                    style={{
-                      width: 20,
-                      height: 20,
-                    }}
-                    source={require('../../assets/remind.png')}
-                  />
-                </View>
-              )}
-            </TouchableWithoutFeedback>
-          </View>
+                )}
+              </TouchableWithoutFeedback>
+            </View>
+          ) : null}
           <View style={{display: 'flex', flexDirection: 'row'}}>
             <TouchableWithoutFeedback>
               <Image
                 style={{width: 80, height: 80, marginTop: 2, marginLeft: 30}}
-                source={{
-                  uri: `${BSAE_IMAGE_URL}${global.userInfo.icon}`,
-                }}
+                // source={{
+                //   uri: `${BSAE_IMAGE_URL}${global.userInfo.icon}`,
+                // }}
+                source={require('../../assets/default_icon.png')}
                 defaultSource={require('../../assets/default_icon.png')}
               />
             </TouchableWithoutFeedback>

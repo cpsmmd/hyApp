@@ -1,13 +1,13 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 15:41:45
- * @LastEditTime: 2021-05-09 18:57:04
+ * @LastEditTime: 2021-05-12 17:54:48
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Login/index.js
  */
 /* eslint-disable react-native/no-inline-styles */
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -16,6 +16,8 @@ import {
   TouchableWithoutFeedback,
   KeyboardAvoidingView,
   Keyboard,
+  Platform,
+  BackHandler,
   Image,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -27,9 +29,17 @@ import {login} from '../../api/user';
 import {dealFail} from '../../util/common';
 
 const Login = props => {
-  const [idCard, setIdCard] = useState('412726199606126216');
-  const [userPwd, setUserPwd] = useState('123456');
+  // 412825198903031193
+  // 031193
+  const [idCard, setIdCard] = useState('410381199812154559');
+  const [userPwd, setUserPwd] = useState('154554');
   const loginAccount = async () => {
+    if (idCard.trim().length === 0) {
+      return Toast.fail('请填写账号');
+    }
+    if (userPwd.trim().length === 0) {
+      return Toast.fail('请填写密码');
+    }
     let encrypt = new JSEncrypt();
     encrypt.setPublicKey(PUB_KEY);
     let encrypted = encrypt.encrypt(userPwd);
@@ -70,7 +80,7 @@ const Login = props => {
                 style={{width: 120, height: 120, alignItems: 'center'}}
               />
               <Text style={{fontSize: 30, marginTop: 20, marginBottom: 20}}>
-                {/* 宏远智慧工地管理系统 */}
+                宏远智慧工地管理系统
               </Text>
             </View>
             <View style={{width: '100%'}}>

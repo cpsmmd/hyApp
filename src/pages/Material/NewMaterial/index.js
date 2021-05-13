@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-09 14:03:03
- * @LastEditTime: 2021-05-10 18:35:00
+ * @LastEditTime: 2021-05-11 23:14:55
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Material/newMaterial/index.js
@@ -24,14 +24,15 @@ import {
 import {Button, Toast} from '@ant-design/react-native';
 import {IconFill, IconOutline} from '@ant-design/icons-react-native';
 import SyanImagePicker from 'react-native-syan-image-picker';
-import {upLoadFile} from '../../../api/user';
 import ModalDropdown from 'react-native-modal-dropdown';
-import {getLabel, addFileLog} from '../../../api/user';
+import {getLabel, addFileLog, upLoadFile} from '../../../api/user';
 import {
   LOG_TYPE,
   TYPELOG_OPTIONS2,
   BSAE_IMAGE_URL,
 } from '../../../util/constants';
+import DocumentPicker from 'react-native-document-picker';
+import RNFetchBlob from 'rn-fetch-blob';
 const {width} = Dimensions.get('window');
 const numberOfLines = 5;
 const imgOptions = {
@@ -70,6 +71,7 @@ export default function NewMaterial(props) {
   const [logName, setLogName] = useState('');
   const [logText, setLogText] = useState('');
   const [logPics, setLogPics] = useState([]);
+  const [fileUrl, setFileUrl] = useState([]);
   useEffect(() => {
     (async () => {
       await getLabelList();
@@ -107,7 +109,7 @@ export default function NewMaterial(props) {
     try {
       const res = await addFileLog(parms);
       if (res.data.code === 200) {
-        console.log(res.data);
+        props.navigation.goBack();
         Toast.success(res.data.message);
       } else {
         Toast.fail(res.data.message);
@@ -158,6 +160,52 @@ export default function NewMaterial(props) {
       // 选择成功，渲染图片
       // ...
     });
+  };
+  const showFile = async () => {
+    try {
+      const results = await DocumentPicker.pickMultiple({
+        type: [DocumentPicker.types.allFiles],
+      });
+      let url = '';
+      if (Platform.OS === 'android') {
+        url = results[0].uri;
+      } else {
+        url = results[0].uri.replace('file://', '');
+      }
+      RNFetchBlob.fetch(
+        'POST',
+        'http://116.62.231.156:8900/HyVisitors/uploadBatchApp',
+        {
+          otherHeader: 'foo',
+          'Content-Type': 'multipart/form-data',
+        },
+        [
+          {name: 'type', data: 3},
+          {
+            name: 'files',
+            filename: results[0].name,
+            type: results[0].type,
+            data: RNFetchBlob.wrap(url),
+          },
+        ],
+      )
+        .then(res => {
+          // files/baidu932.numbers
+          // files/baidu191.numbers
+          console.log('success', res.data);
+          console.log('success', res.data.code);
+          console.log('success', res.data.data);
+        })
+        .catch(err => {
+          console.log('error', err);
+        });
+    } catch (err) {
+      if (DocumentPicker.isCancel(err)) {
+        // User cancelled the picker, exit any dialogs or menus and move on
+      } else {
+        throw err;
+      }
+    }
   };
   const selectLabel = info => {
     let newList = [...labelList];
@@ -362,10 +410,15 @@ export default function NewMaterial(props) {
                   </View>
                 </View>
               </View>
-              <View style={styles.items}>
+              <View style={(styles.items, {display: 'none'})}>
                 <Text style={styles.item_title}>文件：</Text>
                 <View style={styles.item_content}>
-                  <Button style={{width: 80}} type="ghost">
+                  <Button
+                    onPress={() => {
+                      showFile();
+                    }}
+                    style={{width: 80}}
+                    type="ghost">
                     上传
                   </Button>
                 </View>

@@ -1,12 +1,13 @@
+/* eslint-disable no-labels */
 /*
  * @Author: your name
  * @Date: 2021-04-18 14:06:37
- * @LastEditTime: 2021-05-09 14:18:56
+ * @LastEditTime: 2021-05-13 11:45:13
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/AppPage.js
  */
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
 import IndexPage from './pages/IndexPage';
@@ -21,22 +22,53 @@ import Material from './pages/Material';
 import NewMaterial from './pages/Material/NewMaterial';
 import WatchMaterial from './pages/Material/WatchMaterial';
 import EditMaterial from './pages/Material/EditMaterial';
-
+import Privacy from './pages/Privacy';
 import {Provider} from '@ant-design/react-native';
-
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const Stack = createStackNavigator();
 
-export default function AppPage() {
+export default function AppPage(props) {
+  // let name = 'login';
+  // AsyncStorage.getItem('userInfo').then(res => {
+  //   console.log(res === null);
+  //   if (res === null) {
+  //     name = 'home';
+  //   }
+  // });
+  // const [defaultName, setDefaultName] = useState('home');
+  // useEffect(() => {
+  //   (async () => {
+  //     if (JSON.stringify(global.userInfo) === '{}') {
+  //       let info = await AsyncStorage.getItem('userInfo');
+  //       if (JSON.stringify(info) === 'null') {
+  //         setDefaultName('editPw');
+  //       } else {
+  //         setDefaultName('home');
+  //       }
+  //     }
+  //   })();
+  // }, []);
+  const transition = {
+    gestureDirection: 'horizontal',
+    transitionSpec: {},
+    cardStyleInterpolator: () => {},
+    headerStyleInterpolator: () => {},
+  };
   return (
     <Provider>
       <NavigationContainer>
-        <Stack.Navigator initialRouteName="首页">
+        <Stack.Navigator
+          navigationOptions={{
+            gestureEnabled: false,
+          }}
+          initialRouteName="home">
           <Stack.Screen
             name="home"
             component={IndexPage}
             options={{
               headerShown: false, // 隐藏header
               title: '首页',
+              gestureEnabled: false,
               headerStyle: {
                 backgroundColor: '#f4511e',
               },
@@ -50,6 +82,7 @@ export default function AppPage() {
           <Stack.Screen
             options={{
               headerShown: false,
+              gestureEnabled: false,
             }}
             name="login"
             component={Login}
@@ -57,6 +90,7 @@ export default function AppPage() {
           <Stack.Screen
             options={{
               title: '修改密码',
+              gestureEnabled: false,
             }}
             name="editPw"
             component={EditPw}
@@ -123,6 +157,13 @@ export default function AppPage() {
             }}
             name="editMaterial"
             component={EditMaterial}
+          />
+          <Stack.Screen
+            options={{
+              title: '隐私条款',
+            }}
+            name="privacy"
+            component={Privacy}
           />
         </Stack.Navigator>
       </NavigationContainer>
