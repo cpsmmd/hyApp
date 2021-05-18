@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-09 14:03:03
- * @LastEditTime: 2021-05-11 23:14:55
+ * @LastEditTime: 2021-05-18 11:38:41
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Material/newMaterial/index.js
@@ -100,12 +100,12 @@ export default function NewMaterial(props) {
       logText,
       logPics: JSON.stringify(logPics),
       logUser: users.userName,
-      fileType: labelType,
+      // fileType: labelType,
       fileUrl: '[]',
       idCard: users.idCard,
       labelIds: JSON.stringify(labelIds),
     };
-    console.log('parms', parms);
+    console.log('新增parms', parms);
     try {
       const res = await addFileLog(parms);
       if (res.data.code === 200) {
@@ -174,7 +174,7 @@ export default function NewMaterial(props) {
       }
       RNFetchBlob.fetch(
         'POST',
-        'http://116.62.231.156:8900/HyVisitors/uploadBatchApp',
+        'http://47.117.123.129:8900/HyVisitors/uploadBatchApp',
         {
           otherHeader: 'foo',
           'Content-Type': 'multipart/form-data',
@@ -297,7 +297,7 @@ export default function NewMaterial(props) {
                   />
                 </View>
               </View>
-              <View style={styles.items}>
+              <View style={(styles.items, {display: 'none'})}>
                 <Text style={styles.item_title}>标签类型：</Text>
                 <View
                   style={

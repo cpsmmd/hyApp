@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 12:01:32
- * @LastEditTime: 2021-05-11 20:44:42
+ * @LastEditTime: 2021-05-18 13:27:44
  * @LastEditors: Please set LastEditors
  * @Description: 考勤
  * @FilePath: /web/hy/hyApp/src/pages/Work/index.js
@@ -22,11 +22,13 @@ import {checkWork} from '../../api/user';
 import ModalDropdown from 'react-native-modal-dropdown';
 import {Table, TableWrapper, Row} from 'react-native-table-component';
 import Empty from '../../components/Empty';
+import Loading from '../../components/Loading';
 const Work = () => {
   const [startDate, setStartDate] = useState(null);
   const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState('date');
   const [show, setShow] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [tabs] = useState([
     {
       title: '按月查看',
@@ -67,6 +69,7 @@ const Work = () => {
   };
 
   const getWorks = async date => {
+    setLoading(true);
     let parms = {
       date,
       userNo: global.userInfo.userNo,
@@ -108,7 +111,9 @@ const Work = () => {
       } else {
         Toast.fail(res.data.message);
       }
+      setLoading(false);
     } catch (error) {
+      setLoading(false);
       console.log(error);
     }
   };
@@ -258,37 +263,43 @@ const Work = () => {
           </View>
         )}
       </View>
-      {tableData.length > 0 ? (
-        <ScrollView horizontal={true}>
-          <View style={{padding: 10}}>
-            <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
-              <Row
-                data={tableHead}
-                widthArr={widthArr}
-                style={styles.header}
-                textStyle={styles.text}
-              />
-            </Table>
-            <ScrollView style={styles.dataWrapper}>
-              <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
-                {tableData.map((rowData, index) => (
+      {loading ? (
+        <Loading style={{paddingBottom: 50}} />
+      ) : (
+        <>
+          {tableData.length > 0 ? (
+            <ScrollView horizontal={true}>
+              <View style={{padding: 10}}>
+                <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
                   <Row
-                    key={index}
-                    data={rowData}
+                    data={tableHead}
                     widthArr={widthArr}
-                    style={[
-                      styles.row,
-                      index % 2 && {backgroundColor: '#F7F6E7'},
-                    ]}
+                    style={styles.header}
                     textStyle={styles.text}
                   />
-                ))}
-              </Table>
+                </Table>
+                <ScrollView style={styles.dataWrapper}>
+                  <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
+                    {tableData.map((rowData, index) => (
+                      <Row
+                        key={index}
+                        data={rowData}
+                        widthArr={widthArr}
+                        style={[
+                          styles.row,
+                          index % 2 && {backgroundColor: '#F7F6E7'},
+                        ]}
+                        textStyle={styles.text}
+                      />
+                    ))}
+                  </Table>
+                </ScrollView>
+              </View>
             </ScrollView>
-          </View>
-        </ScrollView>
-      ) : (
-        <Empty title="当前无考勤记录"></Empty>
+          ) : (
+            <Empty title="当前无考勤记录"></Empty>
+          )}
+        </>
       )}
     </View>
   );

@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-19 19:44:48
- * @LastEditTime: 2021-05-10 00:32:07
+ * @LastEditTime: 2021-05-18 14:49:44
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/api/axios.js
@@ -13,7 +13,8 @@ let idCard = '';
 if (global.userInfo && global.userInfo.idCard) {
   idCard = global.userInfo.idCard;
 }
+console.log('idCard', idCard);
 axios.defaults.timeout = 100000;
-axios.defaults.baseURL = 'http://116.62.231.156:8900';
-axios.defaults.headers.common['idCard'] = idCard;
+axios.defaults.baseURL = 'http://47.117.123.129:8900';
+// axios.defaults.headers.common['idCard'] = idCard;
 export default axios;

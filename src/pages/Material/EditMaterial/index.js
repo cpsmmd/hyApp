@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-09 14:03:03
- * @LastEditTime: 2021-05-11 23:15:22
+ * @LastEditTime: 2021-05-18 11:31:55
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Material/newMaterial/index.js
@@ -97,7 +97,7 @@ export default function EditMaterial(props) {
       logText,
       logPics: JSON.stringify(logPics),
       logUser: global.userInfo.userName,
-      fileType: labelType,
+      // fileType: labelType,
       fileUrl: '[]',
       id,
       labelIds,
@@ -145,7 +145,7 @@ export default function EditMaterial(props) {
       setLogText(info.logText);
       setLogDeatil(info);
       setLogType(info.logType);
-      setSetLabelType(info.fileType);
+      // setSetLabelType(info.fileType);
       let labelTypeValue = info.fileType
         ? TYPELOG_OPTIONS2.find(v => v.value === info.fileType).name
         : '选择标签类型';
@@ -264,7 +264,7 @@ export default function EditMaterial(props) {
                   />
                 </View>
               </View>
-              <View style={styles.items}>
+              <View style={(styles.items, {display: 'none'})}>
                 <Text style={styles.item_title}>标签类型：</Text>
                 <View
                   style={
@@ -370,7 +370,7 @@ export default function EditMaterial(props) {
                   </View>
                 </View>
               </View>
-              <View style={styles.items,{display: 'none'}}>
+              <View style={(styles.items, {display: 'none'})}>
                 <Text style={styles.item_title}>文件：</Text>
                 <View style={styles.item_content}>
                   <Button style={{width: 80}} type="ghost">

@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 10:39:14
- * @LastEditTime: 2021-05-11 18:40:34
+ * @LastEditTime: 2021-05-13 13:50:46
  * @LastEditors: Please set LastEditors
  * @Description: 个人设置
  * @FilePath: hy/hyApp/src/pages/Setting/index.js
@@ -13,6 +13,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNC from 'react-native-css';
 import {Button, Toast} from '@ant-design/react-native';
 import {loginOut} from '../../api/user';
+import {CommonActions} from '@react-navigation/native';
 export default function Setting(props) {
   const loginOutBtn = async () => {
     let parms = {
@@ -24,7 +25,13 @@ export default function Setting(props) {
       if (res.data.code === 200) {
         // 清除缓存
         AsyncStorage.clear();
-        props.navigation.push('login');
+        // props.navigation.push('login');
+        props.navigation.dispatch(
+          CommonActions.reset({
+            index: 1,
+            routes: [{name: 'login'}],
+          }),
+        );
       } else {
         Toast.fail(res.data.message);
       }

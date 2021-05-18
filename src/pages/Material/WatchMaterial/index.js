@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-09 14:03:03
- * @LastEditTime: 2021-05-11 23:15:45
+ * @LastEditTime: 2021-05-18 16:57:41
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Material/newMaterial/index.js
@@ -13,16 +13,18 @@ import {
   Text,
   View,
   ScrollView,
-  TextInput,
+  CameraRoll,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
   Platform,
+  Modal,
   Dimensions,
   Image,
 } from 'react-native';
 import {Button, Toast} from '@ant-design/react-native';
 import {IconFill, IconOutline} from '@ant-design/icons-react-native';
+import ImageViewer from 'react-native-image-zoom-viewer';
 import {
   LOG_TYPE,
   TYPELOG_OPTIONS,
@@ -75,6 +77,8 @@ export default function NewMaterial(props) {
   const [logType, setLogType] = useState(1);
   const [labelType, setSetLabelType] = useState(1);
   const [labelDefault, setLabenDefault] = useState('选择标签类型');
+  const [images, setImages] = useState([]);
+  const [modalShow, setModalShow] = useState(false);
   useEffect(() => {
     (async () => {
       await getLabelList();
@@ -85,7 +89,6 @@ export default function NewMaterial(props) {
     const navFocusListener = props.navigation.addListener('focus', async () => {
       await getLogDetail();
     });
-
     return () => {
       navFocusListener.remove();
     };
@@ -97,7 +100,7 @@ export default function NewMaterial(props) {
       logText,
       logPics: JSON.stringify(logPics),
       logUser: global.userInfo.userName,
-      fileType: labelType,
+      // fileType: labelType,
       fileUrl: '[]',
     };
     console.log(parms);
@@ -141,11 +144,19 @@ export default function NewMaterial(props) {
       setLogText(info.logText);
       setLogDeatil(info);
       setLogType(info.logType);
-      setSetLabelType(info.fileType);
+      // setSetLabelType(info.fileType);
       // let labelTypeValue = info.fileType
       //   ? TYPELOG_OPTIONS.find(v => v.value === info.fileType).name
       //   : '选择标签类型';
       // setLabenDefault(labelTypeValue);
+      // 图片展示
+      let image = [];
+      info.logPics.map(v => {
+        image.push({
+          url: `${BSAE_IMAGE_URL}${v}?v=3&s=460`,
+        });
+      });
+      setImages(image);
     } catch (error) {
       console.error(error);
     }
@@ -188,6 +199,20 @@ export default function NewMaterial(props) {
       }
     });
     setLabelList(newList);
+  };
+  // 保存图片
+  const savePhoto = url => {
+    console.log(url);
+    // let index = this.props.curentImage;
+    // let url = this.props.imaeDataUrl[index];
+    let promise = CameraRoll.saveToCameraRoll(url);
+    promise
+      .then(function (result) {
+        console.log('已保存到系统相册');
+      })
+      .catch(function (error) {
+        console.log('保存失败！\n' + error);
+      });
   };
   return (
     <View>
@@ -233,7 +258,7 @@ export default function NewMaterial(props) {
                   <Text style={styles.title_content}>{logText}</Text>
                 </View>
               </View>
-              <View style={styles.items}>
+              <View style={(styles.items, {display: 'none'})}>
                 <Text style={styles.item_title}>标签类型：</Text>
                 <View style={styles.item_content}>
                   <Text style={styles.title_content}>
@@ -249,7 +274,7 @@ export default function NewMaterial(props) {
                   <View
                     style={{
                       display: 'flex',
-                      justifyContent: 'space-between',
+                      // justifyContent: 'space-between',
                       flexDirection: 'row',
                       flexWrap: 'wrap',
                     }}>
@@ -276,11 +301,20 @@ export default function NewMaterial(props) {
                       }}>
                       {logDetail.logPics.map(item => (
                         <View key={item}>
-                          <Image
-                            style={{height: 160, width: 160, marginBottom: 10}}
-                            source={{uri: `${BSAE_IMAGE_URL}${item}`}}
-                            resizeMode="contain"
-                          />
+                          <TouchableWithoutFeedback
+                            onPress={() => {
+                              setModalShow(true);
+                            }}>
+                            <Image
+                              style={{
+                                height: 160,
+                                width: 160,
+                                marginBottom: 10,
+                              }}
+                              source={{uri: `${BSAE_IMAGE_URL}${item}`}}
+                              resizeMode="contain"
+                            />
+                          </TouchableWithoutFeedback>
                         </View>
                       ))}
                     </View>
@@ -289,7 +323,7 @@ export default function NewMaterial(props) {
                   )}
                 </View>
               </View>
-              <View style={styles.items, {display: 'none'}}>
+              <View style={(styles.items, {display: 'none'})}>
                 <Text style={styles.item_title}>文件：</Text>
                 <View style={styles.item_content}>
                   {logDetail.fileUrl.length > 0 ? (
@@ -317,6 +351,21 @@ export default function NewMaterial(props) {
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
+      <Modal visible={modalShow} transparent={true}>
+        <ImageViewer
+          onClick={() => {
+            // 图片单击事件
+            setModalShow(false);
+          }}
+          enableImageZoom={true} // 是否开启手势缩放
+          saveToLocalByLongPress={false} //是否开启长按保存
+          // menuContext={{saveToLocal: '保存图片', cancel: '取消'}}
+          imageUrls={images}
+          // onSave={url => {
+          //   savePhoto(url);
+          // }}
+        />
+      </Modal>
     </View>
   );
 }

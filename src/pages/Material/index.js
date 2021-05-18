@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-08 11:18:46
- * @LastEditTime: 2021-05-11 22:48:01
+ * @LastEditTime: 2021-05-18 13:28:14
  * @LastEditors: Please set LastEditors
  * @Description: 获取日志/资料列表页
  * @FilePath: /web/hy/hyApp/src/pages/Material/index.js
@@ -42,10 +42,26 @@ export default function Material(props) {
   const [labelType, setLabelType] = useState(0);
   const [labelTypeText, setlabelTypeText] = useState('选择标签类型');
   const [loading, setLoading] = useState(true);
+  const [tabs] = useState([
+    {
+      title: '施工日志',
+      value: 1,
+    },
+    {
+      title: '安全日志',
+      value: 2,
+    },
+    {
+      title: '其他资料',
+      value: 3,
+    },
+  ]);
+  const [curTab, setCurTab] = useState(1);
   useEffect(() => {
     (async () => {
       await getMaterialList(true);
       await getLabelList();
+      drawer && drawer.openDrawer();
     })();
   }, []);
   useEffect(() => {
@@ -62,11 +78,11 @@ export default function Material(props) {
       setLoading(true);
     }
     let parms = {
-      logType: logType,
+      logType: curTab,
     };
-    if (labelType !== 0) {
-      parms.fileType = labelType;
-    }
+    // if (labelType !== 0) {
+    //   parms.fileType = labelType;
+    // }
     let labelIds = [];
     labelList.map(item => {
       if (item.isSelect) {
@@ -87,6 +103,7 @@ export default function Material(props) {
       const res = await getMaterials(parms);
       if (res.data.code === 200) {
         // console.log('res', JSON.stringify(res.data.data));
+        console.log('资料列表', res.data.data);
         setLists(res.data.data);
       } else {
         Toast.fail(res.data.message);
@@ -361,7 +378,7 @@ export default function Material(props) {
         </TouchableWithoutFeedback>
         <View style={styles.type}>
           <Text style={{fontSize: 20, marginRight: 10}}>资料类型：</Text>
-          <ModalDropdown
+          {/* <ModalDropdown
             defaultValue={logTypeText}
             options={LOG_TYPE}
             renderButtonText={({name}) => name}
@@ -375,9 +392,32 @@ export default function Material(props) {
               setLogType(item.value);
             }}
           />
-          <IconOutline color="#409EFF" name="down" />
+          <IconOutline color="#409EFF" name="down" /> */}
         </View>
-        <View style={styles.type}>
+        <View style={styles.tabs}>
+          {tabs.map(item => (
+            <TouchableWithoutFeedback
+              onPress={() => {
+                setCurTab(item.value);
+              }}>
+              <View style={styles.tab_item}>
+                <Text
+                  style={{
+                    color:
+                      curTab === item.value ? '#1890ff' : 'rgba(0, 0, 0, 0.85)',
+                    fontSize: 14,
+                    fontWeight: '400',
+                  }}>
+                  {item.title}
+                </Text>
+                {curTab === item.value ? (
+                  <View style={styles.tab_active}></View>
+                ) : null}
+              </View>
+            </TouchableWithoutFeedback>
+          ))}
+        </View>
+        <View style={(styles.type, {display: 'none'})}>
           <Text style={{fontSize: 20, marginRight: 10}}>标签类型：</Text>
           <ModalDropdown
             defaultValue={labelTypeText}
@@ -589,5 +629,23 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginRight: 5,
     marginTop: 6,
+  },
+  tabs: {
+    display: 'flex',
+    flexDirection: 'row',
+    height: 50,
+    alignItems: 'center',
+  },
+  tab_item: {
+    flex: 1,
+    position: 'relative',
+    alignItems: 'center',
+  },
+  tab_active: {
+    position: 'absolute',
+    bottom: -20,
+    width: 80,
+    height: 2,
+    backgroundColor: '#1890ff',
   },
 });

@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 15:41:45
- * @LastEditTime: 2021-05-12 17:54:48
+ * @LastEditTime: 2021-05-18 13:30:05
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Login/index.js
@@ -31,8 +31,8 @@ import {dealFail} from '../../util/common';
 const Login = props => {
   // 412825198903031193
   // 031193
-  const [idCard, setIdCard] = useState('410381199812154559');
-  const [userPwd, setUserPwd] = useState('154554');
+  const [idCard, setIdCard] = useState('412825199405034512');
+  const [userPwd, setUserPwd] = useState('034512');
   const loginAccount = async () => {
     if (idCard.trim().length === 0) {
       return Toast.fail('请填写账号');
@@ -47,6 +47,7 @@ const Login = props => {
       idCard,
       userPwd: encrypted,
     };
+    console.log('parms', parms);
     try {
       const res = await login(parms);
       if (res.data.code === 200) {
@@ -58,7 +59,7 @@ const Login = props => {
         Toast.fail(res.data.message);
       }
     } catch (error) {
-      console.log(error);
+      console.log('error', JSON.stringify(error));
       Toast.fail('登录失败，请检查账号密码');
     }
   };

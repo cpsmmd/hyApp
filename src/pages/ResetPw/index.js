@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-20 21:51:20
- * @LastEditTime: 2021-05-08 09:55:04
+ * @LastEditTime: 2021-05-13 13:52:04
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/ResetPw/index.js
@@ -42,6 +42,7 @@ const Login = props => {
         // 清除缓存
         Toast.success('修改密码成功！');
         AsyncStorage.clear();
+        global.userInfo = {};
         props.navigation.push('login');
       } else {
         Toast.fail(res.data.message);

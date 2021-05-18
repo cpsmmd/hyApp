@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import {SafeAreaView} from 'react-navigation';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import {CommonActions} from '@react-navigation/native';
 import axios from 'axios';
 import {Button, Toast, Badge} from '@ant-design/react-native';
 import {IconFill, IconOutline} from '@ant-design/icons-react-native';
@@ -25,18 +26,20 @@ import {dealFail} from '../../util/test';
 const {width} = Dimensions.get('window');
 const {width: deviceWidth} = Dimensions.get('window');
 import {BSAE_IMAGE_URL} from '../../util/constants';
+import Loading from '../../components/Loading';
 import {getNew} from '../../api/user';
 const IndexPage = props => {
   const [userMsg, setUserMsg] = useState({});
   const [modeLIsts, setModeLIsts] = useState([]);
   const [newsNum, setNewsNum] = useState(0);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     const navFocusListener = props.navigation.addListener('focus', async () => {
       await getNews();
       if (JSON.stringify(global.userInfo) === '{}') {
         let info = await AsyncStorage.getItem('userInfo');
         if (JSON.stringify(info) === 'null') {
-          props.navigation.push('login');
+          goLogin();
         } else {
           global.userInfo = JSON.parse(info);
         }
@@ -44,6 +47,7 @@ const IndexPage = props => {
       } else {
         setUserMsg(global.userInfo);
       }
+      setLoading(false);
     });
 
     return () => {
@@ -55,7 +59,7 @@ const IndexPage = props => {
       if (JSON.stringify(global.userInfo) === '{}') {
         let info = await AsyncStorage.getItem('userInfo');
         if (JSON.stringify(info) === 'null') {
-          props.navigation.push('login');
+          goLogin();
         } else {
           global.userInfo = JSON.parse(info);
         }
@@ -107,6 +111,7 @@ const IndexPage = props => {
               },
             ];
       setModeLIsts(modeLIst);
+      setLoading(false);
     })();
   }, []);
   const getNews = async () => {
@@ -131,6 +136,18 @@ const IndexPage = props => {
   };
   const editRoute = info => {
     info.route && props.navigation.push(info.route);
+  };
+  const goLogin = () => {
+    // props.navigation.push('login');
+    Toast.info('请登录');
+    setTimeout(() => {
+      props.navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [{name: 'login'}],
+        }),
+      );
+    });
   };
   const Header = () => {
     return (
@@ -207,45 +224,47 @@ const IndexPage = props => {
   };
   return (
     <SafeAreaView forceInset={{top: 0, bottom: 0}}>
-      <ImageBackground
-        style={{
-          paddingBottom: 32,
-          height: Platform.OS === 'android' ? 250 : 270,
-          width: deviceWidth,
-          position: 'relative',
-        }}
-        source={require('../../assets/bg.png')}>
-        <Header></Header>
-      </ImageBackground>
-      <View style={styles.main_content}>
-        {modeLIsts.map(item => {
-          return (
-            <View key={item.title} style={styles.modele_item}>
-              <TouchableWithoutFeedback
-                onPress={() => {
-                  editRoute(item);
-                }}>
-                <View>
-                  <Image
-                    source={item.url}
-                    style={{width: 70, height: 70}}
-                    alt=""
-                  />
-                  <Text
-                    style={{
-                      color: '#222',
-                      fontSize: 12,
-                      lineHeight: 17,
-                      marginTop: 10,
-                      textAlign: 'center',
-                    }}>
-                    {item.title}
-                  </Text>
-                </View>
-              </TouchableWithoutFeedback>
-            </View>
-          );
-        })}
+      <View>
+        <ImageBackground
+          style={{
+            paddingBottom: 32,
+            height: Platform.OS === 'android' ? 250 : 270,
+            width: deviceWidth,
+            position: 'relative',
+          }}
+          source={require('../../assets/bg.png')}>
+          <Header></Header>
+        </ImageBackground>
+        <View style={styles.main_content}>
+          {modeLIsts.map(item => {
+            return (
+              <View key={item.title} style={styles.modele_item}>
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    editRoute(item);
+                  }}>
+                  <View>
+                    <Image
+                      source={item.url}
+                      style={{width: 70, height: 70}}
+                      alt=""
+                    />
+                    <Text
+                      style={{
+                        color: '#222',
+                        fontSize: 12,
+                        lineHeight: 17,
+                        marginTop: 10,
+                        textAlign: 'center',
+                      }}>
+                      {item.title}
+                    </Text>
+                  </View>
+                </TouchableWithoutFeedback>
+              </View>
+            );
+          })}
+        </View>
       </View>
     </SafeAreaView>
   );

@@ -2,11 +2,12 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 14:06:37
- * @LastEditTime: 2021-05-13 11:45:13
+ * @LastEditTime: 2021-05-13 14:26:12
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/AppPage.js
  */
+import 'react-native-gesture-handler';
 import React, {useEffect, useState} from 'react';
 import {NavigationContainer} from '@react-navigation/native';
 import {createStackNavigator} from '@react-navigation/stack';
@@ -28,32 +29,24 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 const Stack = createStackNavigator();
 
 export default function AppPage(props) {
-  // let name = 'login';
-  // AsyncStorage.getItem('userInfo').then(res => {
-  //   console.log(res === null);
-  //   if (res === null) {
-  //     name = 'home';
-  //   }
-  // });
-  // const [defaultName, setDefaultName] = useState('home');
-  // useEffect(() => {
-  //   (async () => {
-  //     if (JSON.stringify(global.userInfo) === '{}') {
-  //       let info = await AsyncStorage.getItem('userInfo');
-  //       if (JSON.stringify(info) === 'null') {
-  //         setDefaultName('editPw');
-  //       } else {
-  //         setDefaultName('home');
-  //       }
-  //     }
-  //   })();
-  // }, []);
-  const transition = {
-    gestureDirection: 'horizontal',
-    transitionSpec: {},
-    cardStyleInterpolator: () => {},
-    headerStyleInterpolator: () => {},
-  };
+  let name = 'login';
+  AsyncStorage.getItem('userInfo').then(res => {
+    console.log(res === null);
+    if (res === null) {
+      name = 'home';
+    }
+  });
+  const [defaultName, setDefaultName] = useState('home');
+  useEffect(() => {
+    (async () => {
+      let info = await AsyncStorage.getItem('userInfo');
+      if (JSON.stringify(info) === 'null') {
+        setDefaultName('editPw');
+      } else {
+        setDefaultName('home');
+      }
+    })();
+  }, []);
   return (
     <Provider>
       <NavigationContainer>
@@ -61,7 +54,7 @@ export default function AppPage(props) {
           navigationOptions={{
             gestureEnabled: false,
           }}
-          initialRouteName="home">
+          initialRouteName={defaultName}>
           <Stack.Screen
             name="home"
             component={IndexPage}
