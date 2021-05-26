@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 12:01:32
- * @LastEditTime: 2021-05-18 13:27:44
+ * @LastEditTime: 2021-05-19 10:05:13
  * @LastEditors: Please set LastEditors
  * @Description: 考勤
  * @FilePath: /web/hy/hyApp/src/pages/Work/index.js
@@ -18,7 +18,7 @@ import {
 } from 'react-native';
 import {CalendarList} from 'react-native-common-date-picker';
 import {Button, Toast} from '@ant-design/react-native';
-import {checkWork} from '../../api/user';
+import {checkWork, checkWorkYear} from '../../api/user';
 import ModalDropdown from 'react-native-modal-dropdown';
 import {Table, TableWrapper, Row} from 'react-native-table-component';
 import Empty from '../../components/Empty';
@@ -41,33 +41,21 @@ const Work = () => {
   ]);
   const [curTab, setCurTab] = useState('month');
   const [tableData, setTableData] = useState([]);
+  const [tableDataY, setTableDataY] = useState([]);
   const [monthY, setMonthY] = useState(2021);
-  const [monthM, setMonthM] = useState('01');
+  const [monthM, setMonthM] = useState();
   useEffect(() => {
     (async () => {
-      await getWorks('2021-01');
+      console.log(new Date().getFullYear());
+      console.log(new Date().getMonth() + 1);
+      let date1 = new Date();
+      let M = date1.getMonth() + 1;
+      M = M < 10 ? `0${M}` : `${M}`;
+      let curDate = `${date1.getFullYear()}-${M}`;
+      await getWorks(curDate);
     })();
   }, []);
-  const onChange = (event, selectedDate) => {
-    const currentDate = selectedDate || date;
-    setShow(Platform.OS === 'ios');
-    setDate(currentDate);
-    console.log(currentDate);
-  };
-
-  const showMode = currentMode => {
-    setShow(true);
-    setMode(currentMode);
-  };
-
-  const showDatepicker = () => {
-    showMode('date');
-  };
-
-  const showTimepicker = () => {
-    showMode('time');
-  };
-
+  // 按月
   const getWorks = async date => {
     setLoading(true);
     let parms = {
@@ -104,6 +92,45 @@ const Work = () => {
             isiisLate,
             reason,
             overHours,
+          ];
+          newArr.push(arrRow);
+        });
+        setTableData(newArr);
+      } else {
+        Toast.fail(res.data.message);
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.log(error);
+    }
+  };
+  // 按年
+  const getWorksY = async date => {
+    setLoading(true);
+    let parms = {
+      date,
+      userNo: global.userInfo.userNo,
+      belongProject: global.userInfo.belongProject,
+    };
+    try {
+      const res = await checkWorkYear(parms);
+      if (res.data.code === 200) {
+        let list = res.data.data.list || [];
+        console.log('work-page-按年查询', list);
+        let newArr = [];
+        list.map(item => {
+          let overHours = item.overHours || 0;
+          item.totalCount = item.totalCount || 0;
+          let arrRow = [
+            item.createTime,
+            item.userName,
+            item.idCard,
+            item.jobName,
+            item.earlyDays,
+            item.lateDays,
+            overHours,
+            item.workDays,
           ];
           newArr.push(arrRow);
         });
@@ -159,17 +186,17 @@ const Work = () => {
     '迟到/早退原因',
     '加班时长',
   ];
-  // const tableHead = [
-  //   '日期',
-  //   '姓名',
-  //   '身份证号',
-  //   '岗位',
-  //   '当日工作时间',
-  //   '迟到天数',
-  //   '早退天数',
-  //   '出勤天数',
-  //   '加班时长',
-  // ];
+  const tableHeadY = [
+    '日期',
+    '姓名',
+    '身份证号',
+    '岗位',
+    '早退天数',
+    '迟到天数',
+    '加班时长',
+    '出勤天数',
+  ];
+  const widthArrY = [100, 70, 80, 100, 80, 80, 80, 100];
   const widthArr = [100, 70, 100, 100, 120, 102, 120, 80, 80, 120, 100];
   return (
     <View style={{backgroundColor: '#fff', paddingBottom: 100}}>
@@ -178,6 +205,15 @@ const Work = () => {
           <TouchableWithoutFeedback
             onPress={() => {
               setCurTab(item.value);
+              if (item.value === 'year') {
+                getWorksY(new Date().getFullYear());
+              } else {
+                let date1 = new Date();
+                let M = date1.getMonth() + 1;
+                M = M < 10 ? `0${M}` : `${M}`;
+                let curDate = `${date1.getFullYear()}-${M}`;
+                getWorks(curDate);
+              }
             }}>
             <View style={styles.tab_item}>
               <Text
@@ -208,7 +244,7 @@ const Work = () => {
             }}>
             <Text style={{fontSize: 16, color: '#666'}}>年份：</Text>
             <ModalDropdown
-              defaultValue={'2021'}
+              defaultValue={`${new Date().getFullYear()}`}
               options={yearOption}
               textStyle={styles.dropdownText}
               dropdownStyle={styles.dropdownStyle}
@@ -223,7 +259,7 @@ const Work = () => {
               月份：
             </Text>
             <ModalDropdown
-              defaultValue={'01'}
+              defaultValue={`${new Date().getMonth() + 1}`}
               options={monthOption}
               textStyle={styles.dropdownText}
               dropdownStyle={styles.dropdownStyle}
@@ -232,11 +268,11 @@ const Work = () => {
               onSelect={selectedDate => {
                 console.log(selectedDate);
                 setMonthM(monthOption[selectedDate]);
-                let date = `${monthY}-${monthOption[selectedDate]}`;
-                getWorks(date);
+                let date1 = `${monthY}-${monthOption[selectedDate]}`;
+                getWorks(date1);
               }}
             />
-            <Text style={styles.dropdownText}> 月</Text>
+            <Text style={styles.dropdownText}>月</Text>
           </View>
         ) : (
           <View
@@ -256,7 +292,8 @@ const Work = () => {
               dropdownTextStyle={styles.DropDownPickerText}
               dropdownTextHighlightStyle={styles.dropdownTextHighlightStyle}
               onSelect={selectedDate => {
-                getWorks(yearOption[selectedDate]);
+                // getWorks(yearOption[selectedDate]);
+                getWorksY(yearOption[selectedDate]);
               }}
             />
             <Text style={styles.dropdownText}> 年</Text>
@@ -269,32 +306,63 @@ const Work = () => {
         <>
           {tableData.length > 0 ? (
             <ScrollView horizontal={true}>
-              <View style={{padding: 10}}>
-                <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
-                  <Row
-                    data={tableHead}
-                    widthArr={widthArr}
-                    style={styles.header}
-                    textStyle={styles.text}
-                  />
-                </Table>
-                <ScrollView style={styles.dataWrapper}>
+              {curTab === 'month' ? (
+                <View style={{padding: 10}}>
                   <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
-                    {tableData.map((rowData, index) => (
-                      <Row
-                        key={index}
-                        data={rowData}
-                        widthArr={widthArr}
-                        style={[
-                          styles.row,
-                          index % 2 && {backgroundColor: '#F7F6E7'},
-                        ]}
-                        textStyle={styles.text}
-                      />
-                    ))}
+                    <Row
+                      data={tableHead}
+                      widthArr={widthArr}
+                      style={styles.header}
+                      textStyle={styles.text}
+                    />
                   </Table>
-                </ScrollView>
-              </View>
+                  <ScrollView style={styles.dataWrapper}>
+                    <Table
+                      borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
+                      {tableData.map((rowData, index) => (
+                        <Row
+                          key={index}
+                          data={rowData}
+                          widthArr={widthArr}
+                          style={[
+                            styles.row,
+                            index % 2 && {backgroundColor: '#F7F6E7'},
+                          ]}
+                          textStyle={styles.text}
+                        />
+                      ))}
+                    </Table>
+                  </ScrollView>
+                </View>
+              ) : (
+                <View style={{padding: 10}}>
+                  <Table borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
+                    <Row
+                      data={tableHeadY}
+                      widthArr={widthArrY}
+                      style={styles.header}
+                      textStyle={styles.text}
+                    />
+                  </Table>
+                  <ScrollView style={styles.dataWrapper}>
+                    <Table
+                      borderStyle={{borderWidth: 1, borderColor: '#C1C0B9'}}>
+                      {tableData.map((rowData, index) => (
+                        <Row
+                          key={index}
+                          data={rowData}
+                          widthArr={widthArrY}
+                          style={[
+                            styles.row,
+                            index % 2 && {backgroundColor: '#F7F6E7'},
+                          ]}
+                          textStyle={styles.text}
+                        />
+                      ))}
+                    </Table>
+                  </ScrollView>
+                </View>
+              )}
             </ScrollView>
           ) : (
             <Empty title="当前无考勤记录"></Empty>

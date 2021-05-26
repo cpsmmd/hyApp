@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-09 14:03:03
- * @LastEditTime: 2021-05-18 16:57:41
+ * @LastEditTime: 2021-05-25 15:17:48
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Material/newMaterial/index.js
@@ -178,11 +178,11 @@ export default function NewMaterial(props) {
       console.log(photos);
       try {
         const res = await upLoadFile(data);
-        console.log('success', res.data);
         if (res.data.code === 200) {
           let newLists = [...logPics];
           newLists.push(res.data.data);
           setLogPics(newLists);
+          console.log(logPics);
         }
       } catch (error) {
         console.log('error', error);

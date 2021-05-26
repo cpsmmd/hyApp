@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 12:02:28
- * @LastEditTime: 2021-05-11 20:30:52
+ * @LastEditTime: 2021-05-18 17:52:46
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Wage/index.js
@@ -62,9 +62,9 @@ export default function Wage() {
             item.salaryTotal,
             overHours,
             item.overHoursMoney,
-            item.totalMoney,
-            item.loseMoney.toFixed(4),
-            item.finalMoney,
+            item.totalMoney.toFixed(2),
+            item.loseMoney.toFixed(2),
+            item.finalMoney.toFixed(2),
           ];
           newArr.push(arrRow);
         });

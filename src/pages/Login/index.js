@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 15:41:45
- * @LastEditTime: 2021-05-18 13:30:05
+ * @LastEditTime: 2021-05-25 15:31:18
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Login/index.js
@@ -29,10 +29,10 @@ import {login} from '../../api/user';
 import {dealFail} from '../../util/common';
 
 const Login = props => {
-  // 412825198903031193
-  // 031193
-  const [idCard, setIdCard] = useState('412825199405034512');
-  const [userPwd, setUserPwd] = useState('034512');
+  // 412825198903031210
+  // 031210
+  const [idCard, setIdCard] = useState('');
+  const [userPwd, setUserPwd] = useState('');
   const loginAccount = async () => {
     if (idCard.trim().length === 0) {
       return Toast.fail('请填写账号');

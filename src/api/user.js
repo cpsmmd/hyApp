@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 15:22:36
- * @LastEditTime: 2021-05-18 14:49:31
+ * @LastEditTime: 2021-05-18 17:57:45
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/api/user.js
@@ -25,6 +25,13 @@ export const updatePwd = params =>
 // 考勤
 export const checkWork = params =>
   fetch.post('/appapi/selectCheckInList', params, {
+    headers: {
+      idCard: global.userInfo.idCard,
+    },
+  });
+// 按年查询
+export const checkWorkYear = params =>
+  fetch.post('/appapi/selectCheckinmonthByYear', params, {
     headers: {
       idCard: global.userInfo.idCard,
     },

@@ -1,16 +1,16 @@
 /*
  * @Author: your name
  * @Date: 2021-05-06 13:37:26
- * @LastEditTime: 2021-05-18 11:43:34
+ * @LastEditTime: 2021-05-25 15:09:11
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/util/constants.js
  */
 // 服务端地址
-export const BSAE_API = 'http://47.117.123.129:8900/';
-export const BSAE_API2 = 'http://47.117.123.129/';
+export const BSAE_API = 'http://116.62.231.156:8900/';
+export const BSAE_API2 = 'http://116.62.231.156/';
 // 服务端地址
-export const BSAE_IMAGE_URL = 'http://47.117.123.129:8900/image/';
+export const BSAE_IMAGE_URL = 'http://116.62.231.156:8900/image/';
 // RSA加密公钥
 export const PUB_KEY =
   'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCISLP98M/56HexX/9FDM8iuIEQozy6kn2JMcbZS5/BhJ+U4PZIChJfggYlWnd8NWn4BYr2kxxyO8Qgvc8rpRZCkN0OSLqLgZGmNvoSlDw80UXq90ZsVHDTOHuSFHw8Bv//B4evUNJBB8g9tpVxr6P5EJ6FMoR/kY2dVFQCQM4+5QIDAQAB';

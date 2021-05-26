@@ -15,6 +15,6 @@ if (global.userInfo && global.userInfo.idCard) {
 }
 console.log('idCard', idCard);
 axios.defaults.timeout = 100000;
-axios.defaults.baseURL = 'http://47.117.123.129:8900';
+axios.defaults.baseURL = 'http://116.62.231.156:8900';
 // axios.defaults.headers.common['idCard'] = idCard;
 export default axios;
