@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 10:39:14
- * @LastEditTime: 2021-05-13 13:50:46
+ * @LastEditTime: 2021-06-01 13:59:52
  * @LastEditors: Please set LastEditors
  * @Description: 个人设置
  * @FilePath: hy/hyApp/src/pages/Setting/index.js
@@ -22,10 +22,11 @@ export default function Setting(props) {
     };
     try {
       const res = await loginOut(parms);
-      if (res.data.code === 200) {
+      if (res.data.code === 200 || res.data.code === 500) {
         // 清除缓存
         AsyncStorage.clear();
         // props.navigation.push('login');
+        global.userInfo = {};
         props.navigation.dispatch(
           CommonActions.reset({
             index: 1,
@@ -36,8 +37,8 @@ export default function Setting(props) {
         Toast.fail(res.data.message);
       }
     } catch (error) {
-      console.log(error);
-      Toast.fail('退出失败');
+      console.log('退出失败', error);
+      Toast.fail(JSON.stringify(error));
     }
   };
   const editPw = () => {

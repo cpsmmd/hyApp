@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 12:02:28
- * @LastEditTime: 2021-05-18 17:52:46
+ * @LastEditTime: 2021-06-01 13:40:12
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Wage/index.js
@@ -12,7 +12,8 @@ import {Button, Toast} from '@ant-design/react-native';
 import {selectWage} from '../../api/user';
 import {Table, TableWrapper, Row} from 'react-native-table-component';
 import Empty from '../../components/Empty';
-export default function Wage() {
+import {dealFail} from '../../util/common';
+export default function Wage(props) {
   const [tableData, setTableData] = useState([]);
   const tableHead = [
     '日期',
@@ -70,7 +71,8 @@ export default function Wage() {
         });
         setTableData(newArr);
       } else {
-        Toast.fail(res.data.message);
+        dealFail(props, res.data.code, res.data.message);
+        // Toast.fail(res.data.message);
       }
     } catch (error) {
       console.log(error);

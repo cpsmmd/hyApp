@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 15:41:45
- * @LastEditTime: 2021-05-25 15:31:18
+ * @LastEditTime: 2021-06-21 22:55:10
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Login/index.js
@@ -33,6 +33,8 @@ const Login = props => {
   // 031210
   const [idCard, setIdCard] = useState('');
   const [userPwd, setUserPwd] = useState('');
+  const [test1] = useState(0);
+  const [test2] = useState(2);
   const loginAccount = async () => {
     if (idCard.trim().length === 0) {
       return Toast.fail('请填写账号');
@@ -47,7 +49,6 @@ const Login = props => {
       idCard,
       userPwd: encrypted,
     };
-    console.log('parms', parms);
     try {
       const res = await login(parms);
       if (res.data.code === 200) {
@@ -56,6 +57,7 @@ const Login = props => {
         await AsyncStorage.setItem('userInfo', JSON.stringify(res.data.data));
         props.navigation.push('home');
       } else {
+        console.log(res.data);
         Toast.fail(res.data.message);
       }
     } catch (error) {

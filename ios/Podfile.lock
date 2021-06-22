@@ -10,6 +10,14 @@ PODS:
     - React-jsi (= 0.64.0)
     - ReactCommon/turbomodule/core (= 0.64.0)
   - glog (0.3.5)
+  - MQTTClient (0.15.3):
+    - MQTTClient/Core (= 0.15.3)
+  - MQTTClient/Core (0.15.3):
+    - MQTTClient/Manager
+    - MQTTClient/Min
+  - MQTTClient/Manager (0.15.3):
+    - MQTTClient/Min
+  - MQTTClient/Min (0.15.3)
   - RCT-Folly (2020.01.13.00):
     - boost-for-react-native
     - DoubleConversion
@@ -327,6 +335,8 @@ PODS:
   - RNSyanImagePicker (0.4.11):
     - React
     - TZImagePickerController
+  - sp-react-native-mqtt (0.5.0):
+    - React
   - TZImagePickerController (3.6.0)
   - Yoga (1.14.0)
 
@@ -335,6 +345,7 @@ DEPENDENCIES:
   - FBLazyVector (from `../node_modules/react-native/Libraries/FBLazyVector`)
   - FBReactNativeSpec (from `../node_modules/react-native/React/FBReactNativeSpec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
+  - MQTTClient
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTRequired (from `../node_modules/react-native/Libraries/RCTRequired`)
   - RCTTypeSafety (from `../node_modules/react-native/Libraries/TypeSafety`)
@@ -376,11 +387,13 @@ DEPENDENCIES:
   - RNReanimated (from `../node_modules/react-native-reanimated`)
   - RNScreens (from `../node_modules/react-native-screens`)
   - RNSyanImagePicker (from `../node_modules/react-native-syan-image-picker`)
+  - sp-react-native-mqtt (from `../node_modules/sp-react-native-mqtt`)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
     - boost-for-react-native
+    - MQTTClient
     - TZImagePickerController
 
 EXTERNAL SOURCES:
@@ -470,6 +483,8 @@ EXTERNAL SOURCES:
     :path: "../node_modules/react-native-screens"
   RNSyanImagePicker:
     :path: "../node_modules/react-native-syan-image-picker"
+  sp-react-native-mqtt:
+    :path: "../node_modules/sp-react-native-mqtt"
   Yoga:
     :path: "../node_modules/react-native/ReactCommon/yoga"
 
@@ -479,6 +494,7 @@ SPEC CHECKSUMS:
   FBLazyVector: 49cbe4b43e445b06bf29199b6ad2057649e4c8f5
   FBReactNativeSpec: 69b1f01bae20809a8ab41257b75aa941d2056dd5
   glog: 73c2498ac6884b13ede40eda8228cb1eee9d9d62
+  MQTTClient: 0dfa04e789479c2e461786464969895c1fcb0875
   RCT-Folly: ec7a233ccc97cc556cf7237f0db1ff65b986f27c
   RCTRequired: 2f8cb5b7533219bf4218a045f92768129cf7050a
   RCTTypeSafety: 512728b73549e72ad7330b92f3d42936f2a4de5b
@@ -518,9 +534,10 @@ SPEC CHECKSUMS:
   RNReanimated: b8c8004b43446e3c2709fe64b2b41072f87428ad
   RNScreens: c277bfc4b5bb7c2fe977d19635df6f974f95dfd6
   RNSyanImagePicker: 8599c74c349b199bae111d6b0a48c8f6279bb01b
+  sp-react-native-mqtt: 877e13f0debb79a18629d4880eebb1a3ad09dfe7
   TZImagePickerController: a37d7eec87c54436e896a67947033ad2178d498b
   Yoga: 8c8436d4171c87504c648ae23b1d81242bdf3bbf
 
-PODFILE CHECKSUM: 57b3a8f920652d516e4bd85fa53777840383e37c
+PODFILE CHECKSUM: 6bb0200bcb4d6501b2f6beea63ef3bc9dd9672b6
 
 COCOAPODS: 1.10.1

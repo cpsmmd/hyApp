@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 12:01:32
- * @LastEditTime: 2021-05-19 10:05:13
+ * @LastEditTime: 2021-06-01 13:45:23
  * @LastEditors: Please set LastEditors
  * @Description: 考勤
  * @FilePath: /web/hy/hyApp/src/pages/Work/index.js
@@ -23,7 +23,8 @@ import ModalDropdown from 'react-native-modal-dropdown';
 import {Table, TableWrapper, Row} from 'react-native-table-component';
 import Empty from '../../components/Empty';
 import Loading from '../../components/Loading';
-const Work = () => {
+import {dealFail} from '../../util/common';
+const Work = props => {
   const [startDate, setStartDate] = useState(null);
   const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState('date');
@@ -76,10 +77,16 @@ const Work = () => {
           let isisEarly = item.isEarly === 0 ? '否' : '是';
           let isiisLate = item.isLate === 0 ? '否' : '是';
           let reason = reason || '无';
-          let overHours = overHours || '无';
+          let overHours = item.overHours || 0;
           let timeWork = `上午(${item.firstAmTime} - ${item.firstPmTime}) 下午(${item.lastAmTime} - ${item.lastPmTime})`;
           let daka1 = `${item.workStartAmTime} - ${item.workEndAmTime}`;
           let daka2 = `${item.workStartPmTime} - ${item.workEndPmTime}`;
+          item.overStartTime = item.overStartTime || '未打卡';
+          item.overEndTime = item.overEndTime || '未打卡';
+          let overTmes =
+            overHours === 0
+              ? '无'
+              : `${item.overStartTime} ~ ${item.overEndTime}`;
           let arrRow = [
             item.createTime,
             item.userName,
@@ -92,12 +99,14 @@ const Work = () => {
             isiisLate,
             reason,
             overHours,
+            overTmes,
           ];
           newArr.push(arrRow);
         });
         setTableData(newArr);
       } else {
-        Toast.fail(res.data.message);
+        // Toast.fail(res.data.message);
+        dealFail(props, res.data.code, res.data.message);
       }
       setLoading(false);
     } catch (error) {
@@ -136,7 +145,8 @@ const Work = () => {
         });
         setTableData(newArr);
       } else {
-        Toast.fail(res.data.message);
+        // Toast.fail(res.data.message);
+        dealFail(props, res.data.code, res.data.message);
       }
       setLoading(false);
     } catch (error) {
@@ -185,6 +195,7 @@ const Work = () => {
     '是否早退',
     '迟到/早退原因',
     '加班时长',
+    '加班打卡时间',
   ];
   const tableHeadY = [
     '日期',
@@ -197,7 +208,7 @@ const Work = () => {
     '出勤天数',
   ];
   const widthArrY = [100, 70, 80, 100, 80, 80, 80, 100];
-  const widthArr = [100, 70, 100, 100, 120, 102, 120, 80, 80, 120, 100];
+  const widthArr = [100, 70, 100, 100, 120, 102, 120, 80, 80, 120, 100, 120];
   return (
     <View style={{backgroundColor: '#fff', paddingBottom: 100}}>
       <View style={styles.tabs}>

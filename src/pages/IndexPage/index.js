@@ -25,14 +25,16 @@ import SyanImagePicker from 'react-native-syan-image-picker';
 import {dealFail} from '../../util/test';
 const {width} = Dimensions.get('window');
 const {width: deviceWidth} = Dimensions.get('window');
-import {BSAE_IMAGE_URL} from '../../util/constants';
+import {BSAE_IMAGE_URL, BSAE_API} from '../../util/constants';
 import Loading from '../../components/Loading';
 import {getNew} from '../../api/user';
+import MQTT from 'sp-react-native-mqtt';
 const IndexPage = props => {
   const [userMsg, setUserMsg] = useState({});
   const [modeLIsts, setModeLIsts] = useState([]);
   const [newsNum, setNewsNum] = useState(0);
   const [loading, setLoading] = useState(true);
+  // !要去掉注释
   useEffect(() => {
     const navFocusListener = props.navigation.addListener('focus', async () => {
       await getNews();
@@ -49,7 +51,6 @@ const IndexPage = props => {
       }
       setLoading(false);
     });
-
     return () => {
       navFocusListener.remove();
     };
@@ -112,6 +113,7 @@ const IndexPage = props => {
             ];
       setModeLIsts(modeLIst);
       setLoading(false);
+      dealMqtt();
     })();
   }, []);
   const getNews = async () => {
@@ -121,18 +123,64 @@ const IndexPage = props => {
       };
       try {
         const res = await getNew(parms);
-        if (res.data.data.count !== 0) {
-          setNewsNum(res.data.data.count);
-          await AsyncStorage.setItem('newsCount', res.data.data.count + '');
+        if (res.data.code === 200) {
+          if (res.data.data.count !== 0) {
+            setNewsNum(res.data.data.count);
+            await AsyncStorage.setItem('newsCount', res.data.data.count + '');
+          } else {
+            await AsyncStorage.setItem('newsCount', res.data.data.count + '');
+            let count = await AsyncStorage.getItem('newsCount');
+            setNewsNum(count * 1);
+          }
         } else {
-          await AsyncStorage.setItem('newsCount', res.data.data.count + '');
-          let count = await AsyncStorage.getItem('newsCount');
-          setNewsNum(count * 1);
+          dealFail(props, res.data.code, res.data.message);
         }
       } catch (error) {
         console.error(error);
       }
     }
+  };
+  const dealMqtt = () => {
+    // mqtt://47.117.123.129:8900/warning/app/data
+    // console.log('ready');
+    MQTT.createClient({
+      uri: 'mqtt://47.117.123.129:1883',
+      clientId: 'mqttx_5afa9f86hhdjsdwefiwe22i',
+      user: 'admin',
+      pass: 'admin',
+    })
+      .then(function (client) {
+        console.log('client', client);
+        client.on('closed', function () {
+          console.log('mqtt.event.closed');
+        });
+
+        client.on('error', function (msg) {
+          console.log('mqtt.event.error', msg);
+        });
+
+        client.on('message', function (msg) {
+          console.log('mqtt.event.message', msg);
+        });
+
+        client.on('connect', function () {
+          console.log('cps2-----------connected');
+          // client.subscribe('/warning/app/data', function (err) {
+          //   if (!err) {
+          //     console.log('cps3-----------connected');
+          //     client.publish('/warning/app/data', 'Hello mqtt');
+          //   }
+          // });
+          // client.subscribe('/data', 0);
+          // client.publish('/data', 'test', 0, false);
+        });
+
+        client.connect();
+        // client.publish('/warning/app/data', 'Hello mqtt');
+      })
+      .catch(function (err) {
+        console.error('mqtt连接失败', err);
+      });
   };
   const editRoute = info => {
     info.route && props.navigation.push(info.route);

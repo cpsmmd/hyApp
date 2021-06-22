@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-07 20:47:58
- * @LastEditTime: 2021-05-14 13:20:39
+ * @LastEditTime: 2021-06-01 13:54:24
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Notice/index.js
@@ -13,7 +13,8 @@ import {getNotice, upLoadFile} from '../../api/user';
 import DocumentPicker from 'react-native-document-picker';
 import RNFetchBlob from 'rn-fetch-blob';
 import Empty from '../../components/Empty';
-export default function Notice() {
+import {dealFail} from '../../util/common';
+export default function Notice(props) {
   const [startDate, setStartDate] = useState(null);
   const [newsList, setNewsList] = useState([]);
   const [drawer, setDrawer] = useState(null);
@@ -21,7 +22,7 @@ export default function Notice() {
     (async () => {
       await getNotices();
       console.log(
-        `http://116.62.231.156:8900/HyVisitors/downFileApp?path=files/baidu932.numbers`,
+        `http://47.117.123.129:8900/HyVisitors/downFileApp?path=files/baidu932.numbers`,
       );
     })();
   }, []);
@@ -37,6 +38,7 @@ export default function Notice() {
         console.log('记录', res.data.data);
       } else {
         Toast.fail(res.data.message);
+        dealFail(props, res.data.code, res.data.message);
       }
     } catch (error) {
       console.log(error);
@@ -54,7 +56,7 @@ export default function Notice() {
       } else {
         url = results[0].uri.replace('file://', '');
       }
-      // http://116.62.231.156:8900
+      // http://47.117.123.129:8900
       console.log('url', url);
       console.log(RNFetchBlob.wrap(url));
       let parms = new FormData();
@@ -67,7 +69,7 @@ export default function Notice() {
       console.log('parms', parms);
       RNFetchBlob.fetch(
         'POST',
-        'http://116.62.231.156:8900/HyVisitors/uploadBatchApp',
+        'http://47.117.123.129:8900/HyVisitors/uploadBatchApp',
         {
           otherHeader: 'foo',
           'Content-Type': 'multipart/form-data',
@@ -111,7 +113,7 @@ export default function Notice() {
   const downFil = () => {
     RNFetchBlob.fetch(
       'GET',
-      'http://116.62.231.156:8900/HyVisitors/downFileApp?path=files/baidu932.numbers',
+      'http://47.117.123.129:8900/HyVisitors/downFileApp?path=files/baidu932.numbers',
       {
         Authorization: 'Bearer access-token...',
         // more headers  ..

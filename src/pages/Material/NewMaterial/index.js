@@ -174,7 +174,7 @@ export default function NewMaterial(props) {
       }
       RNFetchBlob.fetch(
         'POST',
-        'http://116.62.231.156:8900/HyVisitors/uploadBatchApp',
+        'http://47.117.123.129:8900/HyVisitors/uploadBatchApp',
         {
           otherHeader: 'foo',
           'Content-Type': 'multipart/form-data',

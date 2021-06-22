@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-08 11:18:46
- * @LastEditTime: 2021-05-18 13:28:14
+ * @LastEditTime: 2021-06-21 22:51:50
  * @LastEditors: Please set LastEditors
  * @Description: 获取日志/资料列表页
  * @FilePath: /web/hy/hyApp/src/pages/Material/index.js
@@ -24,6 +24,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import {LOG_TYPE, TYPELOG_OPTIONS} from '../../util/constants';
 import Loading from '../../components/Loading';
 import Empty from '../../components/Empty';
+import {dealFail} from '../../util/common';
 export default function Material(props) {
   const [date, setDate] = useState(new Date());
   const [mode, setMode] = useState('date');
@@ -106,7 +107,8 @@ export default function Material(props) {
         console.log('资料列表', res.data.data);
         setLists(res.data.data);
       } else {
-        Toast.fail(res.data.message);
+        // Toast.fail(res.data.message);
+        dealFail(props, res.data.code, res.data.message);
       }
       setLoading(false);
     } catch (error) {
@@ -200,14 +202,16 @@ export default function Material(props) {
               }}>
               筛选
             </Button>
-            <Button
-              type="primary"
-              style={{width: 80, marginLeft: 'auto'}}
-              onPress={() => {
-                props.navigation.push('newMaterial');
-              }}>
-              新增
-            </Button>
+            {global.userInfo.projectState === 1 && (
+              <Button
+                type="primary"
+                style={{width: 80, marginLeft: 'auto'}}
+                onPress={() => {
+                  props.navigation.push('newMaterial');
+                }}>
+                新增
+              </Button>
+            )}
           </View>
           <View>
             {loading ? (
@@ -262,75 +266,79 @@ export default function Material(props) {
                                     查看
                                   </Text>
                                 </TouchableWithoutFeedback>
-                                {item.idCard === global.userInfo.idCard && (
-                                  <View
-                                    style={{
-                                      display: 'flex',
-                                      flexDirection: 'row',
-                                    }}>
-                                    <TouchableWithoutFeedback
-                                      onPress={() => {
-                                        props.navigation.push('editMaterial', {
-                                          id: item.id,
-                                          logType: item.logType,
-                                        });
+                                {item.idCard === global.userInfo.idCard &&
+                                  global.userInfo.projectState === 1 && (
+                                    <View
+                                      style={{
+                                        display: 'flex',
+                                        flexDirection: 'row',
                                       }}>
-                                      <Text
-                                        style={{
-                                          marginLeft: 10,
-                                          color: '#1890ff',
-                                          fontSize: 16,
-                                        }}>
-                                        编辑
-                                      </Text>
-                                    </TouchableWithoutFeedback>
-                                    <TouchableWithoutFeedback
-                                      onPress={() => {
-                                        Modal.alert(
-                                          '提示',
-                                          '确认删除此条内容？',
-                                          [
+                                      <TouchableWithoutFeedback
+                                        onPress={() => {
+                                          props.navigation.push(
+                                            'editMaterial',
                                             {
-                                              text: '取消',
-                                              onPress: () =>
-                                                console.log('cancel'),
-                                              style: 'cancel',
+                                              id: item.id,
+                                              logType: item.logType,
                                             },
-                                            {
-                                              text: '确认',
-                                              onPress: async () => {
-                                                let parms = {
-                                                  id: item.id,
-                                                };
-                                                console.log(parms);
-                                                try {
-                                                  const res = await delFileLog(
-                                                    parms,
-                                                  );
-                                                  if (res.data.code === 200) {
-                                                    getMaterials();
-                                                    Toast.success('删除成功');
-                                                  }
-                                                } catch (error) {
-                                                  getMaterials();
-                                                  console.error(error);
-                                                }
+                                          );
+                                        }}>
+                                        <Text
+                                          style={{
+                                            marginLeft: 10,
+                                            color: '#1890ff',
+                                            fontSize: 16,
+                                          }}>
+                                          编辑
+                                        </Text>
+                                      </TouchableWithoutFeedback>
+                                      <TouchableWithoutFeedback
+                                        onPress={() => {
+                                          Modal.alert(
+                                            '提示',
+                                            '确认删除此条内容？',
+                                            [
+                                              {
+                                                text: '取消',
+                                                onPress: () =>
+                                                  console.log('cancel'),
+                                                style: 'cancel',
                                               },
-                                            },
-                                          ],
-                                        );
-                                      }}>
-                                      <Text
-                                        style={{
-                                          marginLeft: 10,
-                                          color: 'red',
-                                          fontSize: 16,
+                                              {
+                                                text: '确认',
+                                                onPress: async () => {
+                                                  let parms = {
+                                                    id: item.id,
+                                                  };
+                                                  console.log(parms);
+                                                  try {
+                                                    const res = await delFileLog(
+                                                      parms,
+                                                    );
+                                                    if (res.data.code === 200) {
+                                                      getMaterials();
+                                                      Toast.success('删除成功');
+                                                    }
+                                                  } catch (error) {
+                                                    getMaterials();
+                                                    console.error(error);
+                                                  }
+                                                },
+                                              },
+                                            ],
+                                          );
                                         }}>
-                                        删除
-                                      </Text>
-                                    </TouchableWithoutFeedback>
-                                  </View>
-                                )}
+                                        <Text
+                                          style={{
+                                            marginLeft: 10,
+                                            color: 'red',
+                                            fontSize: 16,
+                                          }}>
+                                          删除
+                                        </Text>
+                                      </TouchableWithoutFeedback>
+                                    </View>
+                                  )}
                               </View>
                             </View>
                             <View

@@ -16,6 +16,8 @@ target 'myApp' do
 
   pod 'RNSyanImagePicker', :path => '../node_modules/react-native-syan-image-picker'
 
+  pod 'sp-react-native-mqtt', :path => '../node_modules/sp-react-native-mqtt'
+  pod 'MQTTClient'
   target 'myAppTests' do
     inherit! :complete
     # Pods for testing

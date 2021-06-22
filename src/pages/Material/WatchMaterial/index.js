@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-09 14:03:03
- * @LastEditTime: 2021-05-25 15:17:48
+ * @LastEditTime: 2021-06-21 22:53:09
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Material/newMaterial/index.js
@@ -34,6 +34,7 @@ import SyanImagePicker from 'react-native-syan-image-picker';
 import {upLoadFile, getSignleFileLog} from '../../../api/user';
 import ModalDropdown from 'react-native-modal-dropdown';
 import {getLabel, addFileLog} from '../../../api/user';
+import {dealFail} from '../../../util/common';
 const {width} = Dimensions.get('window');
 const numberOfLines = 5;
 const imgOptions = {
@@ -135,28 +136,32 @@ export default function NewMaterial(props) {
     };
     try {
       const res = await getSignleFileLog(parms);
-      let info = res.data.data;
-      info.logPics = JSON.parse(info.logPics) || [];
-      info.fileUrl = JSON.parse(info.fileUrl) || [];
-      info.labels = info.labels || [];
-      console.log('info', info);
-      setLogName(info.logName);
-      setLogText(info.logText);
-      setLogDeatil(info);
-      setLogType(info.logType);
-      // setSetLabelType(info.fileType);
-      // let labelTypeValue = info.fileType
-      //   ? TYPELOG_OPTIONS.find(v => v.value === info.fileType).name
-      //   : '选择标签类型';
-      // setLabenDefault(labelTypeValue);
-      // 图片展示
-      let image = [];
-      info.logPics.map(v => {
-        image.push({
-          url: `${BSAE_IMAGE_URL}${v}?v=3&s=460`,
+      if (res.data.code === 200) {
+        let info = res.data.data;
+        info.logPics = JSON.parse(info.logPics) || [];
+        info.fileUrl = JSON.parse(info.fileUrl) || [];
+        info.labels = info.labels || [];
+        console.log('info', info);
+        setLogName(info.logName);
+        setLogText(info.logText);
+        setLogDeatil(info);
+        setLogType(info.logType);
+        // setSetLabelType(info.fileType);
+        // let labelTypeValue = info.fileType
+        //   ? TYPELOG_OPTIONS.find(v => v.value === info.fileType).name
+        //   : '选择标签类型';
+        // setLabenDefault(labelTypeValue);
+        // 图片展示
+        let image = [];
+        info.logPics.map(v => {
+          image.push({
+            url: `${BSAE_IMAGE_URL}${v}?v=3&s=460`,
+          });
         });
-      });
-      setImages(image);
+        setImages(image);
+      } else {
+        dealFail(props, res.data.code, res.data.message);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -333,20 +338,21 @@ export default function NewMaterial(props) {
                   )}
                 </View>
               </View>
-              {logDetail.idCard === global.userInfo.idCard && (
-                <View style={{padding: 20}}>
-                  <Button
-                    onPress={() => {
-                      props.navigation.push('editMaterial', {
-                        id: logDetail.id,
-                        logType: logDetail.logType,
-                      });
-                    }}
-                    type="primary">
-                    修改
-                  </Button>
-                </View>
-              )}
+              {logDetail.idCard === global.userInfo.idCard &&
+                global.userInfo.projectState === 1 && (
+                  <View style={{padding: 20}}>
+                    <Button
+                      onPress={() => {
+                        props.navigation.push('editMaterial', {
+                          id: logDetail.id,
+                          logType: logDetail.logType,
+                        });
+                      }}
+                      type="primary">
+                      修改
+                    </Button>
+                  </View>
+                )}
             </View>
           </ScrollView>
         </TouchableWithoutFeedback>

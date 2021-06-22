@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-20 21:51:20
- * @LastEditTime: 2021-05-13 13:52:04
+ * @LastEditTime: 2021-05-27 14:30:29
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/ResetPw/index.js
@@ -24,7 +24,7 @@ import {PUB_KEY} from '../../util/constants';
 import {updatePwd} from '../../api/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const Login = props => {
-  const [idCard, setIdCard] = useState('412726199606126216');
+  const [idCard, setIdCard] = useState('');
   const [oldPwd, setOldPwd] = useState('');
   const [userPwd, setUserPwd] = useState('');
   const editPwd = async () => {
@@ -66,10 +66,10 @@ const Login = props => {
             <View style={{width: '100%'}}>
               <Text style={styles.login_title}>身份证</Text>
               <TextInput
-                value={idCard}
-                onChangeText={text => setIdCard(text)}
+                value={global.userInfo.idCard}
                 style={styles.login_input}
                 placeholder="请输入账号"
+                editable={false}
               />
               <Text style={styles.login_title}>旧密码</Text>
               <TextInput
