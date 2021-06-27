@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 14:06:37
- * @LastEditTime: 2021-05-13 14:26:12
+ * @LastEditTime: 2021-06-27 15:41:38
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/AppPage.js
@@ -23,6 +23,10 @@ import Material from './pages/Material';
 import NewMaterial from './pages/Material/NewMaterial';
 import WatchMaterial from './pages/Material/WatchMaterial';
 import EditMaterial from './pages/Material/EditMaterial';
+// 二期
+import stuffMenu from './pages/Stuff/index';
+import DetailList from './pages/Stuff/DetailList/index';
+import Approach from './pages/Stuff/Approach/index';
 import Privacy from './pages/Privacy';
 import {Provider} from '@ant-design/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -157,6 +161,28 @@ export default function AppPage(props) {
             }}
             name="privacy"
             component={Privacy}
+          />
+          {/* 二期 Approach*/}
+          <Stack.Screen
+            options={{
+              title: '材料管理',
+            }}
+            name="stuffMenu"
+            component={stuffMenu}
+          />
+          <Stack.Screen
+            options={{
+              title: '材料清单',
+            }}
+            name="detailList"
+            component={DetailList}
+          />
+          <Stack.Screen
+            options={{
+              title: '进场管理',
+            }}
+            name="approach"
+            component={Approach}
           />
         </Stack.Navigator>
       </NavigationContainer>

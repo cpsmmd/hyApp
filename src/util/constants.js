@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-06 13:37:26
- * @LastEditTime: 2021-06-22 10:42:48
+ * @LastEditTime: 2021-06-27 17:55:27
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/util/constants.js
@@ -31,4 +31,22 @@ export const TYPELOG_OPTIONS2 = [
   {name: '技术资料', value: 2},
   {name: '事故报告', value: 3},
   {name: '产品资料', value: 4},
+];
+export const PASS_STATUS = [
+  {name: '审批中', value: 1},
+  {name: '已审批', value: 2},
+  {name: '被驳回', value: 3},
+  {name: '已进场', value: 4},
+  {name: '部分进场', value: 4},
+  {name: '拒绝进场', value: 4},
+];
+export const MY_PASS = [
+  {name: '我的申请', value: 1},
+  {name: '待我审批', value: 2},
+  {name: '经我审批', value: 3},
+];
+export const MAJOR = [
+  {name: '我的申请', value: 1},
+  {name: '待我审批', value: 2},
+  {name: '经我审批', value: 3},
 ];
