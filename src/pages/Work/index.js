@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 12:01:32
- * @LastEditTime: 2021-06-01 13:45:23
+ * @LastEditTime: 2021-07-05 13:47:24
  * @LastEditors: Please set LastEditors
  * @Description: 考勤
  * @FilePath: /web/hy/hyApp/src/pages/Work/index.js
@@ -78,9 +78,12 @@ const Work = props => {
           let isiisLate = item.isLate === 0 ? '否' : '是';
           let reason = reason || '无';
           let overHours = item.overHours || 0;
-          let timeWork = `上午(${item.firstAmTime} - ${item.firstPmTime}) 下午(${item.lastAmTime} - ${item.lastPmTime})`;
-          let daka1 = `${item.workStartAmTime} - ${item.workEndAmTime}`;
-          let daka2 = `${item.workStartPmTime} - ${item.workEndPmTime}`;
+          // let timeWork = `上午(${item.firstAmTime} - ${item.firstPmTime}) 下午(${item.lastAmTime} - ${item.lastPmTime})`;
+          let timeWork = `上午(${item.workStartAmTime} - ${item.workEndAmTime}) 下午(${item.workStartPmTime} - ${item.workEndPmTime})`;
+          let daka1 = `${item.firstAmTime} - ${item.lastAmTime}`;
+          let daka2 = `${item.firstPmTime} - ${item.lastPmTime}`;
+          // let daka1 = `${item.firstAmTime} - ${item.workEndAmTime}`;
+          // let daka2 = `${item.workStartPmTime} - ${item.workEndPmTime}`;
           item.overStartTime = item.overStartTime || '未打卡';
           item.overEndTime = item.overEndTime || '未打卡';
           let overTmes =
