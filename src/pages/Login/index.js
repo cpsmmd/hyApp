@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 15:41:45
- * @LastEditTime: 2021-06-25 15:59:33
+ * @LastEditTime: 2021-07-05 13:39:28
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Login/index.js
@@ -34,7 +34,7 @@ const Login = props => {
   const [idCard, setIdCard] = useState('');
   const [userPwd, setUserPwd] = useState('');
   useEffect(() => {
-    dealMqtt();
+    // dealMqtt();
   }, []);
   const loginAccount = async () => {
     if (idCard.trim().length === 0) {
@@ -50,6 +50,7 @@ const Login = props => {
       idCard,
       userPwd: encrypted,
     };
+    console.log(parms);
     try {
       const res = await login(parms);
       if (res.data.code === 200) {

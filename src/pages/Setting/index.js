@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 10:39:14
- * @LastEditTime: 2021-06-01 13:59:52
+ * @LastEditTime: 2021-07-05 14:31:31
  * @LastEditors: Please set LastEditors
  * @Description: 个人设置
  * @FilePath: hy/hyApp/src/pages/Setting/index.js
@@ -20,6 +20,7 @@ export default function Setting(props) {
       idCard: global.userInfo.idCard,
       belongProject: global.userInfo.belongProject,
     };
+    console.log(parms);
     try {
       const res = await loginOut(parms);
       if (res.data.code === 200 || res.data.code === 500) {
@@ -34,7 +35,7 @@ export default function Setting(props) {
           }),
         );
       } else {
-        Toast.fail(res.data.message);
+        console.log(res.data);
       }
     } catch (error) {
       console.log('退出失败', error);
