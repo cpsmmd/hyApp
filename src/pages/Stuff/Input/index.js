@@ -1,11 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
 /*
  * @Author: your name
- * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-07-11 15:49:28
+ * @Date: 2021-07-11 22:18:27
+ * @LastEditTime: 2021-07-11 23:22:50
  * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
+ * @Description: 入库管理
+ * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/index.js
  */
 import React, {useState, useEffect} from 'react';
 import {
@@ -29,7 +29,7 @@ import Empty from '../../../components/Empty';
 import {PASS_STATUS, MY_PASS, MAJOR} from '../../../util/constants';
 const {height: deviceHeight} = Dimensions.get('window');
 
-export default function Approach(props) {
+export default function InputList(props) {
   const [drawer, setDrawer] = useState(false);
   const [tableData, settableData] = useState([]);
   const [isLoading, setisLoading] = useState(false);
@@ -43,8 +43,6 @@ export default function Approach(props) {
   const [suppierValue, setSuppierValue] = useState(0); // 选中value
   const [processName, setProcessName] = useState('选择流程'); // 显示名称
   const [processValue, setProcessValue] = useState(0); // 选中value
-  const [majorName, setMajorName] = useState('选择专业'); // 显示名称
-  const [majorValue, setMajorValue] = useState(0); // 选中value
   const DATA = [
     {
       name: '四大皆空返回2',
@@ -68,7 +66,7 @@ export default function Approach(props) {
   };
   // 详情，修改，审批
   const navigationTo = type => {
-    props.navigation.push('editapproach', {
+    props.navigation.push('editExit', {
       type,
     });
   };
@@ -90,7 +88,7 @@ export default function Approach(props) {
               onPress={() => {
                 navigationTo('edit');
               }}>
-              <Text style={styles.edit_btn}>修改</Text>
+              <Text style={styles.edit_btn}>入库</Text>
             </TouchableWithoutFeedback>
           </View>
         </View>
@@ -101,9 +99,9 @@ export default function Approach(props) {
             justifyContent: 'space-between',
             marginTop: 8,
           }}>
-          <Text style={styles.list_item_title}>
-            申请人：
-            <Text style={styles.list_item_text}>{item.people}</Text>
+          <Text>
+            申请时间：
+            <Text style={styles.list_item_text}>{item.time}</Text>
           </Text>
           <Text>
             申请时间：
@@ -117,13 +115,12 @@ export default function Approach(props) {
             justifyContent: 'space-between',
             marginTop: 8,
           }}>
-          <Text>
-            专业：
-            <Text style={styles.list_item_text}>{item.major}</Text>
+          <Text style={styles.list_item_title}>
+            申请人：
+            <Text style={styles.list_item_text}>{item.people}</Text>
           </Text>
-
           <Text>
-            审批状态：
+            入库状态：
             <Text style={styles.list_item_text}>
               <RenderStatus status={item.status} />
             </Text>
@@ -136,9 +133,9 @@ export default function Approach(props) {
             justifyContent: 'space-between',
             marginTop: 8,
           }}>
-          <Text>
+          <Text style={styles.list_item_title}>
             供应商：
-            <Text style={styles.list_item_text}>{item.gong}</Text>
+            <Text style={styles.list_item_text}>{item.people}</Text>
           </Text>
         </View>
       </View>
@@ -222,7 +219,7 @@ export default function Approach(props) {
                             </View>
                             <View style={styles.drawer_item}>
                               <Text style={styles.drawer_item_title}>
-                                审批状态：
+                                入库状态：
                               </Text>
                               <ModalDropdown
                                 defaultValue={suppierName}
@@ -240,54 +237,6 @@ export default function Approach(props) {
                                 onSelect={(value, item) => {
                                   setSuppierValue(item.value);
                                   setSuppierName(item.name);
-                                }}
-                              />
-                              <IconOutline color="#999999" name="down" />
-                            </View>
-                            <View style={styles.drawer_item}>
-                              <Text style={styles.drawer_item_title}>
-                                我的流程：
-                              </Text>
-                              <ModalDropdown
-                                defaultValue={processName}
-                                options={MY_PASS}
-                                renderButtonText={({name}) => name}
-                                renderRow={({name}) => (
-                                  <Text style={styles.row_sty}>{name}</Text>
-                                )}
-                                textStyle={styles.dropdownText}
-                                dropdownStyle={styles.dropdownStyle}
-                                dropdownTextStyle={styles.DropDownPickerText}
-                                dropdownTextHighlightStyle={
-                                  styles.dropdownTextHighlightStyle
-                                }
-                                onSelect={(value, item) => {
-                                  setProcessValue(item.value);
-                                  setProcessName(item.name);
-                                }}
-                              />
-                              <IconOutline color="#999999" name="down" />
-                            </View>
-                            <View style={styles.drawer_item}>
-                              <Text style={styles.drawer_item_title}>
-                                专业：
-                              </Text>
-                              <ModalDropdown
-                                defaultValue={majorName}
-                                options={MAJOR}
-                                renderButtonText={({name}) => name}
-                                renderRow={({name}) => (
-                                  <Text style={styles.row_sty}>{name}</Text>
-                                )}
-                                textStyle={styles.dropdownText}
-                                dropdownStyle={styles.dropdownStyle}
-                                dropdownTextStyle={styles.DropDownPickerText}
-                                dropdownTextHighlightStyle={
-                                  styles.dropdownTextHighlightStyle
-                                }
-                                onSelect={(value, item) => {
-                                  setMajorValue(item.value);
-                                  setMajorName(item.name);
                                 }}
                               />
                               <IconOutline color="#999999" name="down" />
@@ -340,24 +289,6 @@ export default function Approach(props) {
                     }}>
                     <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
                       筛选
-                    </Text>
-                  </View>
-                </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    props.navigation.push('newapproach');
-                  }}>
-                  <View
-                    style={{
-                      backgroundColor: '#108EE9',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      height: 38,
-                      width: 80,
-                    }}>
-                    <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                      发起申请
                     </Text>
                   </View>
                 </TouchableWithoutFeedback>

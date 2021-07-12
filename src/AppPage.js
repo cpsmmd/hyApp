@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 14:06:37
- * @LastEditTime: 2021-06-27 15:41:38
+ * @LastEditTime: 2021-07-11 22:39:32
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/AppPage.js
@@ -27,6 +27,12 @@ import EditMaterial from './pages/Material/EditMaterial';
 import stuffMenu from './pages/Stuff/index';
 import DetailList from './pages/Stuff/DetailList/index';
 import Approach from './pages/Stuff/Approach/index';
+import Newapproach from './pages/Stuff/Approach/new';
+import Editapproach from './pages/Stuff/Approach/edit';
+import ExitList from './pages/Stuff/Exit/index.js';
+import EditExit from './pages/Stuff/Exit/edit.js';
+import InputList from './pages/Stuff/Input/index.js';
+import OutputList from './pages/Stuff/OutPut/index.js';
 import Privacy from './pages/Privacy';
 import {Provider} from '@ant-design/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -93,16 +99,12 @@ export default function AppPage(props) {
             component={EditPw}
           />
           <Stack.Screen
-            options={{
-              title: '设置',
-            }}
+            options={{title: '设置'}}
             name="setting"
             component={Setting}
           />
           <Stack.Screen
-            options={{
-              title: '个人档案',
-            }}
+            options={{title: '个人档案'}}
             name="account"
             component={Account}
           />
@@ -183,6 +185,36 @@ export default function AppPage(props) {
             }}
             name="approach"
             component={Approach}
+          />
+          <Stack.Screen
+            options={{title: '发起申请'}}
+            name="newapproach"
+            component={Newapproach}
+          />
+          <Stack.Screen
+            options={({route}) => ({title: route.params?.name || '修改申请'})}
+            name="editapproach"
+            component={Editapproach}
+          />
+          <Stack.Screen
+            options={{title: '退场管理'}}
+            name="exitList"
+            component={ExitList}
+          />
+          <Stack.Screen
+            options={({route}) => ({title: route.params?.name || '退场申请'})}
+            name="editExit"
+            component={EditExit}
+          />
+          <Stack.Screen
+            options={{title: '入库管理'}}
+            name="inputList"
+            component={InputList}
+          />
+          <Stack.Screen
+            options={{title: '出库管理'}}
+            name="outputList"
+            component={OutputList}
           />
         </Stack.Navigator>
       </NavigationContainer>

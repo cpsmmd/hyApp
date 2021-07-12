@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-26 22:42:34
- * @LastEditTime: 2021-06-27 18:17:55
+ * @LastEditTime: 2021-07-07 22:00:24
  * @LastEditors: Please set LastEditors
  * @Description: 材料清单
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/DetailList/index.js
@@ -207,7 +207,7 @@ export default function Index() {
               {/* list */}
               <View style={{display: 'flex', flex: 1}}>
                 {DATA.map(item => (
-                  <RenderItem item={item} />
+                  <RenderItem key={item.name} item={item} />
                 ))}
                 {/* <FlatList
                   style={{flex: 1}}

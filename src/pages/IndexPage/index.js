@@ -117,7 +117,7 @@ const IndexPage = props => {
               },
               {
                 url: require('../../assets/material.png'),
-                title: '材料管理',
+                title: '材料管理2',
                 route: 'stuffMenu',
               },
             ];

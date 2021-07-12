@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-26 21:48:45
- * @LastEditTime: 2021-06-27 15:41:47
+ * @LastEditTime: 2021-07-11 22:38:24
  * @LastEditors: Please set LastEditors
  * @Description: 材料管理菜单页
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/index.js
@@ -28,19 +28,19 @@ const menuLists = [
     route: 'approach',
   },
   {
+    url: require('../../assets/stuff/jinchang.png'),
+    title: '退场管理',
+    route: 'exitList',
+  },
+  {
     url: require('../../assets/stuff/ruku.png'),
     title: '入库管理',
-    route: 'account',
+    route: 'inputList',
   },
   {
     url: require('../../assets/stuff/chuku.png'),
     title: '出库管理',
-    route: 'account',
-  },
-  {
-    url: require('../../assets/stuff/jinchang.png'),
-    title: '退场管理',
-    route: 'account',
+    route: 'outputList',
   },
 ];
 const index = props => {

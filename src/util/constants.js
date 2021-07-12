@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-06 13:37:26
- * @LastEditTime: 2021-06-27 17:55:27
+ * @LastEditTime: 2021-07-11 22:11:53
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/util/constants.js
@@ -49,4 +49,10 @@ export const MAJOR = [
   {name: '我的申请', value: 1},
   {name: '待我审批', value: 2},
   {name: '经我审批', value: 3},
+];
+export const EXIT_DIRECTION = [
+  {name: '供应商回收', value: 1},
+  {name: '材料转场其他项目', value: 2},
+  {name: '第三方回收', value: 3},
+  {name: '移交甲方', value: 4},
 ];
