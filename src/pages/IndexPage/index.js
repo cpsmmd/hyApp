@@ -154,7 +154,7 @@ const IndexPage = props => {
     // mqtt://47.117.123.129:8900/warning/app/data
     // console.log('ready');
     MQTT.createClient({
-      uri: 'mqtt://116.62.231.156:1883',
+      uri: 'mqtt://47.117.123.129:1883',
       clientId: 'mqttx_5afa9f86hhdjsdwefiwe22i',
       user: 'admin',
       pass: 'admin',

@@ -2,9 +2,9 @@
 /*
  * @Author: your name
  * @Date: 2021-07-06 23:08:05
- * @LastEditTime: 2021-07-11 15:27:34
+ * @LastEditTime: 2021-07-19 23:46:03
  * @LastEditors: Please set LastEditors
- * @Description: 发起申请
+ * @Description: 发起进场申请
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/new.js
  */
 import React, {useState, useEffect} from 'react';
@@ -22,22 +22,33 @@ import {
 import ModalDropdown from 'react-native-modal-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Button, Toast} from '@ant-design/react-native';
-import {MAJOR} from '../../../util/constants';
+import {MAJOR, MAJOR_LIST} from '../../../util/constants';
+import {addApproachApply} from '../../../api/stuff';
 let defaultData = {
-  name: '',
-  norms: '',
-  num: '',
-  id: Math.random(),
+  materialsName: '',
+  materialsSpecs: '',
+  materialsNum: '',
+  id: `${Math.random()}-${Math.random()}-${Math.random()}`,
 };
+let userInfo = global.userInfo;
 const New = props => {
   console.log(props.navigation);
   const [stuffLists, setstuffLists] = useState([defaultData]);
-  const [majorName, setMajorName] = useState('选择专业'); // 显示名称
+  const [professional, setProfessional] = useState('选择专业'); // 专业 显示名称
   const [majorValue, setMajorValue] = useState(0); // 选中value
   const [dateEnd, setDateEnd] = useState(new Date());
   const [date, setDate] = useState(new Date());
   const [show, setShow] = useState(false);
   const [mode, setMode] = useState('date');
+  const [supplierName, setSupplierName] = useState(''); // 供应商名称
+  const [theme, setTheme] = useState(''); // 申请主题
+  const [supplierContact, setSupplierContact] = useState(''); // 供应商联系人
+  const [supplierMobile, setSupplierMobile] = useState(''); // 联系方式
+  const [packingWay, setPackingWay] = useState(''); // 包装方式
+  const [transporteWay, setTransporteWay] = useState(''); // 进场运输方式
+  const [unloadingRequire, setUnloadingRequire] = useState(''); // 卸货需求
+  const [fileUrl, setFileUrl] = useState(''); // 附件上传路径
+  const [contractName, setContractName] = useState(''); // 归属合同名称
   useEffect(() => {
     // props.navigation.setOptions({
     //   title: 'hhahah',
@@ -50,11 +61,53 @@ const New = props => {
     });
   };
   // 删除材料
-  const delStuff = id => {
-    console.log(id);
+  const delStuff = num => {
+    let newList = [...stuffLists];
+    if (newList.length === 1) {
+      return Toast.info('至少保留一项');
+    }
+    const Index = newList.findIndex(v => v === num);
+    newList.splice(Index, 1);
+    setstuffLists(newList);
   };
   // 提交材料
-  const submit = () => {};
+  const submit = async () => {
+    let materials = [];
+    stuffLists.forEach(item => {
+      materials.push({
+        materialsName: item.materialsName,
+        materialsSpecs: item.materialsSpecs,
+        materialsNum: item.materialsNum,
+      });
+    });
+    let parms = {
+      idCard: userInfo.idCard,
+      supplierName,
+      theme,
+      supplierContact,
+      supplierMobile,
+      packingWay,
+      transporteWay,
+      unloadingRequire,
+      contractName,
+      professional,
+      approachTime: JSON.stringify(date).substring(1, 11),
+      fileUrl,
+      materials: stuffLists,
+    };
+    console.log('新增parms', parms);
+    try {
+      const res = await addApproachApply(parms);
+      if (res.data.code === 200) {
+        props.navigation.goBack();
+        Toast.success(res.data.message);
+      } else {
+        Toast.fail(res.data.message);
+      }
+    } catch (error) {
+      console.error(error);
+    }
+  };
   const onChangeBegin = (event, selectedDate) => {
     const currentDate = selectedDate || date;
     setShow(Platform.OS === 'ios');
@@ -77,8 +130,8 @@ const New = props => {
           <ScrollView showsVerticalScrollIndicator={false}>
             <View>
               {/* 材料列表 */}
-              {stuffLists.map(item => (
-                <View style={styles.stuff_items} key={item.id}>
+              {stuffLists.map((item, index) => (
+                <View key={item.id} style={styles.stuff_items}>
                   <View style={styles.flex_row}>
                     <Text style={styles.stuff_item_title}>材料名称：</Text>
                     <View>
@@ -87,19 +140,19 @@ const New = props => {
                           let newList = [...stuffLists];
                           newList.map(v => {
                             if (v.id === item.id) {
-                              v.name = text;
+                              v.materialsName = text;
                             }
                           });
                           setstuffLists(newList);
                         }}
-                        value={item.name}
+                        value={item.materialsName}
                         style={styles.input_sty}
                         placeholder="请输入"
                       />
                     </View>
                     <TouchableWithoutFeedback
                       onPress={() => {
-                        delStuff();
+                        delStuff(index);
                       }}>
                       <Image
                         style={styles.del_btn}
@@ -109,11 +162,37 @@ const New = props => {
                   </View>
                   <View style={[styles.flex_row, {marginTop: 10}]}>
                     <Text style={styles.stuff_item_title}>规格：</Text>
-                    <TextInput style={styles.input_sty} placeholder="请输入" />
+                    <TextInput
+                      onChangeText={text => {
+                        let newList = [...stuffLists];
+                        newList.map(v => {
+                          if (v.id === item.id) {
+                            v.materialsSpecs = text;
+                          }
+                        });
+                        setstuffLists(newList);
+                      }}
+                      value={item.materialsSpecs}
+                      style={styles.input_sty}
+                      placeholder="请输入"
+                    />
                     <Text style={[styles.stuff_item_title, {marginLeft: 6}]}>
                       数量：
                     </Text>
-                    <TextInput style={styles.input_sty} placeholder="请输入" />
+                    <TextInput
+                      onChangeText={text => {
+                        let newList = [...stuffLists];
+                        newList.map(v => {
+                          if (v.id === item.id) {
+                            v.materialsNum = text;
+                          }
+                        });
+                        setstuffLists(newList);
+                      }}
+                      value={item.materialsNum}
+                      style={styles.input_sty}
+                      placeholder="请输入"
+                    />
                   </View>
                 </View>
               ))}
@@ -129,10 +208,21 @@ const New = props => {
             </View>
             <View>
               <View style={styles.other_item}>
+                <Text style={styles.other_title}>申请主题：</Text>
+                <TextInput
+                  style={styles.input_no_border}
+                  placeholder="请输入"
+                  onChangeText={text => setTheme(text)}
+                  value={theme}
+                />
+              </View>
+              <View style={styles.other_item}>
                 <Text style={styles.other_title}>包装方式：</Text>
                 <TextInput
                   style={styles.input_no_border}
                   placeholder="请输入"
+                  onChangeText={text => setPackingWay(text)}
+                  value={packingWay}
                 />
               </View>
               <View style={styles.other_item}>
@@ -140,13 +230,17 @@ const New = props => {
                 <TextInput
                   style={styles.input_no_border}
                   placeholder="请输入"
+                  onChangeText={text => setTransporteWay(text)}
+                  value={transporteWay}
                 />
               </View>
               <View style={styles.other_item}>
-                <Text style={styles.other_title}>卸货方式：</Text>
+                <Text style={styles.other_title}>卸货需求：</Text>
                 <TextInput
                   style={styles.input_no_border}
                   placeholder="请输入"
+                  onChangeText={text => setUnloadingRequire(text)}
+                  value={unloadingRequire}
                 />
               </View>
               <View style={styles.other_item}>
@@ -154,6 +248,8 @@ const New = props => {
                 <TextInput
                   style={styles.input_no_border}
                   placeholder="请输入"
+                  onChangeText={text => setContractName(text)}
+                  value={contractName}
                 />
               </View>
               <View style={styles.other_item2}>
@@ -185,27 +281,19 @@ const New = props => {
               </View>
               <View style={styles.other_item2}>
                 <Text style={styles.other_title}>所属专业：</Text>
-                {/* <TextInput
-                  style={styles.input_no_border}
-                  placeholder="请输入"
-                /> */}
                 <View>
                   <ModalDropdown
-                    defaultValue={majorName}
-                    options={MAJOR}
-                    renderButtonText={({name}) => name}
-                    renderRow={({name}) => (
-                      <Text style={styles.row_sty}>{name}</Text>
-                    )}
+                    defaultValue={'请选择专业'}
+                    options={MAJOR_LIST}
                     textStyle={styles.dropdownText}
                     dropdownStyle={styles.dropdownStyle}
                     dropdownTextStyle={styles.DropDownPickerText}
                     dropdownTextHighlightStyle={
                       styles.dropdownTextHighlightStyle
                     }
-                    onSelect={(value, item) => {
-                      setMajorValue(item.value);
-                      setMajorName(item.name);
+                    onSelect={value => {
+                      // setMajorValue(item.value);
+                      setProfessional(value);
                     }}
                   />
                 </View>
@@ -215,6 +303,8 @@ const New = props => {
                 <TextInput
                   style={styles.input_no_border}
                   placeholder="请输入"
+                  onChangeText={text => setSupplierName(text)}
+                  value={supplierName}
                 />
               </View>
               <View style={styles.other_item}>
@@ -222,6 +312,8 @@ const New = props => {
                 <TextInput
                   style={styles.input_no_border}
                   placeholder="请输入"
+                  onChangeText={text => setSupplierContact(text)}
+                  value={supplierContact}
                 />
               </View>
               <View style={styles.other_item}>
@@ -229,6 +321,8 @@ const New = props => {
                 <TextInput
                   style={styles.input_no_border}
                   placeholder="请输入"
+                  onChangeText={text => setSupplierMobile(text)}
+                  value={supplierMobile}
                 />
               </View>
               <View style={styles.other_item}>
@@ -347,11 +441,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   dropdownStyle: {
-    color: 'red',
     padding: 10,
   },
   DropDownPickerText: {
-    color: 'red',
     padding: 10,
     fontSize: 20,
   },
@@ -364,6 +456,11 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   dropdownTextHighlightStyle: {
-    color: 'red',
+    color: '#1890ff',
   },
+  container: {flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff'},
+  header: {height: 50, backgroundColor: '#537791'},
+  text: {textAlign: 'center', fontWeight: '100'},
+  dataWrapper: {marginTop: -1},
+  row: {height: 40, backgroundColor: '#E7E6E1'},
 });

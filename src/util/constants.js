@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-06 13:37:26
- * @LastEditTime: 2021-07-11 22:11:53
+ * @LastEditTime: 2021-07-19 23:38:45
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/util/constants.js
@@ -49,6 +49,17 @@ export const MAJOR = [
   {name: '我的申请', value: 1},
   {name: '待我审批', value: 2},
   {name: '经我审批', value: 3},
+];
+export const MAJOR_LIST = [
+  '土建',
+  '电气',
+  '暖通空调',
+  '给排水',
+  '智能化',
+  '装饰',
+  '幕墙',
+  '园林',
+  '消防',
 ];
 export const EXIT_DIRECTION = [
   {name: '供应商回收', value: 1},

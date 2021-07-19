@@ -2,9 +2,9 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-07-11 15:49:28
+ * @LastEditTime: 2021-07-19 22:06:13
  * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
+ * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
  */
 import React, {useState, useEffect} from 'react';
@@ -27,10 +27,13 @@ import ModalDropdown from 'react-native-modal-dropdown';
 import {IconOutline} from '@ant-design/icons-react-native';
 import Empty from '../../../components/Empty';
 import {PASS_STATUS, MY_PASS, MAJOR} from '../../../util/constants';
+import {dealFail} from '../../../util/common';
+import {getApproachApply} from '../../../api/stuff';
 const {height: deviceHeight} = Dimensions.get('window');
-
+let userInfo = global.userInfo;
 export default function Approach(props) {
   const [drawer, setDrawer] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [tableData, settableData] = useState([]);
   const [isLoading, setisLoading] = useState(false);
   const [searchParms, setsearchParms] = useState({
@@ -63,6 +66,43 @@ export default function Approach(props) {
       gong: '肯德基反馈',
     },
   ];
+  useEffect(() => {
+    (async () => {
+      // await getLists(true);
+    })();
+  }, []);
+  // useEffect(() => {
+  //   const navFocusListener = props.navigation.addListener('focus', async () => {
+  //     await getMaterialList(true, true);
+  //   });
+
+  //   return () => {
+  //     navFocusListener.remove();
+  //   };
+  // }, []);
+  // 获取数据
+  const getLists = async () => {
+    let parms = {
+      pageNumber: 1,
+      limit: 10,
+      idCard: userInfo.idCard,
+    };
+    try {
+      const res = await getApproachApply(parms);
+      if (res.data.code === 200) {
+        // console.log('res', JSON.stringify(res.data.data));
+        console.log('进场列表', res.data.data);
+        // setLists(res.data.data);
+      } else {
+        // Toast.fail(res.data.message);
+        dealFail(props, res.data.code, res.data.message);
+      }
+      setLoading(false);
+    } catch (error) {
+      // setLoading(false);
+      console.log(error);
+    }
+  };
   const loadMoreData = () => {
     console.log(11);
   };
