@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-06 23:08:05
- * @LastEditTime: 2021-07-19 23:46:03
+ * @LastEditTime: 2021-07-25 16:46:29
  * @LastEditors: Please set LastEditors
  * @Description: 发起进场申请
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/new.js
@@ -23,7 +23,7 @@ import ModalDropdown from 'react-native-modal-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Button, Toast} from '@ant-design/react-native';
 import {MAJOR, MAJOR_LIST} from '../../../util/constants';
-import {addApproachApply} from '../../../api/stuff';
+import {addApproachApply, getMaterialsByName} from '../../../api/stuff';
 let defaultData = {
   materialsName: '',
   materialsSpecs: '',
@@ -53,6 +53,7 @@ const New = props => {
     // props.navigation.setOptions({
     //   title: 'hhahah',
     // });
+    searchMaterisName();
   }, []);
   // 添加材料
   const addStuff = () => {
@@ -119,6 +120,14 @@ const New = props => {
   const showMode = currentMode => {
     setShow(true);
     setMode(currentMode);
+  };
+  const searchMaterisName = async () => {
+    try {
+      const res = await getMaterialsByName('hhah');
+      console.log('模糊查询材料名称/appapi/selectMaterialsByName', res.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
   return (
     <View>
@@ -445,7 +454,7 @@ const styles = StyleSheet.create({
   },
   DropDownPickerText: {
     padding: 10,
-    fontSize: 20,
+    fontSize: 16,
   },
   row_sty: {
     color: '#666',

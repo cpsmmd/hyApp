@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-07-20 00:28:23
+ * @LastEditTime: 2021-07-25 17:14:46
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -45,7 +45,8 @@ let userInfo = global.userInfo;
 const EditApproach = props => {
   console.log(props.navigation);
   const routeType = props.route.params.type;
-  console.log(routeType);
+  const routeId = props.route.params.id;
+  console.log('routeId', routeId);
   const [stuffLists, setstuffLists] = useState([defaultData]);
   const [majorName, setMajorName] = useState('选择专业'); // 显示名称
   const [majorValue, setMajorValue] = useState(0); // 选中value
@@ -65,17 +66,18 @@ const EditApproach = props => {
   const [unloadingRequire, setUnloadingRequire] = useState(''); // 卸货需求
   const [fileUrl, setFileUrl] = useState(''); // 附件上传路径
   const [contractName, setContractName] = useState(''); // 归属合同名称
+  // 设置标题
   useEffect(() => {
     props.navigation.setOptions({
       title: menuObj[props.route.params.type],
     });
+    getDetail();
   }, []);
   // 获取详情
   const getDetail = async () => {
     try {
-      const res = await approachApplyDetail({
-        id: props.route.params.id,
-      });
+      const res = await approachApplyDetail(props.route.params.id);
+      console.log('res', res);
       if (res.data.code === 200) {
         console.log('进场详情', res.data.data);
         // setLists(res.data.data);

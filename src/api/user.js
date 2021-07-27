@@ -1,18 +1,20 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 15:22:36
- * @LastEditTime: 2021-07-05 13:36:06
+ * @LastEditTime: 2021-07-26 20:51:26
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/api/user.js
  */
 import axios from 'axios';
 import fetch from './axios';
+import {POWERS_URL} from '../util/constants';
 let idCard = '';
 if (global.userInfo && global.userInfo.idCard) {
   idCard = global.userInfo.idCard;
 }
 axios.defaults.headers.common['idCard'] = idCard;
+console.log('global.userInfo.token', global.userInfo.token);
 // 登录
 export const login = params =>
   fetch.post('/appapi/selectAppUserForLogin', params);
@@ -130,3 +132,17 @@ export const getSignleFileLog = params =>
   });
 // 文件下载
 export const downFile = url => fetch.get(`/HyVisitors/downFileApp?path${url}`);
+// 管理岗获取权限
+export const getUserMenu = () => {
+  console.log('global.userInfo.token', global.userInfo.token);
+  return fetch.post(
+    `${POWERS_URL}/auth/getUserMenu`,
+    {},
+    {
+      headers: {
+        idCard: global.userInfo.idCard,
+        token: global.userInfo.token,
+      },
+    },
+  );
+};

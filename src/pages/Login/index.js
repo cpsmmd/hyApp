@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 15:41:45
- * @LastEditTime: 2021-07-05 13:39:28
+ * @LastEditTime: 2021-07-21 17:26:04
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Login/index.js
@@ -50,20 +50,18 @@ const Login = props => {
       idCard,
       userPwd: encrypted,
     };
-    console.log(parms);
     try {
       const res = await login(parms);
       if (res.data.code === 200) {
         // 存个人数据
         global.userInfo = res.data.data;
         await AsyncStorage.setItem('userInfo', JSON.stringify(res.data.data));
+        console.log('登录成功', res.data);
         props.navigation.push('home');
       } else {
-        console.log(res.data);
         Toast.fail(res.data.message);
       }
     } catch (error) {
-      console.log('error', JSON.stringify(error));
       Toast.fail('登录失败，请检查账号密码');
     }
   };
@@ -71,10 +69,10 @@ const Login = props => {
     props.navigation.push('editPw');
   };
   const dealMqtt = () => {
-    // mqtt://47.117.123.129:8900/warning/app/data
+    // mqtt://116.62.231.156:8900/warning/app/data
     // console.log('ready');
     MQTT.createClient({
-      uri: 'mqtt://47.117.123.129:1883',
+      uri: 'mqtt://116.62.231.156:1883',
       clientId: 'mqttx_5afa9f86hhdjsdwefiwe22i',
       user: 'guest',
       pass: 'guest',

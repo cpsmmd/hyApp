@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-07-19 22:06:13
+ * @LastEditTime: 2021-07-26 23:24:19
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -19,6 +19,7 @@ import {
   TextInput,
   ScrollView,
   RefreshControl,
+  Image,
   Dimensions,
   ActivityIndicator,
 } from 'react-native';
@@ -26,15 +27,20 @@ import {Button, Toast, Drawer, InputItem} from '@ant-design/react-native';
 import ModalDropdown from 'react-native-modal-dropdown';
 import {IconOutline} from '@ant-design/icons-react-native';
 import Empty from '../../../components/Empty';
-import {PASS_STATUS, MY_PASS, MAJOR} from '../../../util/constants';
+import Loading from '../../../components/Loading';
+import {PASS_STATUS, MY_PASS, MAJOR_LIST} from '../../../util/constants';
 import {dealFail} from '../../../util/common';
 import {getApproachApply} from '../../../api/stuff';
 const {height: deviceHeight} = Dimensions.get('window');
-let userInfo = global.userInfo;
+import {LOG_TYPE, TYPELOG_OPTIONS} from '../../util/constants';
 export default function Approach(props) {
+  let userInfo = global.userInfo;
+  const limit = 10;
   const [drawer, setDrawer] = useState(false);
   const [loading, setLoading] = useState(true);
   const [tableData, settableData] = useState([]);
+  const [isAll, setIsAll] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
   const [isLoading, setisLoading] = useState(false);
   const [searchParms, setsearchParms] = useState({
     name: '',
@@ -42,33 +48,15 @@ export default function Approach(props) {
     supplier: '',
   });
   // 搜索区域
-  const [suppierName, setSuppierName] = useState('选择供应商'); // 显示名称
-  const [suppierValue, setSuppierValue] = useState(0); // 选中value
+  const [stateName, setStateName] = useState('选择审批状态'); // 显示名称
+  const [stateValue, setStateValue] = useState(0); // 选中value
   const [processName, setProcessName] = useState('选择流程'); // 显示名称
   const [processValue, setProcessValue] = useState(0); // 选中value
-  const [majorName, setMajorName] = useState('选择专业'); // 显示名称
-  const [majorValue, setMajorValue] = useState(0); // 选中value
-  const DATA = [
-    {
-      name: '四大皆空返回2',
-      people: '闪电发货',
-      time: '2021-06-10 10:21:23',
-      major: '就会比较',
-      status: 1,
-      gong: '肯德基反馈',
-    },
-    {
-      name: '四大皆空返回3',
-      people: '闪电发货',
-      time: '2021-06-10 10:21:23',
-      major: '就会比较',
-      status: 1,
-      gong: '肯德基反馈',
-    },
-  ];
+  const [professional, setProfessional] = useState('选择专业'); // 专业 显示名称
   useEffect(() => {
     (async () => {
-      // await getLists(true);
+      setLoading(true);
+      await getLists(1);
     })();
   }, []);
   // useEffect(() => {
@@ -81,35 +69,66 @@ export default function Approach(props) {
   //   };
   // }, []);
   // 获取数据
-  const getLists = async () => {
+  const getLists = async num => {
     let parms = {
-      pageNumber: 1,
-      limit: 10,
-      idCard: userInfo.idCard,
+      pageNumber: num,
+      limit,
+      idCard: global.userInfo.idCard,
     };
+    if (professional !== '选择专业') {
+      parms['professional'] = professional;
+    }
+    if (processValue !== 0) {
+      parms['myProcess'] = processValue;
+    }
+    if (stateValue !== 0) {
+      parms['state'] = stateValue;
+    }
+    console.log('分页查询进场申请/appapi/selectApplyByPagination', parms);
+    // setLoading(true);
     try {
       const res = await getApproachApply(parms);
       if (res.data.code === 200) {
         // console.log('res', JSON.stringify(res.data.data));
         console.log('进场列表', res.data.data);
         // setLists(res.data.data);
+        let list = res.data.data.list || [];
+        setIsAll(list.length < limit);
+        let newList = [...tableData, ...list];
+        console.log(newList.length);
+        // settableData(newList);
+        settableData(state => {
+          return [...state, ...list];
+        });
       } else {
         // Toast.fail(res.data.message);
         dealFail(props, res.data.code, res.data.message);
       }
       setLoading(false);
     } catch (error) {
-      // setLoading(false);
+      setLoading(false);
       console.log(error);
     }
   };
-  const loadMoreData = () => {
-    console.log(11);
+  const loadMore = async () => {
+    let num = pageNumber + 1;
+    setPageNumber(num);
+    getLists(num);
+  };
+  const search = () => {
+    console.log(professional);
+    console.log(processValue);
+    console.log(stateValue);
+    // setDrawer(false);
+    // settableData([]);
+    // setPageNumber(1);
+    // getLists(1);
   };
   // 详情，修改，审批
-  const navigationTo = type => {
+  const navigationTo = (type, id) => {
     props.navigation.push('editapproach', {
       type,
+      id,
     });
   };
   // const renderItem = ({item}) => <Item item={item} />;
@@ -117,18 +136,18 @@ export default function Approach(props) {
     return (
       <View key={item.name} style={styles.list_item}>
         <View style={{display: 'flex', flexDirection: 'row'}}>
-          <Text style={styles.list_item_name}>{item.name}</Text>
+          <Text style={styles.list_item_name}>{item.theme}</Text>
           <View
             style={{display: 'flex', marginLeft: 'auto', flexDirection: 'row'}}>
             <TouchableWithoutFeedback
               onPress={() => {
-                navigationTo('detail');
+                navigationTo('detail', item.id);
               }}>
               <Text style={styles.detail_btn}>详情</Text>
             </TouchableWithoutFeedback>
             <TouchableWithoutFeedback
               onPress={() => {
-                navigationTo('edit');
+                navigationTo('edit', item.id);
               }}>
               <Text style={styles.edit_btn}>修改</Text>
             </TouchableWithoutFeedback>
@@ -143,11 +162,11 @@ export default function Approach(props) {
           }}>
           <Text style={styles.list_item_title}>
             申请人：
-            <Text style={styles.list_item_text}>{item.people}</Text>
+            <Text style={styles.list_item_text}>{item.userName}</Text>
           </Text>
           <Text>
             申请时间：
-            <Text style={styles.list_item_text}>{item.time}</Text>
+            <Text style={styles.list_item_text}>{item.approachTime}</Text>
           </Text>
         </View>
         <View
@@ -159,13 +178,13 @@ export default function Approach(props) {
           }}>
           <Text>
             专业：
-            <Text style={styles.list_item_text}>{item.major}</Text>
+            <Text style={styles.list_item_text}>{item.professional}</Text>
           </Text>
 
           <Text>
             审批状态：
             <Text style={styles.list_item_text}>
-              <RenderStatus status={item.status} />
+              <RenderStatus status={item.state} />
             </Text>
           </Text>
         </View>
@@ -178,7 +197,7 @@ export default function Approach(props) {
           }}>
           <Text>
             供应商：
-            <Text style={styles.list_item_text}>{item.gong}</Text>
+            <Text style={styles.list_item_text}>{item.supplierName}</Text>
           </Text>
         </View>
       </View>
@@ -186,251 +205,234 @@ export default function Approach(props) {
   };
   return (
     <View style={{position: 'relative', width: '100%', height: '100%'}}>
-      <ScrollView>
-        <KeyboardAvoidingView>
+      {drawer && (
+        <View
+          style={{position: 'absolute', width: '100%', height: '100%', top: 0}}>
           <TouchableWithoutFeedback
             onPress={() => {
-              Keyboard.dismiss();
+              setDrawer(false);
             }}>
             <View
               style={{
-                position: 'relative',
+                position: 'absolute',
                 width: '100%',
-                height: deviceHeight,
+                height: '100%',
+                backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                display: 'flex',
+                zIndex: 9,
               }}>
-              {drawer && (
+              <TouchableWithoutFeedback
+                onPress={e => {
+                  e.stopPropagation();
+                  Keyboard.dismiss();
+                }}>
                 <View
-                  style={{position: 'relative', width: '100%', height: '100%'}}>
+                  style={{
+                    width: '75%',
+                    height: '100%',
+                    backgroundColor: '#fff',
+                    marginLeft: 'auto',
+                  }}>
+                  {/* 关闭 */}
                   <TouchableWithoutFeedback
                     onPress={() => {
                       setDrawer(false);
                     }}>
-                    <View
+                    <Image
                       style={{
                         position: 'absolute',
-                        width: '100%',
-                        height: '100%',
-                        backgroundColor: 'rgba(0, 0, 0, 0.3)',
-                        display: 'flex',
-                        zIndex: 9,
-                      }}>
+                        right: 20,
+                        top: 20,
+                        width: 30,
+                        height: 30,
+                      }}
+                      source={require('../../../assets/common/close.png')}
+                    />
+                  </TouchableWithoutFeedback>
+                  <View style={{marginTop: 100, padding: 10}}>
+                    <View style={styles.drawer_item}>
+                      <Text style={styles.drawer_item_title}>供应商：</Text>
+                      <TextInput
+                        style={styles.drawer_item_input}
+                        placeholder="请输入"
+                        onChangeText={text => {
+                          setsearchParms(state => {
+                            return {
+                              ...state,
+                              name: text,
+                            };
+                          });
+                        }}
+                        value={searchParms.name}
+                      />
+                    </View>
+                    <View style={styles.drawer_item}>
+                      <Text style={styles.drawer_item_title}>审批状态：</Text>
+                      <ModalDropdown
+                        defaultValue={stateName}
+                        options={PASS_STATUS}
+                        renderButtonText={({name}) => name}
+                        renderRow={({name}) => (
+                          <Text style={styles.row_sty}>{name}</Text>
+                        )}
+                        textStyle={styles.dropdownText}
+                        dropdownStyle={styles.dropdownStyle}
+                        dropdownTextStyle={styles.DropDownPickerText}
+                        dropdownTextHighlightStyle={
+                          styles.dropdownTextHighlightStyle
+                        }
+                        onSelect={(value, item) => {
+                          setStateValue(item.value);
+                          setStateName(item.name);
+                        }}
+                      />
+                      <IconOutline color="#999999" name="down" />
+                    </View>
+                    <View style={styles.drawer_item}>
+                      <Text style={styles.drawer_item_title}>我的流程：</Text>
+                      <ModalDropdown
+                        defaultValue={processName}
+                        options={MY_PASS}
+                        renderButtonText={({name}) => name}
+                        renderRow={({name}) => (
+                          <Text style={styles.row_sty}>{name}</Text>
+                        )}
+                        textStyle={styles.dropdownText}
+                        dropdownStyle={styles.dropdownStyle}
+                        dropdownTextStyle={styles.DropDownPickerText}
+                        dropdownTextHighlightStyle={
+                          styles.dropdownTextHighlightStyle
+                        }
+                        onSelect={(value, item) => {
+                          setProcessValue(item.value);
+                          setProcessName(item.name);
+                        }}
+                      />
+                      <IconOutline color="#999999" name="down" />
+                    </View>
+                    <View style={styles.drawer_item}>
+                      <Text style={styles.drawer_item_title}>专业：</Text>
+                      <ModalDropdown
+                        defaultValue={'请选择专业'}
+                        options={MAJOR_LIST}
+                        textStyle={styles.dropdownText}
+                        dropdownStyle={styles.dropdownStyle}
+                        dropdownTextStyle={styles.DropDownPickerText}
+                        dropdownTextHighlightStyle={
+                          styles.dropdownTextHighlightStyle
+                        }
+                        onSelect={value => {
+                          // setMajorValue(item.value);
+                          setProfessional(value);
+                        }}
+                      />
+                      <IconOutline color="#999999" name="down" />
+                    </View>
+                    <View style={styles._operate}>
                       <TouchableWithoutFeedback
-                        onPress={e => {
-                          e.stopPropagation();
-                          Keyboard.dismiss();
+                        onPress={() => {
+                          search();
                         }}>
-                        <View
-                          style={{
-                            width: '75%',
-                            height: '100%',
-                            backgroundColor: '#fff',
-                            marginLeft: 'auto',
-                          }}>
-                          {/* 退出 */}
-                          <TouchableWithoutFeedback
-                            onPress={() => {
-                              setDrawer(false);
+                        <View style={styles.search_modal_btn}>
+                          <Text
+                            style={{
+                              color: '#FFF',
+                              fontSize: 14,
+                              lineHeight: 17,
                             }}>
-                            <Text
-                              style={{
-                                position: 'absolute',
-                                right: 20,
-                                top: 20,
-                                fontSize: 20,
-                              }}>
-                              X
-                            </Text>
-                          </TouchableWithoutFeedback>
-                          <View style={{marginTop: 100, padding: 10}}>
-                            <View style={styles.drawer_item}>
-                              <Text style={styles.drawer_item_title}>
-                                供应商：
-                              </Text>
-                              <TextInput
-                                style={styles.drawer_item_input}
-                                placeholder="请输入"
-                                onChangeText={text => {
-                                  setsearchParms(state => {
-                                    return {
-                                      ...state,
-                                      name: text,
-                                    };
-                                  });
-                                }}
-                                value={searchParms.name}
-                              />
-                            </View>
-                            <View style={styles.drawer_item}>
-                              <Text style={styles.drawer_item_title}>
-                                审批状态：
-                              </Text>
-                              <ModalDropdown
-                                defaultValue={suppierName}
-                                options={PASS_STATUS}
-                                renderButtonText={({name}) => name}
-                                renderRow={({name}) => (
-                                  <Text style={styles.row_sty}>{name}</Text>
-                                )}
-                                textStyle={styles.dropdownText}
-                                dropdownStyle={styles.dropdownStyle}
-                                dropdownTextStyle={styles.DropDownPickerText}
-                                dropdownTextHighlightStyle={
-                                  styles.dropdownTextHighlightStyle
-                                }
-                                onSelect={(value, item) => {
-                                  setSuppierValue(item.value);
-                                  setSuppierName(item.name);
-                                }}
-                              />
-                              <IconOutline color="#999999" name="down" />
-                            </View>
-                            <View style={styles.drawer_item}>
-                              <Text style={styles.drawer_item_title}>
-                                我的流程：
-                              </Text>
-                              <ModalDropdown
-                                defaultValue={processName}
-                                options={MY_PASS}
-                                renderButtonText={({name}) => name}
-                                renderRow={({name}) => (
-                                  <Text style={styles.row_sty}>{name}</Text>
-                                )}
-                                textStyle={styles.dropdownText}
-                                dropdownStyle={styles.dropdownStyle}
-                                dropdownTextStyle={styles.DropDownPickerText}
-                                dropdownTextHighlightStyle={
-                                  styles.dropdownTextHighlightStyle
-                                }
-                                onSelect={(value, item) => {
-                                  setProcessValue(item.value);
-                                  setProcessName(item.name);
-                                }}
-                              />
-                              <IconOutline color="#999999" name="down" />
-                            </View>
-                            <View style={styles.drawer_item}>
-                              <Text style={styles.drawer_item_title}>
-                                专业：
-                              </Text>
-                              <ModalDropdown
-                                defaultValue={majorName}
-                                options={MAJOR}
-                                renderButtonText={({name}) => name}
-                                renderRow={({name}) => (
-                                  <Text style={styles.row_sty}>{name}</Text>
-                                )}
-                                textStyle={styles.dropdownText}
-                                dropdownStyle={styles.dropdownStyle}
-                                dropdownTextStyle={styles.DropDownPickerText}
-                                dropdownTextHighlightStyle={
-                                  styles.dropdownTextHighlightStyle
-                                }
-                                onSelect={(value, item) => {
-                                  setMajorValue(item.value);
-                                  setMajorName(item.name);
-                                }}
-                              />
-                              <IconOutline color="#999999" name="down" />
-                            </View>
-                            <View style={styles._operate}>
-                              <TouchableWithoutFeedback
-                                onPress={() => {
-                                  setDrawer(false);
-                                }}>
-                                <View style={styles.search_modal_btn}>
-                                  <Text
-                                    style={{
-                                      color: '#FFF',
-                                      fontSize: 14,
-                                      lineHeight: 17,
-                                    }}>
-                                    查询
-                                  </Text>
-                                </View>
-                              </TouchableWithoutFeedback>
-                            </View>
-                          </View>
+                            查询
+                          </Text>
                         </View>
                       </TouchableWithoutFeedback>
                     </View>
-                  </TouchableWithoutFeedback>
+                  </View>
                 </View>
-              )}
-              <View
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  flexDirection: 'row',
-                  marginBottom: 10,
-                  marginTop: 10,
-                }}>
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    setDrawer(true);
-                  }}>
-                  <View
-                    style={{
-                      backgroundColor: '#108EE9',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      height: 38,
-                      width: 70,
-                      marginRight: 30,
-                    }}>
-                    <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                      筛选
-                    </Text>
-                  </View>
-                </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    props.navigation.push('newapproach');
-                  }}>
-                  <View
-                    style={{
-                      backgroundColor: '#108EE9',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      height: 38,
-                      width: 80,
-                    }}>
-                    <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                      发起申请
-                    </Text>
-                  </View>
-                </TouchableWithoutFeedback>
-              </View>
-              {/* list */}
-              {DATA.map(item => (
-                <RenderItem key={item.name} item={item} />
-              ))}
-              {/* <FlatList
-                data={DATA}
-                renderItem={renderItem}
-                keyExtractor={item => item.id}
-                ListEmptyComponent={Empty}
-                //设置下拉刷新样式
-                // refreshControl={
-                //   <RefreshControl
-                //     title={'Loading'} //android中设置无效
-                //     colors={['red']} //android
-                //     tintColor={'red'} //ios
-                //     titleColor={'red'}
-                //     refreshing={isLoading}
-                //     onRefresh={() => {
-                //       // this.loadData();
-                //     }}
-                //   />
-                // }
-                //设置上拉加载
-                // ListFooterComponent={() => renderLoadMoreView()}
-                // onEndReached={() => loadMoreData()}
-              /> */}
+              </TouchableWithoutFeedback>
             </View>
           </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
+        </View>
+      )}
+      <ScrollView>
+        <View>
+          <View
+            style={{
+              display: 'flex',
+              justifyContent: 'center',
+              flexDirection: 'row',
+              marginBottom: 10,
+              marginTop: 10,
+            }}>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                setDrawer(true);
+              }}>
+              <View
+                style={{
+                  backgroundColor: '#108EE9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 6,
+                  height: 38,
+                  width: 70,
+                  marginRight: 30,
+                }}>
+                <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
+                  筛选
+                </Text>
+              </View>
+            </TouchableWithoutFeedback>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                props.navigation.push('newapproach');
+              }}>
+              <View
+                style={{
+                  backgroundColor: '#108EE9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 6,
+                  height: 38,
+                  width: 80,
+                }}>
+                <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
+                  发起申请
+                </Text>
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </View>
+        {/* list */}
+        <View>
+          {loading ? (
+            <Loading style={{paddingBottom: 50}} />
+          ) : (
+            <View>
+              {tableData && tableData.length > 0 ? (
+                <View>
+                  {tableData.map(item => (
+                    <RenderItem key={item.id} item={item} />
+                  ))}
+                </View>
+              ) : (
+                <Empty title="当前没有记录" />
+              )}
+            </View>
+          )}
+        </View>
+        {!isAll ? (
+          <View style={{display: 'flex', alignItems: 'center'}}>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                loadMore();
+              }}>
+              <Text style={{height: 40, lineHeight: 40}}>点击加载更多</Text>
+            </TouchableWithoutFeedback>
+          </View>
+        ) : (
+          <View style={{display: 'flex', alignItems: 'center'}}>
+            <Text style={{height: 40, lineHeight: 40}}>已加载全部</Text>
+          </View>
+        )}
       </ScrollView>
     </View>
   );
@@ -442,22 +444,29 @@ export default function Approach(props) {
         color: '#F30000FF',
         value: '被驳回',
       },
+      {
+        id: 2,
+        color: '#F30000FF',
+        value: '被驳回',
+      },
+      {
+        id: 3,
+        color: '#F30000FF',
+        value: '被驳回',
+      },
+      {
+        id: 4,
+        color: '#F30000FF',
+        value: '被驳回',
+      },
+      {
+        id: 5,
+        color: '#F30000FF',
+        value: '被驳回',
+      },
     ];
     let info = statuss.find(item => item.id === status);
     return <Text style={{color: info.color}}>{info.value}</Text>;
-  }
-  function renderLoadMoreView() {
-    return (
-      <View style={styles.loadMore}>
-        <ActivityIndicator
-          style={styles.indicator}
-          size={'large'}
-          color={'red'}
-          animating={true}
-        />
-        <Text style={{textAlign: 'center'}}>正在加载更多</Text>
-      </View>
-    );
   }
 }
 
@@ -547,13 +556,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
   },
   dropdownStyle: {
-    color: 'red',
+    color: '#666',
     padding: 10,
   },
   DropDownPickerText: {
-    color: 'red',
+    color: '#666',
     padding: 10,
-    fontSize: 20,
+    fontSize: 16,
   },
   row_sty: {
     color: '#666',

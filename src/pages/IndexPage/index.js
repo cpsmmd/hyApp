@@ -27,7 +27,7 @@ const {width} = Dimensions.get('window');
 const {width: deviceWidth} = Dimensions.get('window');
 import {BSAE_IMAGE_URL, BSAE_API} from '../../util/constants';
 import Loading from '../../components/Loading';
-import {getNew} from '../../api/user';
+import {getNew, getUserMenu} from '../../api/user';
 import MQTT from 'sp-react-native-mqtt';
 const IndexPage = props => {
   const [userMsg, setUserMsg] = useState({});
@@ -68,8 +68,9 @@ const IndexPage = props => {
       } else {
         setUserMsg(global.userInfo);
       }
-      // 员工岗才能查看消息
+      // 管理岗才能查看消息
       getNews();
+      getPower();
       const modeLIst =
         global.userInfo.isAdmin === 1
           ? [
@@ -87,6 +88,11 @@ const IndexPage = props => {
                 url: require('../../assets/setting.jpg'),
                 title: '设置',
                 route: 'setting',
+              },
+              {
+                url: require('../../assets/material.png'),
+                title: '材料管理',
+                route: 'stuffMenu',
               },
             ]
           : [
@@ -110,16 +116,6 @@ const IndexPage = props => {
                 title: '设置',
                 route: 'setting',
               },
-              {
-                url: require('../../assets/material.png'),
-                title: '材料管理',
-                route: 'material',
-              },
-              {
-                url: require('../../assets/material.png'),
-                title: '材料管理2',
-                route: 'stuffMenu',
-              },
             ];
       setModeLIsts(modeLIst);
       setLoading(false);
@@ -133,6 +129,7 @@ const IndexPage = props => {
       };
       try {
         const res = await getNew(parms);
+        console.log('res', res.data);
         if (res.data.code === 200) {
           if (res.data.data.count !== 0) {
             setNewsNum(res.data.data.count);
@@ -143,7 +140,7 @@ const IndexPage = props => {
             setNewsNum(count * 1);
           }
         } else {
-          dealFail(props, res.data.code, res.data.message);
+          // dealFail(props, res.data.code, res.data.message);
         }
       } catch (error) {
         console.error(error);
@@ -151,10 +148,10 @@ const IndexPage = props => {
     }
   };
   const dealMqtt = () => {
-    // mqtt://47.117.123.129:8900/warning/app/data
+    // mqtt://116.62.231.156:8900/warning/app/data
     // console.log('ready');
     MQTT.createClient({
-      uri: 'mqtt://47.117.123.129:1883',
+      uri: 'mqtt://116.62.231.156:1883',
       clientId: 'mqttx_5afa9f86hhdjsdwefiwe22i',
       user: 'admin',
       pass: 'admin',
@@ -191,6 +188,14 @@ const IndexPage = props => {
       .catch(function (err) {
         console.error('mqtt连接失败', err);
       });
+  };
+  const getPower = async () => {
+    try {
+      const res = await getUserMenu();
+      // console.log('菜单权限', JSON.stringify(res.data));
+    } catch (error) {
+      console.error();
+    }
   };
   const editRoute = info => {
     info.route && props.navigation.push(info.route);

@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-19 21:40:00
- * @LastEditTime: 2021-07-19 23:19:38
+ * @LastEditTime: 2021-07-26 21:18:50
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理接口
  * @FilePath: /web/hy/hyApp/src/api/stuff.js
@@ -14,9 +14,10 @@ if (global.userInfo && global.userInfo.idCard) {
 }
 axios.defaults.headers.common['idCard'] = idCard;
 let defaultHeader = {
-  dCard: global.userInfo.idCard,
+  idCard: global.userInfo.idCard,
   token: global.userInfo.token,
 };
+// -----------------------------------------进场--------------------------------
 // 分页查询进场申请
 export const getApproachApply = params =>
   fetch.post('/appapi/selectApplyByPagination', params, {
@@ -33,12 +34,70 @@ export const editApproachApply = params =>
     headers: defaultHeader,
   });
 // 进场详情
-export const approachApplyDetail = params =>
-  fetch.post('/appapi/selectApplyById', params, {
-    headers: defaultHeader,
-  });
+export const approachApplyDetail = id =>
+  fetch.get(
+    '/appapi/selectApplyById',
+    {
+      id,
+    },
+    {
+      headers: defaultHeader,
+    },
+  );
 // 进场审批
 export const updateToApproval = params =>
   fetch.post('/appapi/updateToApproval', params, {
+    headers: defaultHeader,
+  });
+// 材料名称查询
+export const getMaterialsByName = params => {
+  console.log('defaultHeader', defaultHeader);
+  return fetch.get(
+    `/appapi/selectMaterialsByName?name=${params}`,
+    {},
+    {
+      headers: defaultHeader,
+    },
+  );
+};
+// --------------------------------出库--------------------------------
+// 分页查询出库申请
+export const getOutputApply = params =>
+  fetch.post('/hyOutboundApply/selectOutboundApplyByPaginationApp', params, {
+    headers: defaultHeader,
+  });
+// 添加出库申请
+export const addOutputApply = params =>
+  fetch.post('/hyOutboundApply/insertOutboundApply', params, {
+    headers: defaultHeader,
+  });
+// 出库审核
+export const approaveOutputApply = params =>
+  fetch.post('/hyOutboundApply/updateToApprovalApp', params, {
+    headers: defaultHeader,
+  });
+// 修改出库申请
+export const updateOutputApply = params =>
+  fetch.post('/hyOutboundApply/updateOutboundApplyApp', params, {
+    headers: defaultHeader,
+  });
+// 出库申请详情
+export const reardOutputApply = params =>
+  fetch.post('/hyOutboundApply/selectApplyByIdApp', params, {
+    headers: defaultHeader,
+  });
+// 出库申请人复核
+export const reviewOutputApply = params =>
+  fetch.post('/hyOutboundApply/selectApplyByIdApp', params, {
+    headers: defaultHeader,
+  });
+// 出库归还提交
+export const returnOutputApply = params =>
+  fetch.post('/hyOutboundApply/insertReturnApp', params, {
+    headers: defaultHeader,
+  });
+// 出库归还确认
+export const returnConfirmOutputApply = params =>
+  fetch.post('/hyOutboundApply/insertReturnConfirmApp', params, {
     headers: defaultHeader,
   });

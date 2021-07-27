@@ -22,7 +22,7 @@ export default function Notice(props) {
     (async () => {
       await getNotices();
       console.log(
-        `http://47.117.123.129:8900/HyVisitors/downFileApp?path=files/baidu932.numbers`,
+        `http://116.62.231.156:8900/HyVisitors/downFileApp?path=files/baidu932.numbers`,
       );
     })();
   }, []);
@@ -56,7 +56,7 @@ export default function Notice(props) {
       } else {
         url = results[0].uri.replace('file://', '');
       }
-      // http://47.117.123.129:8900
+      // http://116.62.231.156:8900
       console.log('url', url);
       console.log(RNFetchBlob.wrap(url));
       let parms = new FormData();
@@ -69,7 +69,7 @@ export default function Notice(props) {
       console.log('parms', parms);
       RNFetchBlob.fetch(
         'POST',
-        'http://47.117.123.129:8900/HyVisitors/uploadBatchApp',
+        'http://116.62.231.156:8900/HyVisitors/uploadBatchApp',
         {
           otherHeader: 'foo',
           'Content-Type': 'multipart/form-data',
@@ -113,7 +113,7 @@ export default function Notice(props) {
   const downFil = () => {
     RNFetchBlob.fetch(
       'GET',
-      'http://47.117.123.129:8900/HyVisitors/downFileApp?path=files/baidu932.numbers',
+      'http://116.62.231.156:8900/HyVisitors/downFileApp?path=files/baidu932.numbers',
       {
         Authorization: 'Bearer access-token...',
         // more headers  ..

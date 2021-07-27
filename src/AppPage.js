@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 14:06:37
- * @LastEditTime: 2021-07-11 22:39:32
+ * @LastEditTime: 2021-07-26 22:04:28
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/AppPage.js
@@ -33,6 +33,7 @@ import ExitList from './pages/Stuff/Exit/index.js';
 import EditExit from './pages/Stuff/Exit/edit.js';
 import InputList from './pages/Stuff/Input/index.js';
 import OutputList from './pages/Stuff/OutPut/index.js';
+import OutputEdit from './pages/Stuff/OutPut/edit.js';
 import Privacy from './pages/Privacy';
 import {Provider} from '@ant-design/react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -164,7 +165,7 @@ export default function AppPage(props) {
             name="privacy"
             component={Privacy}
           />
-          {/* 二期 Approach*/}
+          {/* -----------------------二期 Approach------------------*/}
           <Stack.Screen
             options={{
               title: '材料管理',
@@ -215,6 +216,11 @@ export default function AppPage(props) {
             options={{title: '出库管理'}}
             name="outputList"
             component={OutputList}
+          />
+          <Stack.Screen
+            options={({route}) => ({title: route.params?.name})}
+            name="outputEdit"
+            component={OutputEdit}
           />
         </Stack.Navigator>
       </NavigationContainer>
