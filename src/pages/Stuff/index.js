@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-26 21:48:45
- * @LastEditTime: 2021-07-11 22:38:24
+ * @LastEditTime: 2021-08-01 15:08:12
  * @LastEditors: Please set LastEditors
  * @Description: 材料管理菜单页
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/index.js
@@ -19,7 +19,7 @@ import {
 const menuLists = [
   {
     url: require('../../assets/stuff/qingdan.png'),
-    title: '材料清单1',
+    title: '材料清单',
     route: 'detailList',
   },
   {

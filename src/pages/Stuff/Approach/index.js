@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-07-26 23:24:19
+ * @LastEditTime: 2021-08-01 22:56:35
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -41,7 +41,6 @@ export default function Approach(props) {
   const [tableData, settableData] = useState([]);
   const [isAll, setIsAll] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
-  const [isLoading, setisLoading] = useState(false);
   const [searchParms, setsearchParms] = useState({
     name: '',
     standards: '',
@@ -439,31 +438,25 @@ export default function Approach(props) {
   function RenderStatus(value) {
     const {status} = value;
     let statuss = [
-      {
-        id: 1,
-        color: '#F30000FF',
-        value: '被驳回',
-      },
-      {
-        id: 2,
-        color: '#F30000FF',
-        value: '被驳回',
-      },
-      {
-        id: 3,
-        color: '#F30000FF',
-        value: '被驳回',
-      },
-      {
-        id: 4,
-        color: '#F30000FF',
-        value: '被驳回',
-      },
-      {
-        id: 5,
-        color: '#F30000FF',
-        value: '被驳回',
-      },
+      {id: 1, color: '#2b85e4', value: '审批中'},
+      {id: 2, color: '#ed4014', value: '被驳回'},
+      {id: 3, color: '#19be6b', value: '已审批'},
+      {id: 4, color: '#19be6b', value: '已进场'},
+      {id: 5, color: '#2db7f5', value: '部分进场'},
+      {id: 6, color: '#ed4014', value: '拒绝进场'},
+      {id: 7, color: '#F30000', value: '未入库'},
+      {id: 8, color: '#19be6b', value: '已入库'},
+      {id: 9, color: '#ed4014', value: '拒绝入库'},
+      {id: 10, color: '#2db7f5', value: '"部分入库'},
+      {id: 11, color: '#ff9900', value: '待库管确认'},
+      {id: 12, color: '#ff9900', value: '待申请人确认'},
+      {id: 13, color: '#ed4014', value: '已终止'},
+      {id: 14, color: '#2b85e4', value: '出库中'},
+      {id: 15, color: '#19be6b', value: '已出库'},
+      {id: 16, color: '#2b85e4', value: '归还中'},
+      {id: 17, color: '#19be6b', value: '归还完成'},
+      {id: 18, color: '#ff9900', value: '待退场'},
+      {id: 19, color: '#19be6b', value: '已退场'},
     ];
     let info = statuss.find(item => item.id === status);
     return <Text style={{color: info.color}}>{info.value}</Text>;

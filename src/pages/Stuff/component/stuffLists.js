@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:57:34
- * @LastEditTime: 2021-07-11 16:55:04
+ * @LastEditTime: 2021-07-27 23:40:45
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/component/stuffLists.js
@@ -18,16 +18,16 @@ const StuffLists = props => {
         <View style={styles.items} key={item.id}>
           <View style={styles.flex_row}>
             <Text style={styles.title}>材料名称：</Text>
-            <Text style={styles.value}>{item.name}</Text>
+            <Text style={styles.value}>{item.materialsName}</Text>
           </View>
           <View style={[styles.flex_row, {marginTop: 8}]}>
             <View style={[styles.flex_row, {flex: 1}]}>
               <Text style={styles.title}>规格：</Text>
-              <Text style={styles.value}>{item.norms}</Text>
+              <Text style={styles.value}>{item.materialsSpecs}</Text>
             </View>
             <View style={[styles.flex_row, {flex: 1}]}>
               <Text style={styles.title}>数量：</Text>
-              <Text style={styles.value}>{item.num}</Text>
+              <Text style={styles.value}>{item.materialsNum}</Text>
             </View>
           </View>
         </View>

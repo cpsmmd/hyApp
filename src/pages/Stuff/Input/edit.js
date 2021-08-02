@@ -1,11 +1,11 @@
 /* eslint-disable react-native/no-inline-styles */
 /*
  * @Author: your name
- * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-01 22:20:18
+ * @Date: 2021-08-01 22:39:56
+ * @LastEditTime: 2021-08-01 23:06:20
  * @LastEditors: Please set LastEditors
- * @Description: In User Settings Edit
- * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
+ * @Description: 详情、入库
+ * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/edit.js
  */
 import React, {useState, useEffect} from 'react';
 import {
@@ -30,6 +30,8 @@ import {
   updateToApproval,
   getMaterialsByName,
   getSupplierByName,
+  getInputDetail,
+  updateInputApply,
 } from '../../../api/stuff';
 import dealFail from '../../../util/common';
 const numberOfLines = 3;
@@ -40,8 +42,8 @@ let defaultData = {
   id: new Date().getTime(),
 };
 let menuObj = {
-  detail: '审批详情',
-  edit: '进场审批-修改',
+  detail: '入库详情',
+  edit: '入库管理-入库',
 };
 let userInfo = global.userInfo;
 const EditApproach = props => {
@@ -83,11 +85,10 @@ const EditApproach = props => {
   // 获取详情
   const getDetail = async () => {
     try {
-      const res = await approachApplyDetail(props.route.params.id);
+      const res = await getInputDetail(props.route.params.id);
       if (res.data.code === 200) {
-        console.log('---------进场详情------', res.data.data);
-        // setLists(res.data.data);
-        let info = res.data.data;
+        console.log('---------入库详情------', res.data.data);
+        let info = res.data.data.approachRootBean;
         setDetailInfo(info);
         setstuffLists(info.materials || []);
         setTheme(info.theme);

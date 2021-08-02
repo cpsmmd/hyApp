@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-06 23:08:05
- * @LastEditTime: 2021-07-25 16:46:29
+ * @LastEditTime: 2021-08-01 22:03:43
  * @LastEditors: Please set LastEditors
  * @Description: 发起进场申请
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/new.js
@@ -23,12 +23,16 @@ import ModalDropdown from 'react-native-modal-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Button, Toast} from '@ant-design/react-native';
 import {MAJOR, MAJOR_LIST} from '../../../util/constants';
-import {addApproachApply, getMaterialsByName} from '../../../api/stuff';
+import {
+  addApproachApply,
+  getMaterialsByName,
+  getSupplierByName,
+} from '../../../api/stuff';
 let defaultData = {
   materialsName: '',
   materialsSpecs: '',
   materialsNum: '',
-  id: `${Math.random()}-${Math.random()}-${Math.random()}`,
+  id: new Date().getTime(),
 };
 let userInfo = global.userInfo;
 const New = props => {
@@ -49,16 +53,26 @@ const New = props => {
   const [unloadingRequire, setUnloadingRequire] = useState(''); // 卸货需求
   const [fileUrl, setFileUrl] = useState(''); // 附件上传路径
   const [contractName, setContractName] = useState(''); // 归属合同名称
+
+  // 模糊搜索材料名称
+  const [materialsList, setMaterialsList] = useState([]);
+  const [supplierList, setSupplierList] = useState([]);
+  const [curId, setCurId] = useState('');
   useEffect(() => {
     // props.navigation.setOptions({
     //   title: 'hhahah',
     // });
-    searchMaterisName();
   }, []);
   // 添加材料
   const addStuff = () => {
+    if (materialsList.length > 0) {
+      Toast.fail('请选择材料名称');
+      return;
+    }
+    let data = {...defaultData};
+    data.id = new Date().getTime();
     setstuffLists(state => {
-      return [...state, defaultData];
+      return [...state, data];
     });
   };
   // 删除材料
@@ -75,15 +89,20 @@ const New = props => {
   const submit = async () => {
     let materials = [];
     stuffLists.forEach(item => {
+      // item.materialsName
       materials.push({
         materialsName: item.materialsName,
         materialsSpecs: item.materialsSpecs,
         materialsNum: item.materialsNum,
       });
     });
+    if (materials.length === 0) {
+      Toast.fail('请添加材料');
+      return;
+    }
     let parms = {
       idCard: userInfo.idCard,
-      supplierName,
+      supplierName: '天下会总部',
       theme,
       supplierContact,
       supplierMobile,
@@ -94,13 +113,18 @@ const New = props => {
       professional,
       approachTime: JSON.stringify(date).substring(1, 11),
       fileUrl,
-      materials: stuffLists,
+      materials: materials,
     };
     console.log('新增parms', parms);
+    let test = 1;
+    if (test === 1) {
+      return;
+    }
     try {
       const res = await addApproachApply(parms);
+      console.log('res.data', res.data);
       if (res.data.code === 200) {
-        props.navigation.goBack();
+        // props.navigation.goBack();
         Toast.success(res.data.message);
       } else {
         Toast.fail(res.data.message);
@@ -121,10 +145,22 @@ const New = props => {
     setShow(true);
     setMode(currentMode);
   };
-  const searchMaterisName = async () => {
+  const searchMaterisName = async (name, id) => {
+    setCurId(id);
     try {
-      const res = await getMaterialsByName('hhah');
+      const res = await getMaterialsByName(name);
       console.log('模糊查询材料名称/appapi/selectMaterialsByName', res.data);
+      let list = res.data.data || [];
+      setMaterialsList(list);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const searcSupplierName = async name => {
+    try {
+      const res = await getSupplierByName(name);
+      let list = res.data.data || [];
+      setSupplierList(list);
     } catch (error) {
       console.error(error);
     }
@@ -153,6 +189,7 @@ const New = props => {
                             }
                           });
                           setstuffLists(newList);
+                          searchMaterisName(text.trim(), item.id);
                         }}
                         value={item.materialsName}
                         style={styles.input_sty}
@@ -169,6 +206,35 @@ const New = props => {
                       />
                     </TouchableWithoutFeedback>
                   </View>
+                  {item.id === curId && materialsList.length > 0 ? (
+                    <View
+                      style={{
+                        width: '100%',
+                        zIndex: 999,
+                        display: 'flex',
+                        flexDirection: 'row',
+                        flexWrap: 'wrap',
+                      }}>
+                      {materialsList.map(v => (
+                        <TouchableWithoutFeedback
+                          key={v.id}
+                          onPress={() => {
+                            let newList = [...stuffLists];
+                            newList.map(v1 => {
+                              if (v1.id === curId) {
+                                v1.materialsName = v.materialsName;
+                              }
+                            });
+                            setstuffLists(newList);
+                            setMaterialsList([]);
+                          }}>
+                          <Text style={[styles.default_label]} key={v}>
+                            {v.materialsName}
+                          </Text>
+                        </TouchableWithoutFeedback>
+                      ))}
+                    </View>
+                  ) : null}
                   <View style={[styles.flex_row, {marginTop: 10}]}>
                     <Text style={styles.stuff_item_title}>规格：</Text>
                     <TextInput
@@ -301,8 +367,9 @@ const New = props => {
                       styles.dropdownTextHighlightStyle
                     }
                     onSelect={value => {
+                      console.log('专业', value);
                       // setMajorValue(item.value);
-                      setProfessional(value);
+                      setProfessional(MAJOR_LIST[value]);
                     }}
                   />
                 </View>
@@ -312,10 +379,38 @@ const New = props => {
                 <TextInput
                   style={styles.input_no_border}
                   placeholder="请输入"
-                  onChangeText={text => setSupplierName(text)}
+                  onChangeText={text => {
+                    setSupplierName(text);
+                    searcSupplierName(text.trim());
+                  }}
                   value={supplierName}
                 />
               </View>
+              {supplierList.length > 0 ? (
+                <View
+                  style={{
+                    width: '100%',
+                    zIndex: 999,
+                    display: 'flex',
+                    flexDirection: 'row',
+                    flexWrap: 'wrap',
+                    marginTop: 10,
+                    marginBottom: 10,
+                  }}>
+                  {supplierList.map(v => (
+                    <TouchableWithoutFeedback
+                      key={v.id}
+                      onPress={() => {
+                        setSupplierName(v.supplierName);
+                        setSupplierList([]);
+                      }}>
+                      <Text style={[styles.default_label]} key={v}>
+                        {v.supplierName}
+                      </Text>
+                    </TouchableWithoutFeedback>
+                  ))}
+                </View>
+              ) : null}
               <View style={styles.other_item}>
                 <Text style={styles.other_title}>供应商联系人：</Text>
                 <TextInput
@@ -334,13 +429,13 @@ const New = props => {
                   value={supplierMobile}
                 />
               </View>
-              <View style={styles.other_item}>
+              {/* <View style={styles.other_item}>
                 <Text style={styles.other_title}>附件上传：</Text>
                 <TextInput
                   style={styles.input_no_border}
                   placeholder="请输入"
                 />
-              </View>
+              </View> */}
             </View>
             {/* 提交 */}
             <View
@@ -395,6 +490,7 @@ const styles = StyleSheet.create({
     display: 'flex',
     flexDirection: 'row',
     alignItems: 'center',
+    position: 'relative',
   },
   input_sty: {
     height: 38,
@@ -466,6 +562,21 @@ const styles = StyleSheet.create({
   },
   dropdownTextHighlightStyle: {
     color: '#1890ff',
+  },
+  default_label: {
+    paddingTop: 5,
+    paddingBottom: 5,
+    paddingLeft: 10,
+    paddingRight: 10,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    color: '#52c41a',
+    backgroundColor: '#f6ffed',
+    borderColor: '#b7eb8f',
+    borderRadius: 5,
+    marginRight: 5,
+    marginTop: 6,
+    fontSize: 14,
   },
   container: {flex: 1, padding: 16, paddingTop: 30, backgroundColor: '#fff'},
   header: {height: 50, backgroundColor: '#537791'},

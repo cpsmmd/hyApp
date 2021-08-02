@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 14:06:37
- * @LastEditTime: 2021-07-26 22:04:28
+ * @LastEditTime: 2021-08-01 22:52:33
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/AppPage.js
@@ -32,6 +32,7 @@ import Editapproach from './pages/Stuff/Approach/edit';
 import ExitList from './pages/Stuff/Exit/index.js';
 import EditExit from './pages/Stuff/Exit/edit.js';
 import InputList from './pages/Stuff/Input/index.js';
+import EditInput from './pages/Stuff/Input/edit.js';
 import OutputList from './pages/Stuff/OutPut/index.js';
 import OutputEdit from './pages/Stuff/OutPut/edit.js';
 import Privacy from './pages/Privacy';
@@ -211,6 +212,11 @@ export default function AppPage(props) {
             options={{title: '入库管理'}}
             name="inputList"
             component={InputList}
+          />
+          <Stack.Screen
+            options={({route}) => ({title: route.params?.name || '入库详情'})}
+            name="editInput"
+            component={EditInput}
           />
           <Stack.Screen
             options={{title: '出库管理'}}

@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-19 21:40:00
- * @LastEditTime: 2021-07-26 21:18:50
+ * @LastEditTime: 2021-08-01 23:01:27
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理接口
  * @FilePath: /web/hy/hyApp/src/api/stuff.js
@@ -17,7 +17,32 @@ let defaultHeader = {
   idCard: global.userInfo.idCard,
   token: global.userInfo.token,
 };
-// -----------------------------------------进场--------------------------------
+// 材料名称查询
+export const getMaterialsByName = name => {
+  return fetch.get(
+    `/appapi/selectMaterialsByName?name=${name}`,
+    // {},
+    {
+      headers: defaultHeader,
+    },
+  );
+};
+// 供应商名称查询（用于检索）
+export const getSupplierByName = name => {
+  return fetch.get(
+    `/appapi/selectSupplierByName?name=${name}`,
+    // {},
+    {
+      headers: defaultHeader,
+    },
+  );
+};
+// --------------------------------材料清单--------------------------------
+export const getBillList = params =>
+  fetch.post('/appapi/selectBillByParam', params, {
+    headers: defaultHeader,
+  });
+// --------------------------------进场管理--------------------------------
 // 分页查询进场申请
 export const getApproachApply = params =>
   fetch.post('/appapi/selectApplyByPagination', params, {
@@ -35,32 +60,15 @@ export const editApproachApply = params =>
   });
 // 进场详情
 export const approachApplyDetail = id =>
-  fetch.get(
-    '/appapi/selectApplyById',
-    {
-      id,
-    },
-    {
-      headers: defaultHeader,
-    },
-  );
+  fetch.get(`/appapi/selectApplyById?id=${id}`, {
+    headers: defaultHeader,
+  });
 // 进场审批
 export const updateToApproval = params =>
   fetch.post('/appapi/updateToApproval', params, {
     headers: defaultHeader,
   });
-// 材料名称查询
-export const getMaterialsByName = params => {
-  console.log('defaultHeader', defaultHeader);
-  return fetch.get(
-    `/appapi/selectMaterialsByName?name=${params}`,
-    {},
-    {
-      headers: defaultHeader,
-    },
-  );
-};
-// --------------------------------出库--------------------------------
+// --------------------------------出库管理--------------------------------
 // 分页查询出库申请
 export const getOutputApply = params =>
   fetch.post('/hyOutboundApply/selectOutboundApplyByPaginationApp', params, {
@@ -99,5 +107,21 @@ export const returnOutputApply = params =>
 // 出库归还确认
 export const returnConfirmOutputApply = params =>
   fetch.post('/hyOutboundApply/insertReturnConfirmApp', params, {
+    headers: defaultHeader,
+  });
+// --------------------------------入库管理--------------------------------
+// 分页查询入库申请
+export const getOInputApply = params =>
+  fetch.post('/appapi/selectWarehouseApplyByPagination', params, {
+    headers: defaultHeader,
+  });
+// 入库详情
+export const getInputDetail = id =>
+  fetch.get(`/appapi/selectWarehouseApplyById?id=${id}`, {
+    headers: defaultHeader,
+  });
+// 入库接口
+export const updateInputApply = params =>
+  fetch.post('/appapi/updateWarehouse', params, {
     headers: defaultHeader,
   });

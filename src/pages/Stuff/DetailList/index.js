@@ -1,119 +1,115 @@
 /* eslint-disable react-native/no-inline-styles */
 /*
  * @Author: your name
- * @Date: 2021-06-26 22:42:34
- * @LastEditTime: 2021-07-07 22:00:24
+ * @Date: 2021-06-27 15:37:22
+ * @LastEditTime: 2021-08-01 15:51:22
  * @LastEditors: Please set LastEditors
- * @Description: 材料清单
- * @FilePath: /web/hy/hyApp/src/pages/Stuff/DetailList/index.js
+ * @Description: 进场管理
+ * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
  */
 import React, {useState, useEffect} from 'react';
 import {
   StyleSheet,
   Text,
   View,
-  FlatList,
   TouchableWithoutFeedback,
-  KeyboardAvoidingView,
   Keyboard,
   TextInput,
   ScrollView,
-  RefreshControl,
-  ActivityIndicator,
+  Image,
+  Dimensions,
 } from 'react-native';
 import {Button, Toast, Drawer, InputItem} from '@ant-design/react-native';
+import ModalDropdown from 'react-native-modal-dropdown';
+import {IconOutline} from '@ant-design/icons-react-native';
 import Empty from '../../../components/Empty';
-export default function Index() {
+import Loading from '../../../components/Loading';
+import {PASS_STATUS, MY_PASS, MAJOR_LIST} from '../../../util/constants';
+import {dealFail} from '../../../util/common';
+import {getBillList} from '../../../api/stuff';
+const {height: deviceHeight} = Dimensions.get('window');
+import {LOG_TYPE, TYPELOG_OPTIONS} from '../../util/constants';
+export default function StuffList(props) {
+  let userInfo = global.userInfo;
+  const limit = 10;
   const [drawer, setDrawer] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [tableData, settableData] = useState([]);
-  const [isLoading, setisLoading] = useState(false);
+  const [isAll, setIsAll] = useState(false);
+  const [pageNumber, setPageNumber] = useState(1);
   const [searchParms, setsearchParms] = useState({
     name: '',
     standards: '',
     supplier: '',
   });
-  const DATA = [
-    {
-      name: '四大皆空返回2',
-      guige: '闪电发货',
-      chu: 2324,
-      ku: 899,
-      jin: 3845,
-      tui: 4534,
-      gong: '肯德基反馈',
-    },
-    {
-      name: '四大皆空返回1',
-      guige: '闪电发货',
-      chu: 2324,
-      ku: 899,
-      jin: 3845,
-      tui: 4534,
-      gong: '肯德基反馈',
-    },
-    {
-      name: '四大皆空返回21',
-      guige: '闪电发货',
-      chu: 2324,
-      ku: 899,
-      jin: 3845,
-      tui: 4534,
-      gong: '肯德基反馈',
-    },
-    {
-      name: '四大皆空返回12',
-      guige: '闪电发货',
-      chu: 2324,
-      ku: 899,
-      jin: 3845,
-      tui: 4534,
-      gong: '肯德基反馈',
-    },
-    {
-      name: '四大皆空返回26',
-      guige: '闪电发货',
-      chu: 2324,
-      ku: 899,
-      jin: 3845,
-      tui: 4534,
-      gong: '肯德基反馈',
-    },
-    {
-      name: '四大皆空返回14',
-      guige: '闪电发货',
-      chu: 2324,
-      ku: 899,
-      jin: 3845,
-      tui: 4534,
-      gong: '肯德基反馈',
-    },
-    {
-      name: '四大皆空返回72',
-      guige: '闪电发货',
-      chu: 2324,
-      ku: 899,
-      jin: 3845,
-      tui: 4534,
-      gong: '肯德基反馈',
-    },
-    {
-      name: '四大皆空返回d1',
-      guige: '闪电发货',
-      chu: 2324,
-      ku: 899,
-      jin: 3845,
-      tui: 4534,
-      gong: '肯德基反馈',
-    },
-  ];
-  const loadMoreData = () => {
-    console.log(11);
+  // 搜索区域
+  const [stateName, setStateName] = useState('选择审批状态'); // 显示名称
+  const [stateValue, setStateValue] = useState(0); // 选中value
+  const [processName, setProcessName] = useState('选择流程'); // 显示名称
+  const [processValue, setProcessValue] = useState(0); // 选中value
+  const [professional, setProfessional] = useState('选择专业'); // 专业 显示名称
+  useEffect(() => {
+    (async () => {
+      setLoading(true);
+      await getLists(1);
+    })();
+  }, []);
+  // 获取数据
+  const getLists = async num => {
+    let parms = {
+      pageNumber: num,
+      limit,
+      materialsName: '',
+      supplierName: '',
+      materialsSpecs: '',
+      idCard: global.userInfo.idCard,
+    };
+    console.log('材料清单parms', parms);
+    try {
+      const res = await getBillList(parms);
+      if (res.data.code === 200) {
+        console.log('材料清单', res.data);
+        let list = res.data.data || [];
+        setIsAll(true);
+        settableData(state => {
+          return [...state, ...list];
+        });
+      } else {
+        // Toast.fail(res.data.message);
+        dealFail(props, res.data.code, res.data.message);
+      }
+      setLoading(false);
+    } catch (error) {
+      setLoading(false);
+      console.log(error);
+    }
+  };
+  const loadMore = async () => {
+    let num = pageNumber + 1;
+    setPageNumber(num);
+    getLists(num);
+  };
+  const search = () => {
+    console.log(professional);
+    console.log(processValue);
+    console.log(stateValue);
+    // setDrawer(false);
+    // settableData([]);
+    // setPageNumber(1);
+    // getLists(1);
+  };
+  // 详情，修改，审批
+  const navigationTo = (type, id) => {
+    props.navigation.push('editapproach', {
+      type,
+      id,
+    });
   };
   // const renderItem = ({item}) => <Item item={item} />;
   const RenderItem = ({item}) => {
     return (
       <View key={item.name} style={styles.list_item}>
-        <Text style={styles.list_item_name}>{item.name}</Text>
+        <Text style={styles.list_item_name}>{item.materialsName}</Text>
         <View
           style={{
             display: 'flex',
@@ -123,16 +119,16 @@ export default function Index() {
           }}>
           <Text style={styles.list_item_title}>
             规格：
-            <Text style={styles.list_item_text}>{item.guige}</Text>
+            <Text style={styles.list_item_text}>{item.materialsSpecs}</Text>
           </Text>
           <Text>
             出库数量：
-            <Text style={styles.list_item_text}>{item.chu}</Text>
+            <Text style={styles.list_item_text}>{item.outboundNum}</Text>
           </Text>
 
           <Text>
             库存数量：
-            <Text style={styles.list_item_text}>{item.ku}</Text>
+            <Text style={styles.list_item_text}>{item.inventoryNum}</Text>
           </Text>
         </View>
         <View
@@ -144,12 +140,12 @@ export default function Index() {
           }}>
           <Text>
             进场数量：
-            <Text style={styles.list_item_text}>{item.jin}</Text>
+            <Text style={styles.list_item_text}>{item.approachNum}</Text>
           </Text>
 
           <Text>
             退场数量：
-            <Text style={styles.list_item_text}>{item.tui}</Text>
+            <Text style={styles.list_item_text}>{item.exitNum}</Text>
           </Text>
         </View>
         <View
@@ -161,7 +157,7 @@ export default function Index() {
           }}>
           <Text>
             供应商：
-            <Text style={styles.list_item_text}>{item.gong}</Text>
+            <Text style={styles.list_item_text}>{item.supplierName}</Text>
           </Text>
         </View>
       </View>
@@ -169,215 +165,244 @@ export default function Index() {
   };
   return (
     <View style={{position: 'relative', width: '100%', height: '100%'}}>
-      <ScrollView>
-        <KeyboardAvoidingView>
+      {drawer && (
+        <View
+          style={{position: 'absolute', width: '100%', height: '100%', top: 0}}>
           <TouchableWithoutFeedback
             onPress={() => {
-              Keyboard.dismiss();
+              setDrawer(false);
             }}>
-            <View style={{position: 'relative', width: '100%', height: '100%'}}>
-              {drawer && <RenderSearch />}
-              <View
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  marginBottom: 10,
+            <View
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                backgroundColor: 'rgba(0, 0, 0, 0.3)',
+                display: 'flex',
+                zIndex: 9,
+              }}>
+              <TouchableWithoutFeedback
+                onPress={e => {
+                  e.stopPropagation();
+                  Keyboard.dismiss();
                 }}>
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    setDrawer(true);
+                <View
+                  style={{
+                    width: '75%',
+                    height: '100%',
+                    backgroundColor: '#fff',
+                    marginLeft: 'auto',
                   }}>
-                  <View
-                    style={{
-                      backgroundColor: '#108EE9',
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      height: 38,
-                      width: 70,
-                      marginTop: 10,
+                  {/* 关闭 */}
+                  <TouchableWithoutFeedback
+                    onPress={() => {
+                      setDrawer(false);
                     }}>
-                    <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                      筛选
-                    </Text>
+                    <Image
+                      style={{
+                        position: 'absolute',
+                        right: 20,
+                        top: 20,
+                        width: 30,
+                        height: 30,
+                      }}
+                      source={require('../../../assets/common/close.png')}
+                    />
+                  </TouchableWithoutFeedback>
+                  <View style={{marginTop: 100, padding: 10}}>
+                    <View style={styles.drawer_item}>
+                      <Text style={styles.drawer_item_title}>供应商：</Text>
+                      <TextInput
+                        style={styles.drawer_item_input}
+                        placeholder="请输入"
+                        onChangeText={text => {
+                          setsearchParms(state => {
+                            return {
+                              ...state,
+                              name: text,
+                            };
+                          });
+                        }}
+                        value={searchParms.name}
+                      />
+                    </View>
+                    <View style={styles.drawer_item}>
+                      <Text style={styles.drawer_item_title}>审批状态：</Text>
+                      <ModalDropdown
+                        defaultValue={stateName}
+                        options={PASS_STATUS}
+                        renderButtonText={({name}) => name}
+                        renderRow={({name}) => (
+                          <Text style={styles.row_sty}>{name}</Text>
+                        )}
+                        textStyle={styles.dropdownText}
+                        dropdownStyle={styles.dropdownStyle}
+                        dropdownTextStyle={styles.DropDownPickerText}
+                        dropdownTextHighlightStyle={
+                          styles.dropdownTextHighlightStyle
+                        }
+                        onSelect={(value, item) => {
+                          setStateValue(item.value);
+                          setStateName(item.name);
+                        }}
+                      />
+                      <IconOutline color="#999999" name="down" />
+                    </View>
+                    <View style={styles.drawer_item}>
+                      <Text style={styles.drawer_item_title}>我的流程：</Text>
+                      <ModalDropdown
+                        defaultValue={processName}
+                        options={MY_PASS}
+                        renderButtonText={({name}) => name}
+                        renderRow={({name}) => (
+                          <Text style={styles.row_sty}>{name}</Text>
+                        )}
+                        textStyle={styles.dropdownText}
+                        dropdownStyle={styles.dropdownStyle}
+                        dropdownTextStyle={styles.DropDownPickerText}
+                        dropdownTextHighlightStyle={
+                          styles.dropdownTextHighlightStyle
+                        }
+                        onSelect={(value, item) => {
+                          setProcessValue(item.value);
+                          setProcessName(item.name);
+                        }}
+                      />
+                      <IconOutline color="#999999" name="down" />
+                    </View>
+                    <View style={styles.drawer_item}>
+                      <Text style={styles.drawer_item_title}>专业：</Text>
+                      <ModalDropdown
+                        defaultValue={'请选择专业'}
+                        options={MAJOR_LIST}
+                        textStyle={styles.dropdownText}
+                        dropdownStyle={styles.dropdownStyle}
+                        dropdownTextStyle={styles.DropDownPickerText}
+                        dropdownTextHighlightStyle={
+                          styles.dropdownTextHighlightStyle
+                        }
+                        onSelect={value => {
+                          // setMajorValue(item.value);
+                          setProfessional(value);
+                        }}
+                      />
+                      <IconOutline color="#999999" name="down" />
+                    </View>
+                    <View style={styles._operate}>
+                      <TouchableWithoutFeedback
+                        onPress={() => {
+                          search();
+                        }}>
+                        <View style={styles.search_modal_btn}>
+                          <Text
+                            style={{
+                              color: '#FFF',
+                              fontSize: 14,
+                              lineHeight: 17,
+                            }}>
+                            查询
+                          </Text>
+                        </View>
+                      </TouchableWithoutFeedback>
+                    </View>
                   </View>
-                </TouchableWithoutFeedback>
-              </View>
-              {/* list */}
-              <View style={{display: 'flex', flex: 1}}>
-                {DATA.map(item => (
-                  <RenderItem key={item.name} item={item} />
-                ))}
-                {/* <FlatList
-                  style={{flex: 1}}
-                  data={DATA}
-                  renderItem={renderItem}
-                  keyExtractor={item => item.name}
-                  ListEmptyComponent={Empty}
-                  //设置下拉刷新样式
-                  // refreshControl={
-                  //   <RefreshControl
-                  //     title={'Loading'} //android中设置无效
-                  //     colors={['red']} //android
-                  //     tintColor={'red'} //ios
-                  //     titleColor={'red'}
-                  //     refreshing={isLoading}
-                  //     onRefresh={() => {
-                  //       // this.loadData();
-                  //     }}
-                  //   />
-                  // }
-                  //设置上拉加载
-                  // ListFooterComponent={() => renderLoadMoreView()}
-                  // onEndReached={() => loadMoreData()}
-                /> */}
-              </View>
+                </View>
+              </TouchableWithoutFeedback>
             </View>
           </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
-      </ScrollView>
-    </View>
-  );
-  function RenderSearch() {
-    return (
-      <View style={{position: 'relative', width: '100%', height: '100%'}}>
-        <TouchableWithoutFeedback
-          onPress={() => {
-            setDrawer(false);
-          }}>
+        </View>
+      )}
+      <ScrollView>
+        <View>
           <View
             style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              backgroundColor: 'rgba(0, 0, 0, 0.3)',
               display: 'flex',
-              zIndex: 9,
+              justifyContent: 'center',
+              flexDirection: 'row',
+              marginBottom: 10,
+              marginTop: 10,
             }}>
             <TouchableWithoutFeedback
-              onPress={e => {
-                e.stopPropagation();
-                Keyboard.dismiss();
+              onPress={() => {
+                setDrawer(true);
               }}>
               <View
                 style={{
-                  width: '75%',
-                  height: '100%',
-                  backgroundColor: '#fff',
-                  marginLeft: 'auto',
+                  backgroundColor: '#108EE9',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: 6,
+                  height: 38,
+                  width: 70,
+                  marginRight: 30,
                 }}>
-                {/* 退出 */}
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    setDrawer(false);
-                  }}>
-                  <Text
-                    style={{
-                      position: 'absolute',
-                      right: 20,
-                      top: 20,
-                      fontSize: 20,
-                    }}>
-                    X
-                  </Text>
-                </TouchableWithoutFeedback>
-                <View style={{marginTop: 100, padding: 10}}>
-                  <View style={styles.drawer_item}>
-                    <Text style={styles.drawer_item_title}>材料名称：</Text>
-                    <TextInput
-                      style={styles.drawer_item_input}
-                      placeholder="昵称"
-                      onChangeText={text => {
-                        setsearchParms(state => {
-                          return {
-                            ...state,
-                            name: text,
-                          };
-                        });
-                      }}
-                      value={searchParms.name}
-                    />
-                  </View>
-                  <View style={styles.drawer_item}>
-                    <Text style={styles.drawer_item_title}>规格：</Text>
-                    <TextInput
-                      style={styles.drawer_item_input}
-                      placeholder="昵称"
-                      onChangeText={text => {
-                        setsearchParms(state => {
-                          return {
-                            ...state,
-                            name: text,
-                          };
-                        });
-                      }}
-                      value={searchParms.name}
-                    />
-                  </View>
-                  <View style={styles.drawer_item}>
-                    <Text style={styles.drawer_item_title}>供应商：</Text>
-                    <TextInput
-                      style={styles.drawer_item_input}
-                      placeholder="昵称"
-                      onChangeText={text => {
-                        setsearchParms(state => {
-                          return {
-                            ...state,
-                            name: text,
-                          };
-                        });
-                      }}
-                      value={searchParms.name}
-                    />
-                  </View>
-                  <View style={styles._operate}>
-                    <TouchableWithoutFeedback
-                      onPress={() => {
-                        setDrawer(false);
-                      }}>
-                      <View
-                        style={{
-                          backgroundColor: '#108EE9',
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: 6,
-                          height: 38,
-                          width: 70,
-                          marginLeft: 70,
-                        }}>
-                        <Text
-                          style={{
-                            color: '#FFF',
-                            fontSize: 14,
-                            lineHeight: 17,
-                          }}>
-                          查询
-                        </Text>
-                      </View>
-                    </TouchableWithoutFeedback>
-                  </View>
-                </View>
+                <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
+                  筛选
+                </Text>
               </View>
             </TouchableWithoutFeedback>
           </View>
-        </TouchableWithoutFeedback>
-      </View>
-    );
-  }
-  function renderLoadMoreView() {
-    return (
-      <View style={styles.loadMore}>
-        <ActivityIndicator
-          style={styles.indicator}
-          size={'large'}
-          color={'red'}
-          animating={true}
-        />
-        <Text style={{textAlign: 'center'}}>正在加载更多</Text>
-      </View>
-    );
+        </View>
+        {/* list */}
+        <View>
+          {loading ? (
+            <Loading style={{paddingBottom: 50}} />
+          ) : (
+            <View>
+              {tableData && tableData.length > 0 ? (
+                <View>
+                  {tableData.map(item => (
+                    <RenderItem key={item.id} item={item} />
+                  ))}
+                </View>
+              ) : (
+                <Empty title="当前没有记录" />
+              )}
+            </View>
+          )}
+        </View>
+        {!isAll ? (
+          <View style={{display: 'flex', alignItems: 'center'}}>
+            <TouchableWithoutFeedback
+              onPress={() => {
+                loadMore();
+              }}>
+              <Text style={{height: 40, lineHeight: 40}}>点击加载更多</Text>
+            </TouchableWithoutFeedback>
+          </View>
+        ) : (
+          <View style={{display: 'flex', alignItems: 'center'}}>
+            <Text style={{height: 40, lineHeight: 40}}>已加载全部</Text>
+          </View>
+        )}
+      </ScrollView>
+    </View>
+  );
+  function RenderStatus(value) {
+    const {status} = value;
+    let statuss = [
+      {id: 1, color: '#2b85e4', value: '审批中'},
+      {id: 2, color: '#ed4014', value: '被驳回'},
+      {id: 3, color: '#19be6b', value: '已审批'},
+      {id: 4, color: '#19be6b', value: '已进场'},
+      {id: 5, color: '#2db7f5', value: '部分进场'},
+      {id: 6, color: '#ed4014', value: '拒绝进场'},
+      {id: 7, color: '#F30000', value: '未入库'},
+      {id: 8, color: '#19be6b', value: '已入库'},
+      {id: 9, color: '#ed4014', value: '拒绝入库'},
+      {id: 10, color: '#2db7f5', value: '"部分入库'},
+      {id: 11, color: '#ff9900', value: '待库管确认'},
+      {id: 12, color: '#ff9900', value: '待申请人确认'},
+      {id: 13, color: '#ed4014', value: '已终止'},
+      {id: 14, color: '#2b85e4', value: '出库中'},
+      {id: 15, color: '#19be6b', value: '已出库'},
+      {id: 16, color: '#2b85e4', value: '归还中'},
+      {id: 17, color: '#19be6b', value: '归还完成'},
+      {id: 18, color: '#ff9900', value: '待退场'},
+      {id: 19, color: '#19be6b', value: '已退场'},
+    ];
+    let info = statuss.find(item => item.id === status);
+    return <Text style={{color: info.color}}>{info.value}</Text>;
   }
 }
 
@@ -413,6 +438,7 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     width: 70,
     textAlign: 'right',
+    paddingRight: 4,
   },
   drawer_item_input: {
     height: 40,
@@ -424,5 +450,65 @@ const styles = StyleSheet.create({
   },
   _operate: {
     marginTop: 50,
+  },
+  search_modal_btn: {
+    backgroundColor: '#108EE9',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 6,
+    height: 38,
+    width: 70,
+    marginLeft: 70,
+  },
+  detail_btn: {
+    fontSize: 12,
+    borderWidth: 1,
+    borderColor: '#108EE9',
+    width: 48,
+    height: 26,
+    lineHeight: 26,
+    textAlign: 'center',
+    borderRadius: 15,
+    color: '#108EE9',
+    marginRight: 10,
+    marginTop: -2,
+  },
+  edit_btn: {
+    fontSize: 12,
+    backgroundColor: '#108EE9',
+    width: 48,
+    height: 26,
+    lineHeight: 26,
+    textAlign: 'center',
+    borderRadius: 15,
+    color: '#fff',
+    marginRight: 10,
+    marginTop: -2,
+  },
+  // 下拉框样式
+  dropdownText: {
+    color: '#999999',
+    fontSize: 16,
+  },
+  dropdownStyle: {
+    color: '#666',
+    padding: 10,
+  },
+  DropDownPickerText: {
+    color: '#666',
+    padding: 10,
+    fontSize: 16,
+  },
+  row_sty: {
+    color: '#666',
+    paddingLeft: 20,
+    paddingRight: 20,
+    paddingTop: 14,
+    paddingBottom: 14,
+    fontSize: 16,
+  },
+  dropdownTextHighlightStyle: {
+    color: 'red',
   },
 });

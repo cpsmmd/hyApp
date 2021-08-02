@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-07-26 23:05:57
+ * @LastEditTime: 2021-07-27 23:04:14
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -12,16 +12,12 @@ import {
   StyleSheet,
   Text,
   View,
-  FlatList,
   TouchableWithoutFeedback,
-  KeyboardAvoidingView,
   Keyboard,
   TextInput,
   ScrollView,
-  RefreshControl,
   Image,
   Dimensions,
-  ActivityIndicator,
 } from 'react-native';
 import ModalDropdown from 'react-native-modal-dropdown';
 import {IconOutline} from '@ant-design/icons-react-native';
@@ -54,7 +50,7 @@ export default function OutputList(props) {
   const [professional, setProfessional] = useState('选择专业'); // 专业 显示名称
   useEffect(() => {
     (async () => {
-      // await getLists(1);
+      await getLists(1);
     })();
   }, []);
   // useEffect(() => {
@@ -71,30 +67,24 @@ export default function OutputList(props) {
     let parms = {
       pageNumber: num,
       limit,
+      state: null,
+      myProcess: null,
+      belongProject: global.userInfo.belongProject,
       // idCard: global.userInfo.idCard,
     };
-    if (professional !== '选择专业') {
-      parms['professional'] = professional;
-    }
-    if (processValue !== 0) {
-      parms['myProcess'] = processValue;
-    }
-    if (stateValue !== 0) {
-      parms['state'] = stateValue;
-    }
     console.log('分页查询出库申请', parms);
-    setLoading(true);
+    // setLoading(true);
     try {
       const res = await getOutputApply(parms);
       if (res.data.code === 200) {
         // console.log('res', JSON.stringify(res.data.data));
-        console.log('进场列表', res.data.data);
+        console.log('出库列表', res.data.data);
         // setLists(res.data.data);
         let list = res.data.data.list || [];
         setIsAll(list.length < limit);
         let newList = [...tableData, ...list];
         console.log(newList.length);
-        // settableData(newList);
+        settableData(newList);
       } else {
         // Toast.fail(res.data.message);
         dealFail(props, res.data.code, res.data.message);
@@ -136,17 +126,33 @@ export default function OutputList(props) {
             style={{display: 'flex', marginLeft: 'auto', flexDirection: 'row'}}>
             <TouchableWithoutFeedback
               onPress={() => {
-                navigationTo('detail', item.id);
+                navigationTo('detail');
               }}>
               <Text style={styles.detail_btn}>详情</Text>
             </TouchableWithoutFeedback>
             <TouchableWithoutFeedback
               onPress={() => {
-                navigationTo('edit', item.id);
+                navigationTo('edit');
               }}>
               <Text style={styles.edit_btn}>修改</Text>
             </TouchableWithoutFeedback>
           </View>
+        </View>
+        <View
+          style={{
+            display: 'flex',
+            flexDirection: 'row',
+            justifyContent: 'space-between',
+            marginTop: 8,
+          }}>
+          <Text>
+            申请时间：
+            <Text style={styles.list_item_text}>{item.createTime}</Text>
+          </Text>
+          <Text>
+            出库时间：
+            <Text style={styles.list_item_text}>{item.useTime}</Text>
+          </Text>
         </View>
         <View
           style={{
@@ -160,39 +166,10 @@ export default function OutputList(props) {
             <Text style={styles.list_item_text}>{item.userName}</Text>
           </Text>
           <Text>
-            申请时间：
-            <Text style={styles.list_item_text}>{item.approachTime}</Text>
-          </Text>
-        </View>
-        <View
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginTop: 8,
-          }}>
-          <Text>
-            专业：
-            <Text style={styles.list_item_text}>{item.professional}</Text>
-          </Text>
-
-          <Text>
             审批状态：
             <Text style={styles.list_item_text}>
-              <RenderStatus status={item.state} />
+              <RenderStatus status={item.outboundState} />
             </Text>
-          </Text>
-        </View>
-        <View
-          style={{
-            display: 'flex',
-            flexDirection: 'row',
-            justifyContent: 'space-between',
-            marginTop: 8,
-          }}>
-          <Text>
-            供应商：
-            <Text style={styles.list_item_text}>{item.supplierName}</Text>
           </Text>
         </View>
       </View>
@@ -435,31 +412,25 @@ export default function OutputList(props) {
   function RenderStatus(value) {
     const {status} = value;
     let statuss = [
-      {
-        id: 1,
-        color: '#F30000FF',
-        value: '被驳回',
-      },
-      {
-        id: 2,
-        color: '#F30000FF',
-        value: '被驳回',
-      },
-      {
-        id: 3,
-        color: '#F30000FF',
-        value: '被驳回',
-      },
-      {
-        id: 4,
-        color: '#F30000FF',
-        value: '被驳回',
-      },
-      {
-        id: 5,
-        color: '#F30000FF',
-        value: '被驳回',
-      },
+      {id: 1, color: '#2b85e4', value: '审批中'},
+      {id: 2, color: '#ed4014', value: '被驳回'},
+      {id: 3, color: '#19be6b', value: '已审批'},
+      {id: 4, color: '#19be6b', value: '已进场'},
+      {id: 5, color: '#2db7f5', value: '部分进场'},
+      {id: 6, color: '#ed4014', value: '拒绝进场'},
+      {id: 7, color: '#F30000', value: '未入库'},
+      {id: 8, color: '#19be6b', value: '已入库'},
+      {id: 9, color: '#ed4014', value: '拒绝入库'},
+      {id: 10, color: '#2db7f5', value: '"部分入库'},
+      {id: 11, color: '#ff9900', value: '待库管确认'},
+      {id: 12, color: '#ff9900', value: '待申请人确认'},
+      {id: 13, color: '#ed4014', value: '已终止'},
+      {id: 14, color: '#2b85e4', value: '出库中'},
+      {id: 15, color: '#19be6b', value: '已出库'},
+      {id: 16, color: '#2b85e4', value: '归还中'},
+      {id: 17, color: '#19be6b', value: '归还完成'},
+      {id: 18, color: '#ff9900', value: '待退场'},
+      {id: 19, color: '#19be6b', value: '已退场'},
     ];
     let info = statuss.find(item => item.id === status);
     return <Text style={{color: info.color}}>{info.value}</Text>;
