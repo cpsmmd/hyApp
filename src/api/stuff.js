@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-19 21:40:00
- * @LastEditTime: 2021-08-01 23:01:27
+ * @LastEditTime: 2021-08-08 21:17:15
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理接口
  * @FilePath: /web/hy/hyApp/src/api/stuff.js
@@ -37,8 +37,23 @@ export const getSupplierByName = name => {
     },
   );
 };
+// 获取专业列表
+export const getProfessions = () => {
+  return fetch.get(
+    '/hyProfessional/selectProfessionalApp',
+    // {},
+    {
+      headers: defaultHeader,
+    },
+  );
+};
 // --------------------------------材料清单--------------------------------
 export const getBillList = params =>
+  fetch.post('/appapi/selectBillByPagination', params, {
+    headers: defaultHeader,
+  });
+// 查询材料清单（用于检索）
+export const getBillList2 = params =>
   fetch.post('/appapi/selectBillByParam', params, {
     headers: defaultHeader,
   });
@@ -68,6 +83,37 @@ export const updateToApproval = params =>
   fetch.post('/appapi/updateToApproval', params, {
     headers: defaultHeader,
   });
+// --------------------------------退场申请--------------------------------
+// 分页查询退场申请
+export const getExitApply = params =>
+  fetch.post('/hyExitApply/selectExitApplyByPaginationApp', params, {
+    headers: defaultHeader,
+  });
+// 退场申请详情
+export const getExitDetail = id =>
+  fetch.get(`/hyExitApply/selectApplyById?id=${id}`, {
+    headers: defaultHeader,
+  });
+// 进场申请接口
+export const addExitApply = params =>
+  fetch.post('/hyExitApply/insertExitApplyApp', params, {
+    headers: defaultHeader,
+  });
+// 修改退场申请
+export const editExitApply = params =>
+  fetch.post('/hyExitApply/updateExitApplyApp', params, {
+    headers: defaultHeader,
+  });
+// 退场审核
+export const approaveExitApply = params =>
+  fetch.post('/hyExitApply/updateToApprovalApp', params, {
+    headers: defaultHeader,
+  });
+// 退场库管员确认
+export const confirmExitApply = params =>
+  fetch.post('/hyExitApply/insertReviewingApp', params, {
+    headers: defaultHeader,
+  });
 // --------------------------------出库管理--------------------------------
 // 分页查询出库申请
 export const getOutputApply = params =>
@@ -90,13 +136,13 @@ export const updateOutputApply = params =>
     headers: defaultHeader,
   });
 // 出库申请详情
-export const reardOutputApply = params =>
-  fetch.post('/hyOutboundApply/selectApplyByIdApp', params, {
+export const reardOutputApply = id =>
+  fetch.get(`/hyOutboundApply/selectApplyByIdApp?id=${id}`, {
     headers: defaultHeader,
   });
 // 出库申请人复核
 export const reviewOutputApply = params =>
-  fetch.post('/hyOutboundApply/selectApplyByIdApp', params, {
+  fetch.post('/hyOutboundApply/insertReviewingApp', params, {
     headers: defaultHeader,
   });
 // 出库归还提交

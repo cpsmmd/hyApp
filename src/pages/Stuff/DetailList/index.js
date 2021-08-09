@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-01 15:51:22
+ * @LastEditTime: 2021-08-08 20:26:44
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -17,40 +17,35 @@ import {
   TextInput,
   ScrollView,
   Image,
-  Dimensions,
 } from 'react-native';
-import {Button, Toast, Drawer, InputItem} from '@ant-design/react-native';
-import ModalDropdown from 'react-native-modal-dropdown';
-import {IconOutline} from '@ant-design/icons-react-native';
+import {Toast} from '@ant-design/react-native';
+import {Input, Autocomplete, AutocompleteItem} from '@ui-kitten/components';
 import Empty from '../../../components/Empty';
 import Loading from '../../../components/Loading';
-import {PASS_STATUS, MY_PASS, MAJOR_LIST} from '../../../util/constants';
 import {dealFail} from '../../../util/common';
-import {getBillList} from '../../../api/stuff';
-const {height: deviceHeight} = Dimensions.get('window');
-import {LOG_TYPE, TYPELOG_OPTIONS} from '../../util/constants';
+import {
+  getBillList,
+  getMaterialsByName,
+  getSupplierByName,
+} from '../../../api/stuff';
 export default function StuffList(props) {
   let userInfo = global.userInfo;
   const limit = 10;
   const [drawer, setDrawer] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [tableData, settableData] = useState([]);
   const [isAll, setIsAll] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
-  const [searchParms, setsearchParms] = useState({
-    name: '',
-    standards: '',
-    supplier: '',
-  });
   // 搜索区域
-  const [stateName, setStateName] = useState('选择审批状态'); // 显示名称
-  const [stateValue, setStateValue] = useState(0); // 选中value
-  const [processName, setProcessName] = useState('选择流程'); // 显示名称
-  const [processValue, setProcessValue] = useState(0); // 选中value
-  const [professional, setProfessional] = useState('选择专业'); // 专业 显示名称
+  const [supplierName, setSupplierName] = useState(''); // 供应商名称
+  const [materialsSpecs, setMaterialsSpecs] = useState(''); // 规格
+  const [materialsName, setMaterialsName] = useState(''); // 材料名称
+  // 模糊搜索材料名称
+  const [materialsList, setMaterialsList] = useState([]);
+  const [supplierList, setSupplierList] = useState([]);
   useEffect(() => {
     (async () => {
-      setLoading(true);
+      // setLoading(true);
       await getLists(1);
     })();
   }, []);
@@ -59,12 +54,16 @@ export default function StuffList(props) {
     let parms = {
       pageNumber: num,
       limit,
-      materialsName: '',
-      supplierName: '',
-      materialsSpecs: '',
+      materialsName,
+      supplierName,
+      materialsSpecs,
       idCard: global.userInfo.idCard,
     };
     console.log('材料清单parms', parms);
+    let test = 1;
+    if (test === 1) {
+      return;
+    }
     try {
       const res = await getBillList(parms);
       if (res.data.code === 200) {
@@ -90,20 +89,34 @@ export default function StuffList(props) {
     getLists(num);
   };
   const search = () => {
-    console.log(professional);
-    console.log(processValue);
-    console.log(stateValue);
-    // setDrawer(false);
-    // settableData([]);
-    // setPageNumber(1);
-    // getLists(1);
+    if (supplierList.length > 0) {
+      return Toast.fail('请选择供应商');
+    }
+    if (supplierList.length > 0) {
+      return Toast.fail('请选择材料名称');
+    }
+    setDrawer(false);
+    settableData([]);
+    setPageNumber(1);
+    getLists(1);
   };
-  // 详情，修改，审批
-  const navigationTo = (type, id) => {
-    props.navigation.push('editapproach', {
-      type,
-      id,
-    });
+  const searchMaterisName = async name => {
+    try {
+      const res = await getMaterialsByName(name);
+      let list = res.data.data || [];
+      setMaterialsList(list);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+  const searcSupplierName = async name => {
+    try {
+      const res = await getSupplierByName(name);
+      let list = res.data.data || [];
+      setSupplierList(list);
+    } catch (error) {
+      console.error(error);
+    }
   };
   // const renderItem = ({item}) => <Item item={item} />;
   const RenderItem = ({item}) => {
@@ -163,6 +176,10 @@ export default function StuffList(props) {
       </View>
     );
   };
+
+  const renderSupplierName = (item, index) => (
+    <AutocompleteItem key={item.id} title={item.supplierName} />
+  );
   return (
     <View style={{position: 'relative', width: '100%', height: '100%'}}>
       {drawer && (
@@ -211,83 +228,106 @@ export default function StuffList(props) {
                   </TouchableWithoutFeedback>
                   <View style={{marginTop: 100, padding: 10}}>
                     <View style={styles.drawer_item}>
-                      <Text style={styles.drawer_item_title}>供应商：</Text>
+                      <Text style={styles.drawer_item_title}>材料名称：</Text>
                       <TextInput
                         style={styles.drawer_item_input}
                         placeholder="请输入"
                         onChangeText={text => {
-                          setsearchParms(state => {
-                            return {
-                              ...state,
-                              name: text,
-                            };
-                          });
+                          setMaterialsName(text);
+                          searchMaterisName(text.trim());
                         }}
-                        value={searchParms.name}
+                        value={materialsName}
+                      />
+                    </View>
+                    {materialsList.length > 0 ? (
+                      <View
+                        style={{
+                          width: '100%',
+                          zIndex: 999,
+                          display: 'flex',
+                          flexDirection: 'row',
+                          flexWrap: 'wrap',
+                        }}>
+                        {materialsList.map(v => (
+                          <TouchableWithoutFeedback
+                            key={v.id}
+                            onPress={() => {
+                              setMaterialsName(v.materialsName);
+                              setMaterialsList([]);
+                            }}>
+                            <Text style={[styles.default_label]} key={v}>
+                              {v.materialsName}
+                            </Text>
+                          </TouchableWithoutFeedback>
+                        ))}
+                      </View>
+                    ) : null}
+                    <View style={styles.drawer_item}>
+                      <Text style={styles.drawer_item_title}>规格：</Text>
+                      {/* <TextInput
+                        style={styles.drawer_item_input}
+                        placeholder="请输入"
+                        onChangeText={text => {
+                          setMaterialsSpecs(text);
+                        }}
+                        value={materialsSpecs}
+                      /> */}
+                      <Input
+                        style={styles.drawer_item_input}
+                        placeholder="请输入规格"
+                        value={materialsSpecs}
+                        onChangeText={nextValue => setMaterialsSpecs(nextValue)}
                       />
                     </View>
                     <View style={styles.drawer_item}>
-                      <Text style={styles.drawer_item_title}>审批状态：</Text>
-                      <ModalDropdown
-                        defaultValue={stateName}
-                        options={PASS_STATUS}
-                        renderButtonText={({name}) => name}
-                        renderRow={({name}) => (
-                          <Text style={styles.row_sty}>{name}</Text>
-                        )}
-                        textStyle={styles.dropdownText}
-                        dropdownStyle={styles.dropdownStyle}
-                        dropdownTextStyle={styles.DropDownPickerText}
-                        dropdownTextHighlightStyle={
-                          styles.dropdownTextHighlightStyle
-                        }
-                        onSelect={(value, item) => {
-                          setStateValue(item.value);
-                          setStateName(item.name);
+                      <Text style={styles.drawer_item_title}>供应商：</Text>
+                      {/* <TextInput
+                        style={styles.drawer_item_input}
+                        placeholder="请输入"
+                        onChangeText={text => {
+                          setSupplierName(text);
+                          searcSupplierName(text.trim());
                         }}
-                      />
-                      <IconOutline color="#999999" name="down" />
-                    </View>
-                    <View style={styles.drawer_item}>
-                      <Text style={styles.drawer_item_title}>我的流程：</Text>
-                      <ModalDropdown
-                        defaultValue={processName}
-                        options={MY_PASS}
-                        renderButtonText={({name}) => name}
-                        renderRow={({name}) => (
-                          <Text style={styles.row_sty}>{name}</Text>
-                        )}
-                        textStyle={styles.dropdownText}
-                        dropdownStyle={styles.dropdownStyle}
-                        dropdownTextStyle={styles.DropDownPickerText}
-                        dropdownTextHighlightStyle={
-                          styles.dropdownTextHighlightStyle
-                        }
-                        onSelect={(value, item) => {
-                          setProcessValue(item.value);
-                          setProcessName(item.name);
+                        value={supplierName}
+                      /> */}
+                      <Autocomplete
+                        style={styles.drawer_item_input}
+                        value={supplierName}
+                        onSelect={index => {
+                          setValue(supplierList[index].supplierName);
                         }}
-                      />
-                      <IconOutline color="#999999" name="down" />
+                        onChangeText={nextValue => {
+                          supplierName(nextValue);
+                          searcSupplierName(nextValue.trim());
+                        }}>
+                        {supplierList.map(renderSupplierName)}
+                      </Autocomplete>
                     </View>
-                    <View style={styles.drawer_item}>
-                      <Text style={styles.drawer_item_title}>专业：</Text>
-                      <ModalDropdown
-                        defaultValue={'请选择专业'}
-                        options={MAJOR_LIST}
-                        textStyle={styles.dropdownText}
-                        dropdownStyle={styles.dropdownStyle}
-                        dropdownTextStyle={styles.DropDownPickerText}
-                        dropdownTextHighlightStyle={
-                          styles.dropdownTextHighlightStyle
-                        }
-                        onSelect={value => {
-                          // setMajorValue(item.value);
-                          setProfessional(value);
-                        }}
-                      />
-                      <IconOutline color="#999999" name="down" />
-                    </View>
+                    {/* {supplierList.length > 0 ? (
+                      <View
+                        style={{
+                          width: '100%',
+                          zIndex: 999,
+                          display: 'flex',
+                          flexDirection: 'row',
+                          flexWrap: 'wrap',
+                          marginTop: 10,
+                          marginBottom: 10,
+                        }}>
+                        {supplierList.map(v => (
+                          <TouchableWithoutFeedback
+                            key={v.id}
+                            onPress={() => {
+                              setSupplierName(v.supplierName);
+                              setSupplierList([]);
+                            }}>
+                            <Text style={[styles.default_label]} key={v}>
+                              {v.supplierName}
+                            </Text>
+                          </TouchableWithoutFeedback>
+                        ))}
+                      </View>
+                    ) : null} */}
                     <View style={styles._operate}>
                       <TouchableWithoutFeedback
                         onPress={() => {
@@ -438,13 +478,12 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     width: 70,
     textAlign: 'right',
-    paddingRight: 4,
   },
   drawer_item_input: {
     height: 40,
     borderRadius: 5,
-    paddingLeft: 15,
-    width: 160,
+    paddingLeft: 5,
+    width: 170,
     borderWidth: 1,
     borderColor: '#999999',
   },
@@ -510,5 +549,20 @@ const styles = StyleSheet.create({
   },
   dropdownTextHighlightStyle: {
     color: 'red',
+  },
+  default_label: {
+    paddingTop: 5,
+    paddingBottom: 5,
+    paddingLeft: 10,
+    paddingRight: 10,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    color: '#52c41a',
+    backgroundColor: '#f6ffed',
+    borderColor: '#b7eb8f',
+    borderRadius: 5,
+    marginRight: 5,
+    marginTop: 6,
+    fontSize: 14,
   },
 });

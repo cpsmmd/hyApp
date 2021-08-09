@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-07-27 23:04:14
+ * @LastEditTime: 2021-08-09 00:02:37
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -126,16 +126,55 @@ export default function OutputList(props) {
             style={{display: 'flex', marginLeft: 'auto', flexDirection: 'row'}}>
             <TouchableWithoutFeedback
               onPress={() => {
-                navigationTo('detail');
+                navigationTo('detail', item.id);
               }}>
               <Text style={styles.detail_btn}>详情</Text>
             </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback
-              onPress={() => {
-                navigationTo('edit');
-              }}>
-              <Text style={styles.edit_btn}>修改</Text>
-            </TouchableWithoutFeedback>
+            {item.isOperate && item.outboundState === 2 && (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  navigationTo('modify', item.id);
+                }}>
+                <Text style={styles.edit_btn}>修改</Text>
+              </TouchableWithoutFeedback>
+            )}
+            {item.isOperate &&
+              (item.outboundState === 11 || item.outboundState === 16) && (
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    let status = 'edit';
+                    if (item.outboundState === 16) {
+                      status = 'confirm';
+                    }
+                    navigationTo(status, item.id);
+                  }}>
+                  <Text style={styles.edit_btn}>编辑</Text>
+                </TouchableWithoutFeedback>
+              )}
+            {item.isOperate && item.outboundState === 1 && (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  navigationTo('approave', item.id);
+                }}>
+                <Text style={styles.edit_btn}>审批</Text>
+              </TouchableWithoutFeedback>
+            )}
+            {item.isOperate && item.outboundState === 14 && (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  navigationTo('review', item.id);
+                }}>
+                <Text style={styles.edit_btn}>复核</Text>
+              </TouchableWithoutFeedback>
+            )}
+            {item.isOperate && item.outboundState === 15 && (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  navigationTo('return', item.id);
+                }}>
+                <Text style={styles.edit_btn}>归还</Text>
+              </TouchableWithoutFeedback>
+            )}
           </View>
         </View>
         <View
@@ -356,7 +395,7 @@ export default function OutputList(props) {
             <TouchableWithoutFeedback
               onPress={() => {
                 // props.navigation.push('newapproach');
-                navigationTo('add');
+                navigationTo('new');
               }}>
               <View
                 style={{

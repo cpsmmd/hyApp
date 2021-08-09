@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-06 13:37:26
- * @LastEditTime: 2021-07-26 20:38:10
+ * @LastEditTime: 2021-08-04 00:00:53
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/util/constants.js
@@ -36,11 +36,23 @@ export const TYPELOG_OPTIONS2 = [
 ];
 export const PASS_STATUS = [
   {name: '审批中', value: 1},
-  {name: '已审批', value: 2},
-  {name: '被驳回', value: 3},
+  {name: '已审批', value: 3},
+  {name: '被驳回', value: 2},
   {name: '已进场', value: 4},
-  {name: '部分进场', value: 4},
-  {name: '拒绝进场', value: 4},
+  {name: '部分进场', value: 5},
+  {name: '拒绝进场', value: 6},
+];
+export const EXIT_STATUS = [
+  {name: '审批中', value: 1},
+  {name: '已审批', value: 3},
+  {name: '被驳回', value: 2},
+  {name: '已进场', value: 4},
+];
+export const INPUT_STATUS = [
+  {name: '已入库', value: 8},
+  {name: '已拒绝', value: 9},
+  {name: '未入库', value: 7},
+  {name: '部分入库', value: 10},
 ];
 export const MY_PASS = [
   {name: '我的申请', value: 1},
@@ -64,8 +76,9 @@ export const MAJOR_LIST = [
   '消防',
 ];
 export const EXIT_DIRECTION = [
-  {name: '供应商回收', value: 1},
-  {name: '材料转场其他项目', value: 2},
-  {name: '第三方回收', value: 3},
-  {name: '移交甲方', value: 4},
+  '供应商回收',
+  '材料转场其他项目',
+  '第三方回收',
+  '移交甲方',
+  '其他',
 ];

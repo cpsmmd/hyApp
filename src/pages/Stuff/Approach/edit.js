@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-01 22:20:18
+ * @LastEditTime: 2021-08-03 22:11:56
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -41,7 +41,8 @@ let defaultData = {
 };
 let menuObj = {
   detail: '审批详情',
-  edit: '进场审批-修改',
+  edit: '进场管理-修改',
+  approave: '进场管理-审批',
 };
 let userInfo = global.userInfo;
 const EditApproach = props => {
@@ -73,6 +74,8 @@ const EditApproach = props => {
   const [materialsList, setMaterialsList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
   const [curId, setCurId] = useState('');
+  // 审批
+  const [content, setContent] = useState('');
   // 设置标题
   useEffect(() => {
     props.navigation.setOptions({
@@ -125,7 +128,7 @@ const EditApproach = props => {
     newList.splice(Index, 1);
     setstuffLists(newList);
   };
-  // 提交材料
+  // 修改提交材料
   const submit = async () => {
     // 编辑
     let materials = [];
@@ -169,16 +172,20 @@ const EditApproach = props => {
   };
   // 审批
   const changeStatus = async state => {
+    if (content.trim().length === 0) {
+      return Toast.fail('请填写审批意见');
+    }
     let parms = {
       state,
-      applyId: props.route.params.id,
-      content: 'dcd',
+      applyId: detailInfo.applyId,
+      content,
       belongProject: userInfo.belongProject,
     };
+    console.log('审批parms', parms);
     try {
       const res = await updateToApproval(parms);
       if (res.data.code === 200) {
-        // props.navigation.goBack();
+        props.navigation.goBack();
         Toast.success(res.data.message);
       } else {
         Toast.fail(res.data.message);
@@ -266,7 +273,6 @@ const EditApproach = props => {
     setCurId(id);
     try {
       const res = await getMaterialsByName(name);
-      console.log('模糊查询材料名称/appapi/selectMaterialsByName', res.data);
       let list = res.data.data || [];
       setMaterialsList(list);
     } catch (error) {
@@ -687,6 +693,36 @@ const EditApproach = props => {
               <RenderApproach></RenderApproach>
             </View>
             <RenderApprovalComments></RenderApprovalComments>
+            {routeType === 'approave' && (
+              <View style={styles.other_item3}>
+                <Text style={styles.other_title}>
+                  {userInfo.userName}审批意见：
+                </Text>
+                <TextInput
+                  style={{
+                    backgroundColor: '#EEEEEE',
+                    borderWidth: 0,
+                    borderRadius: 5,
+                    paddingLeft: 15,
+                    textAlign: 'left',
+                    textAlignVertical: 'top',
+                    androidtextAlignVertical: 'top',
+                    width: '60%',
+                  }}
+                  numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
+                  minHeight={
+                    Platform.OS === 'ios' && numberOfLines
+                      ? 20 * numberOfLines
+                      : null
+                  }
+                  placeholder="请填写"
+                  multiline
+                  onChangeText={text => setContent(text)}
+                  value={content}
+                  maxLength={20}
+                />
+              </View>
+            )}
             {/* 提交 */}
             {routeType === 'edit' && (
               <View
@@ -704,16 +740,19 @@ const EditApproach = props => {
                 </Button>
               </View>
             )}
-            {routeType === 'approve' && (
+            {routeType === 'approave' && (
               <View
                 style={{
                   display: 'flex',
                   justifyContent: 'center',
                   flexDirection: 'row',
-                  marginBottom: 10,
+                  marginBottom: 30,
                   marginTop: 10,
                 }}>
-                <TouchableWithoutFeedback>
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    changeStatus(1);
+                  }}>
                   <View
                     style={{
                       backgroundColor: '#19be6b',
@@ -729,7 +768,10 @@ const EditApproach = props => {
                     </Text>
                   </View>
                 </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback>
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    changeStatus(0);
+                  }}>
                   <View
                     style={{
                       backgroundColor: '#F30000FF',

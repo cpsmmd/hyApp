@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-08-01 22:39:56
- * @LastEditTime: 2021-08-01 23:06:20
+ * @LastEditTime: 2021-08-03 23:27:31
  * @LastEditors: Please set LastEditors
  * @Description: 详情、入库
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/edit.js
@@ -25,9 +25,7 @@ import {Button, Toast} from '@ant-design/react-native';
 import {MAJOR_LIST} from '../../../util/constants';
 import StuffLists from '../component/stuffLists';
 import {
-  approachApplyDetail,
   editApproachApply,
-  updateToApproval,
   getMaterialsByName,
   getSupplierByName,
   getInputDetail,
@@ -44,11 +42,13 @@ let defaultData = {
 let menuObj = {
   detail: '入库详情',
   edit: '入库管理-入库',
+  new: '发起申请',
 };
 let userInfo = global.userInfo;
 const EditApproach = props => {
   const routeType = props.route.params.type;
   const routeId = props.route.params.id;
+  const [getInfos, setGetInfos] = useState({});
   const [detailInfo, setDetailInfo] = useState({});
   const [stuffLists, setstuffLists] = useState([defaultData]);
   const [majorName, setMajorName] = useState('选择专业'); // 显示名称
@@ -80,14 +80,18 @@ const EditApproach = props => {
     props.navigation.setOptions({
       title: menuObj[props.route.params.type],
     });
-    getDetail();
+    console.log('props.route.params.type', menuObj[props.route.params.type]);
+    if (routeType !== 'new') {
+      getDetail();
+    }
   }, []);
   // 获取详情
   const getDetail = async () => {
     try {
       const res = await getInputDetail(props.route.params.id);
       if (res.data.code === 200) {
-        console.log('---------入库详情------', res.data.data);
+        console.log('---------入库详情------', JSON.stringify(res.data.data));
+        setGetInfos(res.data.data);
         let info = res.data.data.approachRootBean;
         setDetailInfo(info);
         setstuffLists(info.materials || []);
@@ -171,13 +175,35 @@ const EditApproach = props => {
   // 审批
   const changeStatus = async state => {
     let parms = {
-      state,
-      applyId: props.route.params.id,
-      content: 'dcd',
-      belongProject: userInfo.belongProject,
+      id: props.route.params.id,
+      approachApplyId: getInfos.approachApplyId,
+      hyWarehouseExplain: {
+        content: '通过',
+        warehouseUrl: '',
+        state,
+      },
+      warehouseMaterials: [
+        {
+          materialsName: '钢材',
+          materialsSpecs: 20,
+          warehouseNum: 10,
+          lackNum: 20,
+          applyMaterialsId: 37,
+        },
+        {
+          materialsName: '涂料',
+          materialsSpecs: 20,
+          warehouseNum: 10,
+          lackNum: 50,
+          applyMaterialsId: 37,
+        },
+      ],
+      idCard: userInfo.idCard,
     };
+    console.log('入库parms', parms);
+    console.log('detailInfo');
     try {
-      const res = await updateToApproval(parms);
+      const res = await updateInputApply(parms);
       if (res.data.code === 200) {
         // props.navigation.goBack();
         Toast.success(res.data.message);
@@ -689,23 +715,7 @@ const EditApproach = props => {
             </View>
             <RenderApprovalComments></RenderApprovalComments>
             {/* 提交 */}
-            {routeType === 'edit' && (
-              <View
-                style={{
-                  padding: 30,
-                  marginBottom: 40,
-                  width: '100%',
-                }}>
-                <Button
-                  onPress={() => {
-                    submit();
-                  }}
-                  type="primary">
-                  提交
-                </Button>
-              </View>
-            )}
-            {routeType === 'approve' && (
+            {routeType === 'approave' && (
               <View
                 style={{
                   display: 'flex',
@@ -714,7 +724,10 @@ const EditApproach = props => {
                   marginBottom: 10,
                   marginTop: 10,
                 }}>
-                <TouchableWithoutFeedback>
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    changeStatus(1);
+                  }}>
                   <View
                     style={{
                       backgroundColor: '#19be6b',
@@ -726,11 +739,14 @@ const EditApproach = props => {
                       marginRight: 30,
                     }}>
                     <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                      通过
+                      入库
                     </Text>
                   </View>
                 </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback>
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    changeStatus(0);
+                  }}>
                   <View
                     style={{
                       backgroundColor: '#F30000FF',
@@ -741,7 +757,7 @@ const EditApproach = props => {
                       width: 80,
                     }}>
                     <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                      驳回
+                      拒绝入库
                     </Text>
                   </View>
                 </TouchableWithoutFeedback>

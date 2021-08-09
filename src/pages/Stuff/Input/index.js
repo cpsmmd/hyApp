@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 22:18:27
- * @LastEditTime: 2021-08-01 22:56:41
+ * @LastEditTime: 2021-08-02 23:19:43
  * @LastEditors: Please set LastEditors
  * @Description: 入库管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/index.js
@@ -12,27 +12,21 @@ import {
   StyleSheet,
   Text,
   View,
-  FlatList,
   TouchableWithoutFeedback,
-  KeyboardAvoidingView,
   Keyboard,
   TextInput,
   ScrollView,
-  RefreshControl,
   Image,
   Dimensions,
-  ActivityIndicator,
 } from 'react-native';
-import {Button, Toast, Drawer, InputItem} from '@ant-design/react-native';
+import {Toast} from '@ant-design/react-native';
 import ModalDropdown from 'react-native-modal-dropdown';
 import {IconOutline} from '@ant-design/icons-react-native';
 import Empty from '../../../components/Empty';
 import Loading from '../../../components/Loading';
-import {PASS_STATUS, MY_PASS, MAJOR_LIST} from '../../../util/constants';
+import {INPUT_STATUS} from '../../../util/constants';
 import {dealFail} from '../../../util/common';
-import {getOInputApply} from '../../../api/stuff';
-const {height: deviceHeight} = Dimensions.get('window');
-import {LOG_TYPE, TYPELOG_OPTIONS} from '../../util/constants';
+import {getOInputApply, getSupplierByName} from '../../../api/stuff';
 export default function Approach(props) {
   let userInfo = global.userInfo;
   const limit = 10;
@@ -47,11 +41,14 @@ export default function Approach(props) {
     supplier: '',
   });
   // 搜索区域
-  const [stateName, setStateName] = useState('选择审批状态'); // 显示名称
+  const [stateName, setStateName] = useState('选择入库状态'); // 显示名称
   const [stateValue, setStateValue] = useState(0); // 选中value
   const [processName, setProcessName] = useState('选择流程'); // 显示名称
   const [processValue, setProcessValue] = useState(0); // 选中value
   const [professional, setProfessional] = useState('选择专业'); // 专业 显示名称
+
+  const [supplierList, setSupplierList] = useState([]);
+  const [supplierName, setSupplierName] = useState('');
   useEffect(() => {
     (async () => {
       // setLoading(true);
@@ -73,21 +70,23 @@ export default function Approach(props) {
       pageNumber: num,
       limit,
       idCard: global.userInfo.idCard,
-      supplierName: '',
     };
+    if (stateValue !== 0) {
+      parms['state'] = stateValue;
+    }
+    if (supplierName !== '') {
+      parms['supplierName'] = supplierName;
+    }
     console.log('分页查询入库列表', parms);
     // setLoading(true);
     try {
       const res = await getOInputApply(parms);
       if (res.data.code === 200) {
         // console.log('res', JSON.stringify(res.data.data));
-        console.log('进场列表', res.data.data);
+        console.log('入场列表', res.data.data);
         // setLists(res.data.data);
         let list = res.data.data.list || [];
         setIsAll(list.length < limit);
-        let newList = [...tableData, ...list];
-        console.log(newList.length);
-        // settableData(newList);
         settableData(state => {
           return [...state, ...list];
         });
@@ -107,13 +106,16 @@ export default function Approach(props) {
     getLists(num);
   };
   const search = () => {
+    if (supplierList.length > 0) {
+      return Toast.fail('请选择供应商');
+    }
     console.log(professional);
     console.log(processValue);
     console.log(stateValue);
-    // setDrawer(false);
-    // settableData([]);
-    // setPageNumber(1);
-    // getLists(1);
+    setDrawer(false);
+    settableData([]);
+    setPageNumber(1);
+    getLists(1);
   };
   // 详情，修改，审批
   const navigationTo = (type, id) => {
@@ -121,6 +123,15 @@ export default function Approach(props) {
       type,
       id,
     });
+  };
+  const searcSupplierName = async name => {
+    try {
+      const res = await getSupplierByName(name);
+      let list = res.data.data || [];
+      setSupplierList(list);
+    } catch (error) {
+      console.error(error);
+    }
   };
   // const renderItem = ({item}) => <Item item={item} />;
   const RenderItem = ({item}) => {
@@ -136,12 +147,20 @@ export default function Approach(props) {
               }}>
               <Text style={styles.detail_btn}>详情</Text>
             </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback
+            {item.isOperate && item.warehouseState === 7 && (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  navigationTo('approave', item.id);
+                }}>
+                <Text style={styles.edit_btn}>入库</Text>
+              </TouchableWithoutFeedback>
+            )}
+            {/* <TouchableWithoutFeedback
               onPress={() => {
                 navigationTo('edit', item.id);
               }}>
               <Text style={styles.edit_btn}>入库</Text>
-            </TouchableWithoutFeedback>
+            </TouchableWithoutFeedback> */}
           </View>
         </View>
         <View
@@ -250,21 +269,42 @@ export default function Approach(props) {
                         style={styles.drawer_item_input}
                         placeholder="请输入"
                         onChangeText={text => {
-                          setsearchParms(state => {
-                            return {
-                              ...state,
-                              name: text,
-                            };
-                          });
+                          searcSupplierName(text.trim());
+                          setSupplierName(text);
                         }}
-                        value={searchParms.name}
+                        value={supplierName}
                       />
                     </View>
+                    {supplierList.length > 0 ? (
+                      <View
+                        style={{
+                          width: '100%',
+                          zIndex: 999,
+                          display: 'flex',
+                          flexDirection: 'row',
+                          flexWrap: 'wrap',
+                          marginTop: 10,
+                          marginBottom: 10,
+                        }}>
+                        {supplierList.map(v => (
+                          <TouchableWithoutFeedback
+                            key={v.id}
+                            onPress={() => {
+                              setSupplierName(v.supplierName);
+                              setSupplierList([]);
+                            }}>
+                            <Text style={[styles.default_label]} key={v}>
+                              {v.supplierName}
+                            </Text>
+                          </TouchableWithoutFeedback>
+                        ))}
+                      </View>
+                    ) : null}
                     <View style={styles.drawer_item}>
-                      <Text style={styles.drawer_item_title}>审批状态：</Text>
+                      <Text style={styles.drawer_item_title}>入库状态：</Text>
                       <ModalDropdown
                         defaultValue={stateName}
-                        options={PASS_STATUS}
+                        options={INPUT_STATUS}
                         renderButtonText={({name}) => name}
                         renderRow={({name}) => (
                           <Text style={styles.row_sty}>{name}</Text>
@@ -278,46 +318,6 @@ export default function Approach(props) {
                         onSelect={(value, item) => {
                           setStateValue(item.value);
                           setStateName(item.name);
-                        }}
-                      />
-                      <IconOutline color="#999999" name="down" />
-                    </View>
-                    <View style={styles.drawer_item}>
-                      <Text style={styles.drawer_item_title}>我的流程：</Text>
-                      <ModalDropdown
-                        defaultValue={processName}
-                        options={MY_PASS}
-                        renderButtonText={({name}) => name}
-                        renderRow={({name}) => (
-                          <Text style={styles.row_sty}>{name}</Text>
-                        )}
-                        textStyle={styles.dropdownText}
-                        dropdownStyle={styles.dropdownStyle}
-                        dropdownTextStyle={styles.DropDownPickerText}
-                        dropdownTextHighlightStyle={
-                          styles.dropdownTextHighlightStyle
-                        }
-                        onSelect={(value, item) => {
-                          setProcessValue(item.value);
-                          setProcessName(item.name);
-                        }}
-                      />
-                      <IconOutline color="#999999" name="down" />
-                    </View>
-                    <View style={styles.drawer_item}>
-                      <Text style={styles.drawer_item_title}>专业：</Text>
-                      <ModalDropdown
-                        defaultValue={'请选择专业'}
-                        options={MAJOR_LIST}
-                        textStyle={styles.dropdownText}
-                        dropdownStyle={styles.dropdownStyle}
-                        dropdownTextStyle={styles.DropDownPickerText}
-                        dropdownTextHighlightStyle={
-                          styles.dropdownTextHighlightStyle
-                        }
-                        onSelect={value => {
-                          // setMajorValue(item.value);
-                          setProfessional(value);
                         }}
                       />
                       <IconOutline color="#999999" name="down" />
@@ -421,10 +421,10 @@ export default function Approach(props) {
       {id: 4, color: '#19be6b', value: '已进场'},
       {id: 5, color: '#2db7f5', value: '部分进场'},
       {id: 6, color: '#ed4014', value: '拒绝进场'},
-      {id: 7, color: '#F30000', value: '未入库'},
+      {id: 7, color: '#ff9900', value: '未入库'},
       {id: 8, color: '#19be6b', value: '已入库'},
       {id: 9, color: '#ed4014', value: '拒绝入库'},
-      {id: 10, color: '#2db7f5', value: '"部分入库'},
+      {id: 10, color: '#2db7f5', value: '部分入库'},
       {id: 11, color: '#ff9900', value: '待库管确认'},
       {id: 12, color: '#ff9900', value: '待申请人确认'},
       {id: 13, color: '#ed4014', value: '已终止'},
@@ -544,5 +544,20 @@ const styles = StyleSheet.create({
   },
   dropdownTextHighlightStyle: {
     color: 'red',
+  },
+  default_label: {
+    paddingTop: 5,
+    paddingBottom: 5,
+    paddingLeft: 10,
+    paddingRight: 10,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    color: '#52c41a',
+    backgroundColor: '#f6ffed',
+    borderColor: '#b7eb8f',
+    borderRadius: 5,
+    marginRight: 5,
+    marginTop: 6,
+    fontSize: 14,
   },
 });

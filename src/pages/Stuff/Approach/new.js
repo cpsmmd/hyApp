@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-06 23:08:05
- * @LastEditTime: 2021-08-01 22:03:43
+ * @LastEditTime: 2021-08-03 14:48:10
  * @LastEditors: Please set LastEditors
  * @Description: 发起进场申请
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/new.js
@@ -102,7 +102,7 @@ const New = props => {
     }
     let parms = {
       idCard: userInfo.idCard,
-      supplierName: '天下会总部',
+      supplierName,
       theme,
       supplierContact,
       supplierMobile,
@@ -116,15 +116,11 @@ const New = props => {
       materials: materials,
     };
     console.log('新增parms', parms);
-    let test = 1;
-    if (test === 1) {
-      return;
-    }
     try {
       const res = await addApproachApply(parms);
       console.log('res.data', res.data);
       if (res.data.code === 200) {
-        // props.navigation.goBack();
+        props.navigation.goBack();
         Toast.success(res.data.message);
       } else {
         Toast.fail(res.data.message);

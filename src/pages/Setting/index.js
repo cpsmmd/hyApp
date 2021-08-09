@@ -2,18 +2,30 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 10:39:14
- * @LastEditTime: 2021-07-05 14:31:31
+ * @LastEditTime: 2021-08-08 23:13:37
  * @LastEditors: Please set LastEditors
  * @Description: 个人设置
  * @FilePath: hy/hyApp/src/pages/Setting/index.js
  */
 import React from 'react';
 import {View, Text, Image, TouchableWithoutFeedback} from 'react-native';
+import {Autocomplete, AutocompleteItem} from '@ui-kitten/components';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import RNC from 'react-native-css';
 import {Button, Toast} from '@ant-design/react-native';
 import {loginOut} from '../../api/user';
 import {CommonActions} from '@react-navigation/native';
+const movies = [
+  {title: 'Star Wars'},
+  {title: 'Back to the Future'},
+  {title: 'The Matrix'},
+  {title: 'Inception'},
+  {title: 'Interstellar'},
+];
+
+const filter = (item, query) =>
+  item.title.toLowerCase().includes(query.toLowerCase());
+
 export default function Setting(props) {
   const loginOutBtn = async () => {
     let parms = {
@@ -45,8 +57,31 @@ export default function Setting(props) {
   const editPw = () => {
     props.navigation.push('editPw');
   };
+
+  const [value, setValue] = React.useState(null);
+  const [data, setData] = React.useState(movies);
+
+  const onSelect = index => {
+    setValue(movies[index].title);
+  };
+
+  const onChangeText = query => {
+    setValue(query);
+    setData(movies.filter(item => filter(item, query)));
+  };
+
+  const renderOption = (item, index) => (
+    <AutocompleteItem key={index} title={item.title} />
+  );
   return (
     <View style={{position: 'relative', width: '100%', height: '100%'}}>
+      {/* <Autocomplete
+        placeholder="Place your Text"
+        value={value}
+        onSelect={onSelect}
+        onChangeText={onChangeText}>
+        {data.map(renderOption)}
+      </Autocomplete> */}
       <View
         style={{
           paddingLeft: 20,
