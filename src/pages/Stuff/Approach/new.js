@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-06 23:08:05
- * @LastEditTime: 2021-08-03 14:48:10
+ * @LastEditTime: 2021-08-09 21:32:56
  * @LastEditors: Please set LastEditors
  * @Description: 发起进场申请
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/new.js
@@ -23,6 +23,7 @@ import ModalDropdown from 'react-native-modal-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Button, Toast} from '@ant-design/react-native';
 import {MAJOR, MAJOR_LIST} from '../../../util/constants';
+import {Input, Autocomplete, AutocompleteItem} from '@ui-kitten/components';
 import {
   addApproachApply,
   getMaterialsByName,
@@ -65,10 +66,10 @@ const New = props => {
   }, []);
   // 添加材料
   const addStuff = () => {
-    if (materialsList.length > 0) {
-      Toast.fail('请选择材料名称');
-      return;
-    }
+    // if (materialsList.length > 0) {
+    //   Toast.fail('请选择材料名称');
+    //   return;
+    // }
     let data = {...defaultData};
     data.id = new Date().getTime();
     setstuffLists(state => {
@@ -161,6 +162,12 @@ const New = props => {
       console.error(error);
     }
   };
+  const renderMateriaName = (item, index) => (
+    <AutocompleteItem key={item.id} title={item.materialsName} />
+  );
+  const renderSupplierName = (item, index) => (
+    <AutocompleteItem key={item.id} title={item.supplierName} />
+  );
   return (
     <View>
       <KeyboardAvoidingView>
@@ -176,7 +183,19 @@ const New = props => {
                   <View style={styles.flex_row}>
                     <Text style={styles.stuff_item_title}>材料名称：</Text>
                     <View>
-                      <TextInput
+                      <Autocomplete
+                        style={styles.input_sty}
+                        value={item.materialsName}
+                        onSelect={index => {
+                          let newList = [...stuffLists];
+                          newList.map(v => {
+                            if (v.id === item.id) {
+                              v.materialsName =
+                                materialsList[index].materialsName;
+                            }
+                          });
+                          setstuffLists(newList);
+                        }}
                         onChangeText={text => {
                           let newList = [...stuffLists];
                           newList.map(v => {
@@ -185,12 +204,10 @@ const New = props => {
                             }
                           });
                           setstuffLists(newList);
-                          searchMaterisName(text.trim(), item.id);
-                        }}
-                        value={item.materialsName}
-                        style={styles.input_sty}
-                        placeholder="请输入"
-                      />
+                          searchMaterisName(text.trim());
+                        }}>
+                        {materialsList.map(renderMateriaName)}
+                      </Autocomplete>
                     </View>
                     <TouchableWithoutFeedback
                       onPress={() => {
@@ -287,6 +304,21 @@ const New = props => {
                   value={theme}
                 />
               </View>
+              <View style={styles.other_item3}>
+                <Text style={styles.other_title}>供应商名称：</Text>
+                <Autocomplete
+                  style={styles.input_no_border}
+                  value={supplierName}
+                  onSelect={index => {
+                    setSupplierName(supplierList[index].supplierName);
+                  }}
+                  onChangeText={text => {
+                    setSupplierName(text);
+                    searcSupplierName(text.trim());
+                  }}>
+                  {supplierList.map(renderSupplierName)}
+                </Autocomplete>
+              </View>
               <View style={styles.other_item}>
                 <Text style={styles.other_title}>包装方式：</Text>
                 <TextInput
@@ -370,43 +402,6 @@ const New = props => {
                   />
                 </View>
               </View>
-              <View style={styles.other_item}>
-                <Text style={styles.other_title}>供应商名称：</Text>
-                <TextInput
-                  style={styles.input_no_border}
-                  placeholder="请输入"
-                  onChangeText={text => {
-                    setSupplierName(text);
-                    searcSupplierName(text.trim());
-                  }}
-                  value={supplierName}
-                />
-              </View>
-              {supplierList.length > 0 ? (
-                <View
-                  style={{
-                    width: '100%',
-                    zIndex: 999,
-                    display: 'flex',
-                    flexDirection: 'row',
-                    flexWrap: 'wrap',
-                    marginTop: 10,
-                    marginBottom: 10,
-                  }}>
-                  {supplierList.map(v => (
-                    <TouchableWithoutFeedback
-                      key={v.id}
-                      onPress={() => {
-                        setSupplierName(v.supplierName);
-                        setSupplierList([]);
-                      }}>
-                      <Text style={[styles.default_label]} key={v}>
-                        {v.supplierName}
-                      </Text>
-                    </TouchableWithoutFeedback>
-                  ))}
-                </View>
-              ) : null}
               <View style={styles.other_item}>
                 <Text style={styles.other_title}>供应商联系人：</Text>
                 <TextInput
@@ -522,6 +517,15 @@ const styles = StyleSheet.create({
     paddingTop: 20,
     paddingBottom: 20,
   },
+  other_item3: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderColor: '#f8f8f8',
+    backgroundColor: '#fff',
+  },
   other_title: {
     fontSize: 14,
     marginRight: 4,
@@ -535,6 +539,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     fontWeight: '300',
+    minWidth: 160,
   },
   // 下拉框样式
   dropdownText: {

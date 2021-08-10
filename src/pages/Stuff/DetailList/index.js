@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-08 20:26:44
+ * @LastEditTime: 2021-08-09 21:05:23
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -45,7 +45,7 @@ export default function StuffList(props) {
   const [supplierList, setSupplierList] = useState([]);
   useEffect(() => {
     (async () => {
-      // setLoading(true);
+      setLoading(true);
       await getLists(1);
     })();
   }, []);
@@ -60,15 +60,15 @@ export default function StuffList(props) {
       idCard: global.userInfo.idCard,
     };
     console.log('材料清单parms', parms);
-    let test = 1;
-    if (test === 1) {
-      return;
-    }
+    // let test = 1;
+    // if (test === 1) {
+    //   return;
+    // }
     try {
       const res = await getBillList(parms);
       if (res.data.code === 200) {
-        console.log('材料清单', res.data);
-        let list = res.data.data || [];
+        console.log('材料清单', JSON.stringify(res.data));
+        let list = res.data.data.list || [];
         setIsAll(true);
         settableData(state => {
           return [...state, ...list];
@@ -234,7 +234,7 @@ export default function StuffList(props) {
                         placeholder="请输入"
                         onChangeText={text => {
                           setMaterialsName(text);
-                          searchMaterisName(text.trim());
+                          // searchMaterisName(text.trim());
                         }}
                         value={materialsName}
                       />
@@ -264,33 +264,33 @@ export default function StuffList(props) {
                     ) : null}
                     <View style={styles.drawer_item}>
                       <Text style={styles.drawer_item_title}>规格：</Text>
-                      {/* <TextInput
+                      <TextInput
                         style={styles.drawer_item_input}
                         placeholder="请输入"
                         onChangeText={text => {
                           setMaterialsSpecs(text);
                         }}
                         value={materialsSpecs}
-                      /> */}
-                      <Input
+                      />
+                      {/* <Input
                         style={styles.drawer_item_input}
                         placeholder="请输入规格"
                         value={materialsSpecs}
                         onChangeText={nextValue => setMaterialsSpecs(nextValue)}
-                      />
+                      /> */}
                     </View>
                     <View style={styles.drawer_item}>
                       <Text style={styles.drawer_item_title}>供应商：</Text>
-                      {/* <TextInput
+                      <TextInput
                         style={styles.drawer_item_input}
                         placeholder="请输入"
                         onChangeText={text => {
                           setSupplierName(text);
-                          searcSupplierName(text.trim());
+                          // searcSupplierName(text.trim());
                         }}
                         value={supplierName}
-                      /> */}
-                      <Autocomplete
+                      />
+                      {/* <Autocomplete
                         style={styles.drawer_item_input}
                         value={supplierName}
                         onSelect={index => {
@@ -301,7 +301,7 @@ export default function StuffList(props) {
                           searcSupplierName(nextValue.trim());
                         }}>
                         {supplierList.map(renderSupplierName)}
-                      </Autocomplete>
+                      </Autocomplete> */}
                     </View>
                     {/* {supplierList.length > 0 ? (
                       <View

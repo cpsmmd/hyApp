@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 22:18:27
- * @LastEditTime: 2021-08-02 23:19:43
+ * @LastEditTime: 2021-08-10 09:49:57
  * @LastEditors: Please set LastEditors
  * @Description: 入库管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/index.js
@@ -51,19 +51,21 @@ export default function Approach(props) {
   const [supplierName, setSupplierName] = useState('');
   useEffect(() => {
     (async () => {
-      // setLoading(true);
+      setDrawer(false);
+      settableData([]);
+      setPageNumber(1);
       await getLists(1);
     })();
   }, []);
-  // useEffect(() => {
-  //   const navFocusListener = props.navigation.addListener('focus', async () => {
-  //     await getMaterialList(true, true);
-  //   });
+  useEffect(() => {
+    const navFocusListener = props.navigation.addListener('focus', async () => {
+      await getMaterialList(true, true);
+    });
 
-  //   return () => {
-  //     navFocusListener.remove();
-  //   };
-  // }, []);
+    return () => {
+      navFocusListener.remove();
+    };
+  }, []);
   // 获取数据
   const getLists = async num => {
     let parms = {
@@ -155,12 +157,6 @@ export default function Approach(props) {
                 <Text style={styles.edit_btn}>入库</Text>
               </TouchableWithoutFeedback>
             )}
-            {/* <TouchableWithoutFeedback
-              onPress={() => {
-                navigationTo('edit', item.id);
-              }}>
-              <Text style={styles.edit_btn}>入库</Text>
-            </TouchableWithoutFeedback> */}
           </View>
         </View>
         <View
@@ -269,7 +265,7 @@ export default function Approach(props) {
                         style={styles.drawer_item_input}
                         placeholder="请输入"
                         onChangeText={text => {
-                          searcSupplierName(text.trim());
+                          // searcSupplierName(text.trim());
                           setSupplierName(text);
                         }}
                         value={supplierName}

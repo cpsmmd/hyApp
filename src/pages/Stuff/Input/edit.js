@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-08-01 22:39:56
- * @LastEditTime: 2021-08-03 23:27:31
+ * @LastEditTime: 2021-08-10 00:41:29
  * @LastEditors: Please set LastEditors
  * @Description: 详情、入库
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/edit.js
@@ -41,8 +41,14 @@ let defaultData = {
 };
 let menuObj = {
   detail: '入库详情',
-  edit: '入库管理-入库',
+  approave: '入库管理-入库',
   new: '发起申请',
+};
+let roleObj = {
+  0: '申请人',
+  1: '专业负责人',
+  2: '库管理员',
+  3: '其他审批人',
 };
 let userInfo = global.userInfo;
 const EditApproach = props => {
@@ -50,6 +56,7 @@ const EditApproach = props => {
   const routeId = props.route.params.id;
   const [getInfos, setGetInfos] = useState({});
   const [detailInfo, setDetailInfo] = useState({});
+  const [hyWarehouseDtos, sethyWarehouseDtos] = useState([]);
   const [stuffLists, setstuffLists] = useState([defaultData]);
   const [majorName, setMajorName] = useState('选择专业'); // 显示名称
   const [majorValue, setMajorValue] = useState(0); // 选中value
@@ -75,6 +82,10 @@ const EditApproach = props => {
   const [materialsList, setMaterialsList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
   const [curId, setCurId] = useState('');
+
+  const [warehouseMaterials, setwarehouseMaterials] = useState([]);
+  const [approvalContent, setapprovalContent] = useState('');
+  const [fileList, setfileList] = useState([]);
   // 设置标题
   useEffect(() => {
     props.navigation.setOptions({
@@ -106,6 +117,28 @@ const EditApproach = props => {
         setProfessional(info.professional);
         setApprovalData(info.approvalProcedureDtos);
         console.log('审批流程', JSON.stringify(info.approvalProcedureDtos));
+        // 入库流程
+        console.log('入库', res.data.data.hyWarehouseDtos);
+        sethyWarehouseDtos(res.data.data.hyWarehouseDtos);
+        // 当是approval的时候 warehouseMaterials
+        if (routeType === 'approave') {
+          if (res.data.data.hyWarehouseDtos.length === 0) {
+            let list = [];
+            info.materials.map(v => {
+              console.log(v)
+              list.push({
+                id: v.id,
+                lackNum: '',
+                materialsName: v.materialsName,
+                materialsSpecs: v.materialsSpecs,
+                warehouseNum: '',
+                materialsNum: v.materialsNum,
+              });
+            });
+            console.log('哈哈哈哈哈哈哈哈哈', list);
+            setwarehouseMaterials(list);
+          }
+        }
       } else {
         dealFail(props, res.data.code, res.data.message);
       }
@@ -130,74 +163,40 @@ const EditApproach = props => {
     newList.splice(Index, 1);
     setstuffLists(newList);
   };
-  // 提交材料
-  const submit = async () => {
-    // 编辑
-    let materials = [];
-    stuffLists.forEach(item => {
-      materials.push({
-        materialsName: item.materialsName,
-        materialsSpecs: item.materialsSpecs,
-        materialsNum: item.materialsNum,
-      });
-    });
-    let parms = {
-      applyId: detailInfo.applyId,
-      idCard: userInfo.idCard,
-      supplierName,
-      theme,
-      supplierContact,
-      supplierMobile,
-      packingWay,
-      transporteWay,
-      unloadingRequire,
-      contractName,
-      professional,
-      approachTime: JSON.stringify(date).substring(1, 11),
-      fileUrl,
-      materials: stuffLists,
-    };
-    console.log('修改parms', parms);
-    if (routeType === 'edit') {
-      try {
-        const res = await editApproachApply(parms);
-        if (res.data.code === 200) {
-          props.navigation.goBack();
-          Toast.success(res.data.message);
-        } else {
-          Toast.fail(res.data.message);
-        }
-      } catch (error) {
-        console.error(error);
-      }
-    }
-  };
   // 审批
   const changeStatus = async state => {
+    let list = [];
+    let isOk = true;
+    warehouseMaterials.map(v => {
+      console.log('嘻嘻嘻嘻嘻', v)
+      let num = v.materialsNum * 1;
+      let num2 = v.warehouseNum * 1 + v.lackNum * 1;
+      console.log(num);
+      console.log(num2);
+      if (num !== num2) {
+        isOk = false;
+      }
+      list.push({
+        materialsName: v.materialsName,
+        materialsSpecs: v.materialsSpecs,
+        warehouseNum: v.warehouseNum,
+        lackNum: v.lackNum,
+        applyMaterialsId: v.id,
+      });
+    });
+    if (!isOk) {
+      Toast.fail('请检查入库数量与缺补数量之和是否与总数量相等');
+      return;
+    }
     let parms = {
       id: props.route.params.id,
       approachApplyId: getInfos.approachApplyId,
       hyWarehouseExplain: {
-        content: '通过',
+        content: approvalContent,
         warehouseUrl: '',
         state,
       },
-      warehouseMaterials: [
-        {
-          materialsName: '钢材',
-          materialsSpecs: 20,
-          warehouseNum: 10,
-          lackNum: 20,
-          applyMaterialsId: 37,
-        },
-        {
-          materialsName: '涂料',
-          materialsSpecs: 20,
-          warehouseNum: 10,
-          lackNum: 50,
-          applyMaterialsId: 37,
-        },
-      ],
+      warehouseMaterials: list,
       idCard: userInfo.idCard,
     };
     console.log('入库parms', parms);
@@ -205,7 +204,7 @@ const EditApproach = props => {
     try {
       const res = await updateInputApply(parms);
       if (res.data.code === 200) {
-        // props.navigation.goBack();
+        props.navigation.goBack();
         Toast.success(res.data.message);
       } else {
         Toast.fail(res.data.message);
@@ -226,6 +225,7 @@ const EditApproach = props => {
     setShow(true);
     settimeMode(currentMode);
   };
+  // 审批流程
   const RenderApproach = () => {
     if (approvalData.length) {
       let data = approvalData[0].approvalDtos || [];
@@ -233,14 +233,18 @@ const EditApproach = props => {
       let data1 = data.slice(0, length - 1);
       let data2 = data[length - 1];
       return (
-        <View style={{display: 'flex', flexDirection: 'row'}}>
+        <View style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap'}}>
           {data1.map(v => (
             <>
-              <Text>{v.userName}</Text>
+              <Text style={{color: v.status ? '#1890ff' : ''}}>
+                {roleObj[v.roleType]}({v.userName})
+              </Text>
               <Text style={{paddingRight: 5, paddingLeft: 5}}>——</Text>
             </>
           ))}
-          <Text>{data2.userName}</Text>
+          <Text style={{color: data2.status ? '#1890ff' : ''}}>
+            {roleObj[data2.roleType]}({data2.userName})
+          </Text>
         </View>
       );
     } else {
@@ -254,8 +258,107 @@ const EditApproach = props => {
         <View>
           {data.map(v => {
             return (
-              <View style={styles.other_item3}>
-                <Text style={styles.other_title}>{v.userName}审批意见：</Text>
+              <View>
+                <View style={styles.other_item3}>
+                  <Text style={styles.other_title}>{v.userName}审批意见：</Text>
+                  <View style={{flex: 1}}>
+                    <TextInput
+                      style={{
+                        backgroundColor: '#EEEEEE',
+                        borderWidth: 0,
+                        borderRadius: 5,
+                        paddingLeft: 15,
+                        textAlign: 'left',
+                        textAlignVertical: 'top',
+                        androidtextAlignVertical: 'top',
+                        width: '90%',
+                      }}
+                      numberOfLines={
+                        Platform.OS === 'ios' ? null : numberOfLines
+                      }
+                      minHeight={
+                        Platform.OS === 'ios' && numberOfLines
+                          ? 20 * numberOfLines
+                          : null
+                      }
+                      placeholder="简介"
+                      multiline
+                      editable={false}
+                      // onChangeText={text => onChangeText(text)}
+                      value={v.content}
+                      maxLength={20}
+                    />
+                    <Text style={{backgroundColor: '#fff'}}>
+                      审批时间：{v.approvalTime}
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      );
+    } else {
+      return null;
+    }
+  };
+  // 入库信息
+  const RenderInput = () => {
+    if (hyWarehouseDtos.length > 0) {
+      let data = hyWarehouseDtos[0].warehouseMaterials;
+      let info = hyWarehouseDtos[0].hyWarehouseExplain;
+      return (
+        <View
+          style={{
+            margin: 10,
+          }}>
+          <Text style={{fontSize: 16, fontWeight: 'bold', color: '#1890ff'}}>
+            入库信息
+          </Text>
+          <View style={{backgroundColor: '#fff'}}>
+            {data.map(item => {
+              return (
+                <View key={item.id} style={styles.stuff_items}>
+                  <View style={styles.flex_row}>
+                    <Text style={styles.stuff_item_title}>材料名称:</Text>
+                    <TextInput
+                      editable={false}
+                      value={item.materialsName}
+                      style={styles.input_sty2}
+                      placeholder="请输入"
+                    />
+                    <Text style={styles.stuff_item_title}> 缺补数量:</Text>
+                    <TextInput
+                      editable={false}
+                      value={item.lackNum}
+                      style={styles.input_sty2}
+                      placeholder="请输入"
+                    />
+                  </View>
+                  <View style={[styles.flex_row, {marginTop: 10}]}>
+                    <Text style={styles.stuff_item_title}>规格：</Text>
+                    <TextInput
+                      editable={false}
+                      value={item.materialsSpecs}
+                      style={styles.input_sty2}
+                      placeholder="请输入"
+                    />
+                    <Text style={[styles.stuff_item_title, {marginLeft: 6}]}>
+                      入库数量：
+                    </Text>
+                    <TextInput
+                      editable={false}
+                      value={item.materialsNum}
+                      style={styles.input_sty2}
+                      placeholder="请输入"
+                    />
+                  </View>
+                </View>
+              );
+            })}
+            <View style={styles.other_item3}>
+              <Text style={styles.other_title}>入库说明：</Text>
+              <View style={{flex: 1}}>
                 <TextInput
                   style={{
                     backgroundColor: '#EEEEEE',
@@ -265,7 +368,7 @@ const EditApproach = props => {
                     textAlign: 'left',
                     textAlignVertical: 'top',
                     androidtextAlignVertical: 'top',
-                    width: '60%',
+                    width: '90%',
                   }}
                   numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
                   minHeight={
@@ -273,16 +376,20 @@ const EditApproach = props => {
                       ? 20 * numberOfLines
                       : null
                   }
-                  placeholder="简介"
                   multiline
                   editable={false}
-                  // onChangeText={text => onChangeText(text)}
-                  value={v.content}
+                  value={info.content}
                   maxLength={20}
                 />
               </View>
-            );
-          })}
+            </View>
+            <View style={styles.other_item3}>
+              <Text style={styles.other_title}>上传凭证：</Text>
+              <View style={{flex: 1}}>
+                {/* <Text>{JSON.parse(info.warehouseUrl)}</Text> */}
+              </View>
+            </View>
+          </View>
         </View>
       );
     } else {
@@ -309,6 +416,7 @@ const EditApproach = props => {
       console.error(error);
     }
   };
+  // 入库信息
   return (
     <View>
       <KeyboardAvoidingView>
@@ -714,53 +822,179 @@ const EditApproach = props => {
               <RenderApproach></RenderApproach>
             </View>
             <RenderApprovalComments></RenderApprovalComments>
+            {/* 入库信息 */}
+            <RenderInput></RenderInput>
             {/* 提交 */}
             {routeType === 'approave' && (
-              <View
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  flexDirection: 'row',
-                  marginBottom: 10,
-                  marginTop: 10,
-                }}>
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    changeStatus(1);
-                  }}>
+              <View>
+                {/* <RenderInput2></RenderInput2> */}
+                {warehouseMaterials.length ? (
                   <View
                     style={{
-                      backgroundColor: '#19be6b',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      height: 38,
-                      width: 70,
-                      marginRight: 30,
+                      margin: 10,
                     }}>
-                    <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                      入库
+                    <Text
+                      style={{
+                        fontSize: 16,
+                        fontWeight: 'bold',
+                        color: '#1890ff',
+                      }}>
+                      入库信息
                     </Text>
+                    <View style={{backgroundColor: '#fff'}}>
+                      {warehouseMaterials.map(item => {
+                        return (
+                          <View key={item.id} style={styles.stuff_items}>
+                            <View style={styles.flex_row}>
+                              <Text style={styles.stuff_item_title}>
+                                材料名称:
+                              </Text>
+                              <TextInput
+                                value={item.materialsName}
+                                editable={false}
+                                style={styles.input_sty2}
+                                placeholder="请输入"
+                              />
+                              <Text style={styles.stuff_item_title}>
+                                {' '}
+                                缺补数量:
+                              </Text>
+                              <TextInput
+                                onChangeText={text => {
+                                  let newList = [...warehouseMaterials];
+                                  newList.map(v => {
+                                    if (v.id === item.id) {
+                                      v.lackNum = text;
+                                    }
+                                  });
+                                  setwarehouseMaterials(newList);
+                                }}
+                                value={item.lackNum}
+                                style={styles.input_sty2}
+                                placeholder="请输入"
+                              />
+                            </View>
+                            <View style={[styles.flex_row, {marginTop: 10}]}>
+                              <Text style={styles.stuff_item_title}>
+                                规格：
+                              </Text>
+                              <TextInput
+                                value={item.materialsSpecs}
+                                editable={false}
+                                style={styles.input_sty2}
+                                placeholder="请输入"
+                              />
+                              <Text
+                                style={[
+                                  styles.stuff_item_title,
+                                  {marginLeft: 6},
+                                ]}>
+                                入库数量：
+                              </Text>
+                              <TextInput
+                                onChangeText={text => {
+                                  let newList = [...warehouseMaterials];
+                                  newList.map(v => {
+                                    if (v.id === item.id) {
+                                      v.warehouseNum = text;
+                                    }
+                                  });
+                                  setwarehouseMaterials(newList);
+                                }}
+                                value={item.warehouseNum}
+                                style={styles.input_sty2}
+                                placeholder="请输入"
+                              />
+                            </View>
+                          </View>
+                        );
+                      })}
+                      <View style={styles.other_item3}>
+                        <Text style={styles.other_title}>入库说明：</Text>
+                        <View style={{flex: 1}}>
+                          <TextInput
+                            style={{
+                              backgroundColor: '#EEEEEE',
+                              borderWidth: 0,
+                              borderRadius: 5,
+                              paddingLeft: 15,
+                              textAlign: 'left',
+                              textAlignVertical: 'top',
+                              androidtextAlignVertical: 'top',
+                              width: '90%',
+                            }}
+                            numberOfLines={
+                              Platform.OS === 'ios' ? null : numberOfLines
+                            }
+                            minHeight={
+                              Platform.OS === 'ios' && numberOfLines
+                                ? 20 * numberOfLines
+                                : null
+                            }
+                            multiline
+                            onChangeText={text => setapprovalContent(text)}
+                            value={approvalContent}
+                            maxLength={20}
+                          />
+                        </View>
+                      </View>
+                      {/* <View style={styles.other_item3}>
+                      <Text style={styles.other_title}>上传凭证：</Text>
+                      <View style={{flex: 1}}>
+                        <Text>{JSON.parse(fileList)}</Text>
+                      </View>
+                    </View> */}
+                    </View>
                   </View>
-                </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    changeStatus(0);
+                ) : null}
+                <View
+                  style={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    flexDirection: 'row',
+                    marginBottom: 10,
+                    marginTop: 10,
                   }}>
-                  <View
-                    style={{
-                      backgroundColor: '#F30000FF',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      height: 38,
-                      width: 80,
+                  <TouchableWithoutFeedback
+                    onPress={() => {
+                      changeStatus(1);
                     }}>
-                    <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                      拒绝入库
-                    </Text>
-                  </View>
-                </TouchableWithoutFeedback>
+                    <View
+                      style={{
+                        backgroundColor: '#19be6b',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 6,
+                        height: 38,
+                        width: 70,
+                        marginRight: 30,
+                      }}>
+                      <Text
+                        style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
+                        入库
+                      </Text>
+                    </View>
+                  </TouchableWithoutFeedback>
+                  <TouchableWithoutFeedback
+                    onPress={() => {
+                      changeStatus(0);
+                    }}>
+                    <View
+                      style={{
+                        backgroundColor: '#F30000FF',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: 6,
+                        height: 38,
+                        width: 80,
+                      }}>
+                      <Text
+                        style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
+                        拒绝入库
+                      </Text>
+                    </View>
+                  </TouchableWithoutFeedback>
+                </View>
               </View>
             )}
           </ScrollView>
@@ -807,6 +1041,14 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingLeft: 10,
     width: 136,
+    borderWidth: 1,
+    borderColor: '#999999',
+  },
+  input_sty2: {
+    height: 38,
+    borderRadius: 5,
+    paddingLeft: 10,
+    width: 115,
     borderWidth: 1,
     borderColor: '#999999',
   },

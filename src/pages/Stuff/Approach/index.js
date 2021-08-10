@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-02 22:00:57
+ * @LastEditTime: 2021-08-09 21:58:33
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -52,15 +52,18 @@ export default function Approach(props) {
       await getLists(1);
     })();
   }, []);
-  // useEffect(() => {
-  //   const navFocusListener = props.navigation.addListener('focus', async () => {
-  //     await getMaterialList(true, true);
-  //   });
+  useEffect(() => {
+    const navFocusListener = props.navigation.addListener('focus', async () => {
+      setDrawer(false);
+      settableData([]);
+      setPageNumber(1);
+      await getLists(1);
+    });
 
-  //   return () => {
-  //     navFocusListener.remove();
-  //   };
-  // }, []);
+    return () => {
+      navFocusListener.remove();
+    };
+  }, []);
   // 获取数据
   const getLists = async num => {
     let parms = {
@@ -270,7 +273,7 @@ export default function Approach(props) {
                         style={styles.drawer_item_input}
                         placeholder="请输入"
                         onChangeText={text => {
-                          searcSupplierName(text.trim());
+                          // searcSupplierName(text.trim());
                           setSupplierName(text);
                         }}
                         value={supplierName}

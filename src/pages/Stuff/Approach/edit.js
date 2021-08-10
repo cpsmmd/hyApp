@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-03 22:11:56
+ * @LastEditTime: 2021-08-09 22:07:09
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -24,6 +24,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import {Button, Toast} from '@ant-design/react-native';
 import {MAJOR_LIST} from '../../../util/constants';
 import StuffLists from '../component/stuffLists';
+import {Autocomplete, AutocompleteItem} from '@ui-kitten/components';
 import {
   approachApplyDetail,
   editApproachApply,
@@ -43,6 +44,12 @@ let menuObj = {
   detail: '审批详情',
   edit: '进场管理-修改',
   approave: '进场管理-审批',
+};
+let roleObj = {
+  0: '申请人',
+  1: '专业负责人',
+  2: '库管理员',
+  3: '其他审批人',
 };
 let userInfo = global.userInfo;
 const EditApproach = props => {
@@ -114,8 +121,10 @@ const EditApproach = props => {
   };
   // 添加材料
   const addStuff = () => {
+    let data = {...defaultData};
+    data.id = new Date().getTime();
     setstuffLists(state => {
-      return [...state, defaultData];
+      return [...state, data];
     });
   };
   // 删除材料
@@ -213,14 +222,18 @@ const EditApproach = props => {
       let data1 = data.slice(0, length - 1);
       let data2 = data[length - 1];
       return (
-        <View style={{display: 'flex', flexDirection: 'row'}}>
+        <View style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap'}}>
           {data1.map(v => (
             <>
-              <Text>{v.userName}</Text>
+              <Text style={{color: v.status ? '#1890ff' : ''}}>
+                {roleObj[v.roleType]}({v.userName})
+              </Text>
               <Text style={{paddingRight: 5, paddingLeft: 5}}>——</Text>
             </>
           ))}
-          <Text>{data2.userName}</Text>
+          <Text style={{color: data2.status ? '#1890ff' : ''}}>
+            {roleObj[data2.roleType]}({data2.userName})
+          </Text>
         </View>
       );
     } else {
@@ -288,508 +301,534 @@ const EditApproach = props => {
       console.error(error);
     }
   };
+  const renderMateriaName = (item, index) => (
+    <AutocompleteItem key={item.id} title={item.materialsName} />
+  );
+  const renderSupplierName = (item, index) => (
+    <AutocompleteItem key={item.id} title={item.supplierName} />
+  );
   return (
     <View>
       <KeyboardAvoidingView>
-        <TouchableWithoutFeedback
-          onPress={() => {
-            // Keyboard.dismiss();
-          }}>
-          <ScrollView showsVerticalScrollIndicator={false}>
-            {/* 编辑 */}
-            {routeType === 'edit' ? (
-              <>
-                <View>
-                  {/* 材料列表 */}
-                  {stuffLists.map((item, index) => (
-                    <View key={item.id} style={styles.stuff_items}>
-                      <View style={styles.flex_row}>
-                        <Text style={styles.stuff_item_title}>材料名称：</Text>
-                        <View>
-                          <TextInput
-                            onChangeText={text => {
+        <ScrollView showsVerticalScrollIndicator={false}>
+          {/* 编辑 */}
+          {routeType === 'edit' ? (
+            <>
+              <View>
+                {/* 材料列表 */}
+                {stuffLists.map((item, index) => (
+                  <View key={item.id} style={styles.stuff_items}>
+                    <View style={styles.flex_row}>
+                      <Text style={styles.stuff_item_title}>材料名称：</Text>
+                      <View>
+                        {/* <TextInput
+                          onChangeText={text => {
+                            let newList = [...stuffLists];
+                            newList.map(v => {
+                              if (v.id === item.id) {
+                                v.materialsName = text;
+                              }
+                            });
+                            setstuffLists(newList);
+                            searchMaterisName(text.trim(), item.id);
+                          }}
+                          value={item.materialsName}
+                          style={styles.input_sty}
+                          placeholder="请输入"
+                        /> */}
+                        <Autocomplete
+                          style={styles.input_sty}
+                          value={item.materialsName}
+                          onSelect={index => {
+                            let newList = [...stuffLists];
+                            newList.map(v => {
+                              if (v.id === item.id) {
+                                v.materialsName =
+                                  materialsList[index].materialsName;
+                              }
+                            });
+                            setstuffLists(newList);
+                          }}
+                          onChangeText={text => {
+                            let newList = [...stuffLists];
+                            newList.map(v => {
+                              if (v.id === item.id) {
+                                v.materialsName = text;
+                              }
+                            });
+                            setstuffLists(newList);
+                            searchMaterisName(text.trim());
+                          }}>
+                          {materialsList.map(renderMateriaName)}
+                        </Autocomplete>
+                      </View>
+                      <TouchableWithoutFeedback
+                        onPress={() => {
+                          delStuff(index);
+                        }}>
+                        <Image
+                          style={styles.del_btn}
+                          source={require('../../../assets/stuff/del.png')}
+                        />
+                      </TouchableWithoutFeedback>
+                    </View>
+                    {item.id === curId && materialsList.length > 0 ? (
+                      <View
+                        style={{
+                          width: '100%',
+                          zIndex: 999,
+                          display: 'flex',
+                          flexDirection: 'row',
+                          flexWrap: 'wrap',
+                        }}>
+                        {materialsList.map(v => (
+                          <TouchableWithoutFeedback
+                            key={v.id}
+                            onPress={() => {
                               let newList = [...stuffLists];
-                              newList.map(v => {
-                                if (v.id === item.id) {
-                                  v.materialsName = text;
+                              newList.map(v1 => {
+                                if (v1.id === curId) {
+                                  v1.materialsName = v.materialsName;
                                 }
                               });
                               setstuffLists(newList);
-                              searchMaterisName(text.trim(), item.id);
-                            }}
-                            value={item.materialsName}
-                            style={styles.input_sty}
-                            placeholder="请输入"
-                          />
-                        </View>
-                        <TouchableWithoutFeedback
-                          onPress={() => {
-                            delStuff(index);
-                          }}>
-                          <Image
-                            style={styles.del_btn}
-                            source={require('../../../assets/stuff/del.png')}
-                          />
-                        </TouchableWithoutFeedback>
+                              setMaterialsList([]);
+                            }}>
+                            <Text style={[styles.default_label]} key={v}>
+                              {v.materialsName}
+                            </Text>
+                          </TouchableWithoutFeedback>
+                        ))}
                       </View>
-                      {item.id === curId && materialsList.length > 0 ? (
-                        <View
-                          style={{
-                            width: '100%',
-                            zIndex: 999,
-                            display: 'flex',
-                            flexDirection: 'row',
-                            flexWrap: 'wrap',
-                          }}>
-                          {materialsList.map(v => (
-                            <TouchableWithoutFeedback
-                              key={v.id}
-                              onPress={() => {
-                                let newList = [...stuffLists];
-                                newList.map(v1 => {
-                                  if (v1.id === curId) {
-                                    v1.materialsName = v.materialsName;
-                                  }
-                                });
-                                setstuffLists(newList);
-                                setMaterialsList([]);
-                              }}>
-                              <Text style={[styles.default_label]} key={v}>
-                                {v.materialsName}
-                              </Text>
-                            </TouchableWithoutFeedback>
-                          ))}
-                        </View>
-                      ) : null}
-                      <View style={[styles.flex_row, {marginTop: 10}]}>
-                        <Text style={styles.stuff_item_title}>规格：</Text>
-                        <TextInput
-                          onChangeText={text => {
-                            let newList = [...stuffLists];
-                            newList.map(v => {
-                              if (v.id === item.id) {
-                                v.materialsSpecs = text;
-                              }
-                            });
-                            setstuffLists(newList);
-                          }}
-                          value={item.materialsSpecs}
-                          style={styles.input_sty}
-                          placeholder="请输入"
-                        />
-                        <Text
-                          style={[styles.stuff_item_title, {marginLeft: 6}]}>
-                          数量：
-                        </Text>
-                        <TextInput
-                          onChangeText={text => {
-                            let newList = [...stuffLists];
-                            newList.map(v => {
-                              if (v.id === item.id) {
-                                v.materialsNum = text;
-                              }
-                            });
-                            setstuffLists(newList);
-                          }}
-                          value={item.materialsNum.toString()}
-                          style={styles.input_sty}
-                          placeholder="请输入"
-                        />
-                      </View>
-                    </View>
-                  ))}
-                </View>
-                <View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>申请主题：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      onChangeText={text => setTheme(text)}
-                      value={theme}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>包装方式：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      onChangeText={text => setPackingWay(text)}
-                      value={packingWay}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>进场运输方式：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      onChangeText={text => setTransporteWay(text)}
-                      value={transporteWay}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>卸货需求：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      onChangeText={text => setUnloadingRequire(text)}
-                      value={unloadingRequire}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>归属合同名称：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      onChangeText={text => setContractName(text)}
-                      value={contractName}
-                    />
-                  </View>
-                  <View style={styles.other_item2}>
-                    <Text style={styles.other_title}>进场时间：</Text>
-                    {Platform.OS === 'android' && (
-                      <TouchableWithoutFeedback
-                        onPress={() => {
-                          showDatepicker();
-                        }}>
-                        <Text
-                          style={{width: 200, color: '#999999', fontSize: 14}}>
-                          {JSON.stringify(date).substring(1, 11)}
-                        </Text>
-                      </TouchableWithoutFeedback>
-                    )}
-                    {show && (
-                      <DateTimePicker
-                        testID="dateTimePicker"
-                        value={date}
-                        mode={mode}
-                        is24Hour={true}
-                        display="default"
-                        locale="zh-CN"
-                        style={{width: 200}}
-                        onChange={(event, selectedDate) =>
-                          onChangeBegin(event, selectedDate)
-                        }
-                      />
-                    )}
-                  </View>
-                  <View style={styles.other_item2}>
-                    <Text style={styles.other_title}>所属专业：</Text>
-                    <View>
-                      <ModalDropdown
-                        defaultValue={professional}
-                        options={MAJOR_LIST}
-                        textStyle={styles.dropdownText}
-                        dropdownStyle={styles.dropdownStyle}
-                        dropdownTextStyle={styles.DropDownPickerText}
-                        dropdownTextHighlightStyle={
-                          styles.dropdownTextHighlightStyle
-                        }
-                        onSelect={value => {
-                          setProfessional(MAJOR_LIST[value]);
+                    ) : null}
+                    <View style={[styles.flex_row, {marginTop: 10}]}>
+                      <Text style={styles.stuff_item_title}>规格：</Text>
+                      <TextInput
+                        onChangeText={text => {
+                          let newList = [...stuffLists];
+                          newList.map(v => {
+                            if (v.id === item.id) {
+                              v.materialsSpecs = text;
+                            }
+                          });
+                          setstuffLists(newList);
                         }}
+                        value={item.materialsSpecs}
+                        style={styles.input_sty}
+                        placeholder="请输入"
+                      />
+                      <Text style={[styles.stuff_item_title, {marginLeft: 6}]}>
+                        数量：
+                      </Text>
+                      <TextInput
+                        onChangeText={text => {
+                          let newList = [...stuffLists];
+                          newList.map(v => {
+                            if (v.id === item.id) {
+                              v.materialsNum = text;
+                            }
+                          });
+                          setstuffLists(newList);
+                        }}
+                        value={item.materialsNum.toString()}
+                        style={styles.input_sty}
+                        placeholder="请输入"
                       />
                     </View>
                   </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>供应商名称：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      onChangeText={text => {
-                        setSupplierName(text);
-                        searcSupplierName(text.trim());
-                      }}
-                      value={supplierName}
-                    />
+                ))}
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    addStuff();
+                  }}>
+                  <View style={styles.add_area}>
+                    <Image source={require('../../../assets/stuff/add.png')} />
+                    <Text style={styles.add_text}>添加材料</Text>
                   </View>
-                  {supplierList.length > 0 ? (
-                    <View
-                      style={{
-                        width: '100%',
-                        zIndex: 999,
-                        display: 'flex',
-                        flexDirection: 'row',
-                        flexWrap: 'wrap',
-                        marginTop: 10,
-                        marginBottom: 10,
-                      }}>
-                      {supplierList.map(v => (
-                        <TouchableWithoutFeedback
-                          key={v.id}
-                          onPress={() => {
-                            setSupplierName(v.supplierName);
-                            setSupplierList([]);
-                          }}>
-                          <Text style={[styles.default_label]} key={v}>
-                            {v.supplierName}
-                          </Text>
-                        </TouchableWithoutFeedback>
-                      ))}
-                    </View>
-                  ) : null}
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>供应商联系人：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      onChangeText={text => setSupplierContact(text)}
-                      value={supplierContact}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>联系方式：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      onChangeText={text => setSupplierMobile(text)}
-                      value={supplierMobile}
-                    />
-                  </View>
-                  {/* <View style={styles.other_item}>
-                    <Text style={styles.other_title}>附件上传：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                    />
-                  </View> */}
-                </View>
-              </>
-            ) : (
-              // 详情
-              <View>
-                <StuffLists data={stuffLists} />
-                <View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>申请主题：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      editable={false}
-                      onChangeText={text => setTheme(text)}
-                      value={theme}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>包装方式：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      editable={false}
-                      onChangeText={text => setPackingWay(text)}
-                      value={packingWay}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>进场运输方式：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      editable={false}
-                      onChangeText={text => setTransporteWay(text)}
-                      value={transporteWay}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>卸货需求：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      editable={false}
-                      onChangeText={text => setUnloadingRequire(text)}
-                      value={unloadingRequire}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>归属合同名称：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      editable={false}
-                      onChangeText={text => setContractName(text)}
-                      value={contractName}
-                    />
-                  </View>
-                  <View style={styles.other_item2}>
-                    <Text style={styles.other_title}>进场时间：</Text>
-                    {Platform.OS === 'android' && (
-                      <TouchableWithoutFeedback
-                        onPress={() => {
-                          // showDatepicker();
-                        }}>
-                        <Text
-                          style={{width: 200, color: '#999999', fontSize: 14}}>
-                          {JSON.stringify(date).substring(1, 11)}
-                        </Text>
-                      </TouchableWithoutFeedback>
-                    )}
-                    {show && (
-                      <DateTimePicker
-                        testID="dateTimePicker"
-                        value={date}
-                        mode={mode}
-                        is24Hour={true}
-                        display="default"
-                        locale="zh-CN"
-                        style={{width: 200}}
-                        onChange={(event, selectedDate) =>
-                          onChangeBegin(event, selectedDate)
-                        }
-                      />
-                    )}
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>所属专业：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      editable={false}
-                      value={professional}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>供应商名称：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      editable={false}
-                      onChangeText={text => setSupplierName(text)}
-                      value={supplierName}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>供应商联系人：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      editable={false}
-                      onChangeText={text => setSupplierContact(text)}
-                      value={supplierContact}
-                    />
-                  </View>
-                  <View style={styles.other_item}>
-                    <Text style={styles.other_title}>联系方式：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                      editable={false}
-                      onChangeText={text => setSupplierMobile(text)}
-                      value={supplierMobile}
-                    />
-                  </View>
-                  {/* <View style={styles.other_item}>
-                    <Text style={styles.other_title}>附件上传：</Text>
-                    <TextInput
-                      style={styles.input_no_border}
-                      placeholder="请输入"
-                    />
-                  </View> */}
-                </View>
+                </TouchableWithoutFeedback>
               </View>
-            )}
-            {/* 审批流程 */}
+              <View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>申请主题：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    onChangeText={text => setTheme(text)}
+                    value={theme}
+                  />
+                </View>
+                <View style={styles.other_item5}>
+                  <Text style={styles.other_title}>供应商名称：</Text>
+                  <Autocomplete
+                    style={styles.input_no_border}
+                    value={supplierName}
+                    onSelect={index => {
+                      setSupplierName(supplierList[index].supplierName);
+                    }}
+                    onChangeText={text => {
+                      setSupplierName(text);
+                      searcSupplierName(text.trim());
+                    }}>
+                    {supplierList.map(renderSupplierName)}
+                  </Autocomplete>
+                </View>
+                {/* <View style={styles.other_item}>
+                  <Text style={styles.other_title}>供应商名称：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    onChangeText={text => {
+                      setSupplierName(text);
+                      searcSupplierName(text.trim());
+                    }}
+                    value={supplierName}
+                  />
+                </View> */}
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>包装方式：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    onChangeText={text => setPackingWay(text)}
+                    value={packingWay}
+                  />
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>进场运输方式：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    onChangeText={text => setTransporteWay(text)}
+                    value={transporteWay}
+                  />
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>卸货需求：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    onChangeText={text => setUnloadingRequire(text)}
+                    value={unloadingRequire}
+                  />
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>归属合同名称：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    onChangeText={text => setContractName(text)}
+                    value={contractName}
+                  />
+                </View>
+                <View style={styles.other_item2}>
+                  <Text style={styles.other_title}>进场时间：</Text>
+                  {Platform.OS === 'android' && (
+                    <TouchableWithoutFeedback
+                      onPress={() => {
+                        showDatepicker();
+                      }}>
+                      <Text
+                        style={{width: 200, color: '#999999', fontSize: 14}}>
+                        {JSON.stringify(date).substring(1, 11)}
+                      </Text>
+                    </TouchableWithoutFeedback>
+                  )}
+                  {show && (
+                    <DateTimePicker
+                      testID="dateTimePicker"
+                      value={date}
+                      mode={mode}
+                      is24Hour={true}
+                      display="default"
+                      locale="zh-CN"
+                      style={{width: 200}}
+                      onChange={(event, selectedDate) =>
+                        onChangeBegin(event, selectedDate)
+                      }
+                    />
+                  )}
+                </View>
+                <View style={styles.other_item2}>
+                  <Text style={styles.other_title}>所属专业：</Text>
+                  <View>
+                    <ModalDropdown
+                      defaultValue={professional}
+                      options={MAJOR_LIST}
+                      textStyle={styles.dropdownText}
+                      dropdownStyle={styles.dropdownStyle}
+                      dropdownTextStyle={styles.DropDownPickerText}
+                      dropdownTextHighlightStyle={
+                        styles.dropdownTextHighlightStyle
+                      }
+                      onSelect={value => {
+                        setProfessional(MAJOR_LIST[value]);
+                      }}
+                    />
+                  </View>
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>供应商联系人：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    onChangeText={text => setSupplierContact(text)}
+                    value={supplierContact}
+                  />
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>联系方式：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    onChangeText={text => setSupplierMobile(text)}
+                    value={supplierMobile}
+                  />
+                </View>
+                {/* <View style={styles.other_item}>
+                    <Text style={styles.other_title}>附件上传：</Text>
+                    <TextInput
+                      style={styles.input_no_border}
+                      placeholder="请输入"
+                    />
+                  </View> */}
+              </View>
+            </>
+          ) : (
+            // 详情
+            <View>
+              <StuffLists data={stuffLists} />
+              <View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>申请主题：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    editable={false}
+                    onChangeText={text => setTheme(text)}
+                    value={theme}
+                  />
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>包装方式：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    editable={false}
+                    onChangeText={text => setPackingWay(text)}
+                    value={packingWay}
+                  />
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>进场运输方式：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    editable={false}
+                    onChangeText={text => setTransporteWay(text)}
+                    value={transporteWay}
+                  />
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>卸货需求：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    editable={false}
+                    onChangeText={text => setUnloadingRequire(text)}
+                    value={unloadingRequire}
+                  />
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>归属合同名称：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    editable={false}
+                    onChangeText={text => setContractName(text)}
+                    value={contractName}
+                  />
+                </View>
+                <View style={styles.other_item2}>
+                  <Text style={styles.other_title}>进场时间：</Text>
+                  {Platform.OS === 'android' && (
+                    <TouchableWithoutFeedback
+                      onPress={() => {
+                        // showDatepicker();
+                      }}>
+                      <Text
+                        style={{width: 200, color: '#999999', fontSize: 14}}>
+                        {JSON.stringify(date).substring(1, 11)}
+                      </Text>
+                    </TouchableWithoutFeedback>
+                  )}
+                  {show && (
+                    <DateTimePicker
+                      testID="dateTimePicker"
+                      value={date}
+                      mode={mode}
+                      is24Hour={true}
+                      display="default"
+                      locale="zh-CN"
+                      style={{width: 200}}
+                      onChange={(event, selectedDate) =>
+                        onChangeBegin(event, selectedDate)
+                      }
+                    />
+                  )}
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>所属专业：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    editable={false}
+                    value={professional}
+                  />
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>供应商名称：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    editable={false}
+                    onChangeText={text => setSupplierName(text)}
+                    value={supplierName}
+                  />
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>供应商联系人：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    editable={false}
+                    onChangeText={text => setSupplierContact(text)}
+                    value={supplierContact}
+                  />
+                </View>
+                <View style={styles.other_item}>
+                  <Text style={styles.other_title}>联系方式：</Text>
+                  <TextInput
+                    style={styles.input_no_border}
+                    placeholder="请输入"
+                    editable={false}
+                    onChangeText={text => setSupplierMobile(text)}
+                    value={supplierMobile}
+                  />
+                </View>
+                {/* <View style={styles.other_item}>
+                    <Text style={styles.other_title}>附件上传：</Text>
+                    <TextInput
+                      style={styles.input_no_border}
+                      placeholder="请输入"
+                    />
+                  </View> */}
+              </View>
+            </View>
+          )}
+          {/* 审批流程 */}
+          <View>
             <View style={styles.other_item4}>
               <Text style={styles.other_title}>审批流程：</Text>
               <RenderApproach></RenderApproach>
             </View>
-            <RenderApprovalComments></RenderApprovalComments>
-            {routeType === 'approave' && (
-              <View style={styles.other_item3}>
-                <Text style={styles.other_title}>
-                  {userInfo.userName}审批意见：
-                </Text>
-                <TextInput
+          </View>
+          <RenderApprovalComments></RenderApprovalComments>
+          {routeType === 'approave' && (
+            <View style={styles.other_item3}>
+              <Text style={styles.other_title}>
+                {userInfo.userName}审批意见：
+              </Text>
+              <TextInput
+                style={{
+                  backgroundColor: '#EEEEEE',
+                  borderWidth: 0,
+                  borderRadius: 5,
+                  paddingLeft: 15,
+                  textAlign: 'left',
+                  textAlignVertical: 'top',
+                  androidtextAlignVertical: 'top',
+                  width: '60%',
+                }}
+                numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
+                minHeight={
+                  Platform.OS === 'ios' && numberOfLines
+                    ? 20 * numberOfLines
+                    : null
+                }
+                placeholder="请填写"
+                multiline
+                onChangeText={text => setContent(text)}
+                value={content}
+                maxLength={20}
+              />
+            </View>
+          )}
+          {/* 提交 */}
+          {routeType === 'edit' && (
+            <View
+              style={{
+                padding: 30,
+                marginBottom: 40,
+                width: '100%',
+              }}>
+              <Button
+                onPress={() => {
+                  submit();
+                }}
+                type="primary">
+                提交
+              </Button>
+            </View>
+          )}
+          {routeType === 'approave' && (
+            <View
+              style={{
+                display: 'flex',
+                justifyContent: 'center',
+                flexDirection: 'row',
+                marginBottom: 30,
+                marginTop: 10,
+              }}>
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  changeStatus(1);
+                }}>
+                <View
                   style={{
-                    backgroundColor: '#EEEEEE',
-                    borderWidth: 0,
-                    borderRadius: 5,
-                    paddingLeft: 15,
-                    textAlign: 'left',
-                    textAlignVertical: 'top',
-                    androidtextAlignVertical: 'top',
-                    width: '60%',
-                  }}
-                  numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
-                  minHeight={
-                    Platform.OS === 'ios' && numberOfLines
-                      ? 20 * numberOfLines
-                      : null
-                  }
-                  placeholder="请填写"
-                  multiline
-                  onChangeText={text => setContent(text)}
-                  value={content}
-                  maxLength={20}
-                />
-              </View>
-            )}
-            {/* 提交 */}
-            {routeType === 'edit' && (
-              <View
-                style={{
-                  padding: 30,
-                  marginBottom: 40,
-                  width: '100%',
-                }}>
-                <Button
-                  onPress={() => {
-                    submit();
-                  }}
-                  type="primary">
-                  提交
-                </Button>
-              </View>
-            )}
-            {routeType === 'approave' && (
-              <View
-                style={{
-                  display: 'flex',
-                  justifyContent: 'center',
-                  flexDirection: 'row',
-                  marginBottom: 30,
-                  marginTop: 10,
-                }}>
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    changeStatus(1);
+                    backgroundColor: '#19be6b',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 6,
+                    height: 38,
+                    width: 70,
+                    marginRight: 30,
                   }}>
-                  <View
-                    style={{
-                      backgroundColor: '#19be6b',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      height: 38,
-                      width: 70,
-                      marginRight: 30,
-                    }}>
-                    <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                      通过
-                    </Text>
-                  </View>
-                </TouchableWithoutFeedback>
-                <TouchableWithoutFeedback
-                  onPress={() => {
-                    changeStatus(0);
+                  <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
+                    通过
+                  </Text>
+                </View>
+              </TouchableWithoutFeedback>
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  changeStatus(0);
+                }}>
+                <View
+                  style={{
+                    backgroundColor: '#F30000FF',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 6,
+                    height: 38,
+                    width: 80,
                   }}>
-                  <View
-                    style={{
-                      backgroundColor: '#F30000FF',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: 6,
-                      height: 38,
-                      width: 80,
-                    }}>
-                    <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                      驳回
-                    </Text>
-                  </View>
-                </TouchableWithoutFeedback>
-              </View>
-            )}
-          </ScrollView>
-        </TouchableWithoutFeedback>
+                  <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
+                    驳回
+                  </Text>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          )}
+        </ScrollView>
       </KeyboardAvoidingView>
     </View>
   );
@@ -887,6 +926,15 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 20,
   },
+  other_item5: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingHorizontal: 10,
+    borderBottomWidth: 1,
+    borderColor: '#f8f8f8',
+    backgroundColor: '#fff',
+  },
   other_title: {
     fontSize: 14,
     marginRight: 4,
@@ -900,6 +948,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
     fontWeight: '300',
+    minWidth: 160,
   },
   // 下拉框样式
   dropdownText: {
