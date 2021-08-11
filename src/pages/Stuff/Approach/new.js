@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-06 23:08:05
- * @LastEditTime: 2021-08-09 21:32:56
+ * @LastEditTime: 2021-08-10 11:17:58
  * @LastEditors: Please set LastEditors
  * @Description: 发起进场申请
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/new.js
@@ -102,7 +102,7 @@ const New = props => {
       return;
     }
     let parms = {
-      idCard: userInfo.idCard,
+      idCard: global.userInfo.idCard,
       supplierName,
       theme,
       supplierContact,

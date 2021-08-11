@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 17:40:17
- * @LastEditTime: 2021-08-08 23:13:04
+ * @LastEditTime: 2021-08-11 00:13:51
  * @LastEditors: Please set LastEditors
  * @Description: 退场 (增删改查)
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Exit/edit.js
@@ -25,7 +25,14 @@ import ModalDropdown from 'react-native-modal-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Button, Toast} from '@ant-design/react-native';
 import {EXIT_DIRECTION} from '../../../util/constants';
-import StuffLists from '../component/stuffLists';
+import {
+  Autocomplete,
+  AutocompleteItem,
+  Select,
+  SelectItem,
+} from '@ui-kitten/components';
+
+import StuffLists2 from '../component/stuffLists2';
 import {
   getMaterialsByName,
   getSupplierByName,
@@ -43,6 +50,9 @@ let defaultData = {
   materialsName: '',
   materialsSpecs: '',
   materialsNum: '',
+  supplierName: '',
+  guigelist: [],
+  supernameList: [],
   id: Math.random().toString(16),
 };
 let menuObj = {
@@ -51,6 +61,12 @@ let menuObj = {
   approave: '退场管理-审批',
   new: '发起申请',
   confirm: '退场管理-编辑',
+};
+let roleObj = {
+  0: '申请人',
+  1: '专业负责人',
+  2: '库管理员',
+  3: '其他审批人',
 };
 const {width} = Dimensions.get('window');
 const imgOptions = {
@@ -90,13 +106,14 @@ const EditExit = props => {
   const [mode, setMode] = useState('date');
   const [timeMode, settimeMode] = useState('date');
 
-  const [professional, setProfessional] = useState('选择专业');
-  const [exitDirecte, setExitDirecte] = useState('选择方向');
+  const [otherDirecte, setPotherDirecte] = useState('');
+  const [exitDirecte, setExitDirecte] = useState('选择去向');
   const [supplierName, setSupplierName] = useState(''); // 供应商名称
   const [theme, setTheme] = useState(''); // 申请主题
 
   const [approvalData, setApprovalData] = useState({});
   // 模糊搜索材料名称
+  const [allMaterialLists, setallMaterialLists] = useState([]);
   const [materialsList, setMaterialsList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
   const [curId, setCurId] = useState('');
@@ -123,7 +140,7 @@ const EditExit = props => {
         // setLists(res.data.data);
         let info = res.data.data;
         setDetailInfo(info);
-        // setstuffLists(info.materials || []);
+        setstuffLists(info.materials || []);
         setTheme(info.theme);
         setExitDirecte(info.exitDirecte);
         setDate(info.exitTime);
@@ -164,29 +181,35 @@ const EditExit = props => {
   };
   // 申请、修改提交材料
   const submit = async () => {
+    let materials = [];
+    stuffLists.forEach(item => {
+      // item.materialsName
+      materials.push({
+        materialsName: item.materialsName,
+        materialsSpecs: item.materialsSpecs,
+        materialsNum: item.materialsNum,
+        supplierName: item.supplierName,
+      });
+    });
     // 编辑
+    let fangxiang = exitDirecte;
+    if (fangxiang === '其他') {
+      if (otherDirecte.trim().length === 0) {
+        return Toast.fail('请填写退场去向');
+      }
+      fangxiang = otherDirecte;
+    }
     let parms = {
       theme,
-      exitDirecte,
+      exitDirecte: fangxiang,
       exitTime: JSON.stringify(date).substring(1, 11),
       belongProject: global.userInfo.belongProject,
-      materials: [
-        {
-          materialsName: '材料1',
-          materialsSpecs: '12',
-          materialsNum: '2',
-          supplierName: '测',
-        },
-      ],
+      materials,
     };
     if (routeType === 'edit') {
       parms['applyId'] = detailInfo.applyId;
     }
     console.log('修改parms', parms);
-    // let test = 1;
-    // if (test === 1) {
-    //   return;
-    // }
     if (routeType === 'edit') {
       try {
         const res = await editExitApply(parms);
@@ -196,7 +219,6 @@ const EditExit = props => {
         } else {
           Toast.fail(res.data.message);
         }
-        console.log(res.data.message);
       } catch (error) {
         console.error(error);
       }
@@ -286,14 +308,18 @@ const EditExit = props => {
       let data1 = data.slice(0, length - 1);
       let data2 = data[length - 1];
       return (
-        <View style={{display: 'flex', flexDirection: 'row'}}>
+        <View style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap'}}>
           {data1.map(v => (
             <>
-              <Text>{v.userName}</Text>
+              <Text style={{color: v.status ? '#1890ff' : ''}}>
+                {roleObj[v.roleType]}({v.userName})
+              </Text>
               <Text style={{paddingRight: 5, paddingLeft: 5}}>——</Text>
             </>
           ))}
-          <Text>{data2.userName}</Text>
+          <Text style={{color: data2.status ? '#1890ff' : ''}}>
+            {roleObj[data2.roleType]}({data2.userName})
+          </Text>
         </View>
       );
     } else {
@@ -309,30 +335,35 @@ const EditExit = props => {
             return (
               <View style={styles.other_item3}>
                 <Text style={styles.other_title}>{v.userName}审批意见：</Text>
-                <TextInput
-                  style={{
-                    backgroundColor: '#EEEEEE',
-                    borderWidth: 0,
-                    borderRadius: 5,
-                    paddingLeft: 15,
-                    textAlign: 'left',
-                    textAlignVertical: 'top',
-                    androidtextAlignVertical: 'top',
-                    width: '60%',
-                  }}
-                  numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
-                  minHeight={
-                    Platform.OS === 'ios' && numberOfLines
-                      ? 20 * numberOfLines
-                      : null
-                  }
-                  placeholder="简介"
-                  multiline
-                  editable={false}
-                  // onChangeText={text => onChangeText(text)}
-                  value={v.content}
-                  maxLength={20}
-                />
+                <View style={{flex: 1}}>
+                  <TextInput
+                    style={{
+                      backgroundColor: '#EEEEEE',
+                      borderWidth: 0,
+                      borderRadius: 5,
+                      paddingLeft: 15,
+                      textAlign: 'left',
+                      textAlignVertical: 'top',
+                      androidtextAlignVertical: 'top',
+                      width: '90%',
+                    }}
+                    numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
+                    minHeight={
+                      Platform.OS === 'ios' && numberOfLines
+                        ? 20 * numberOfLines
+                        : null
+                    }
+                    placeholder="简介"
+                    multiline
+                    editable={false}
+                    // onChangeText={text => onChangeText(text)}
+                    value={v.content}
+                    maxLength={20}
+                  />
+                  <Text style={{backgroundColor: '#fff'}}>
+                    审批时间：{v.approvalTime}
+                  </Text>
+                </View>
               </View>
             );
           })}
@@ -363,26 +394,27 @@ const EditExit = props => {
     }
   };
   // 根据材料名称获取列表
-  const getBillData = async (
-    materialsName = null,
-    supplierName = null,
-    belongProject = null,
-  ) => {
+  const getBillData = async (materialsName = null, supplierName = null) => {
     let parms = {
       materialsName,
       supplierName,
-      belongProject,
+      belongProject: global.userInfo.belongProject,
     };
     console.log('材料清单parms', parms);
     try {
       const res = await getBillList2(parms);
       if (res.data.code === 200) {
-        console.log('材料清单', res.data);
-        // let list = res.data.data || [];
-        // setIsAll(true);
-        // settableData(state => {
-        //   return [...state, ...list];
-        // });
+        let list = res.data.data || [];
+        let list2 = [];
+        list.map(v => {
+          let list3 = list2.filter(v2 => v2.materialsName === v.materialsName);
+          if (list3 && list3.length) {
+          } else {
+            list2.push(v);
+          }
+        });
+        setMaterialsList(list2);
+        setallMaterialLists(list);
       }
     } catch (error) {
       console.log(error);
@@ -417,6 +449,12 @@ const EditExit = props => {
       // ...
     });
   };
+  const renderMateriaName = (item, index) => (
+    <AutocompleteItem key={item.id} title={item.materialsName} />
+  );
+  const renderSupplierName = (item, index) => (
+    <AutocompleteItem key={item.id} title={item.supplierName} />
+  );
   return (
     <View>
       <KeyboardAvoidingView>
@@ -431,7 +469,25 @@ const EditExit = props => {
                     <View style={styles.flex_row}>
                       <Text style={styles.stuff_item_title}>材料名称：</Text>
                       <View>
-                        <TextInput
+                        <Autocomplete
+                          style={styles.input_sty}
+                          value={item.materialsName}
+                          onSelect={index => {
+                            let newList = [...stuffLists];
+                            newList.map(v => {
+                              if (v.id === item.id) {
+                                let name = materialsList[index].materialsName;
+                                v.materialsName = name;
+                                let news =
+                                  allMaterialLists.filter(
+                                    c => c.materialsName === name,
+                                  ) || [];
+                                v.guigelist = news;
+                                v.materialsSpecs = '选择';
+                              }
+                            });
+                            setstuffLists(newList);
+                          }}
                           onChangeText={text => {
                             let newList = [...stuffLists];
                             newList.map(v => {
@@ -440,14 +496,94 @@ const EditExit = props => {
                               }
                             });
                             setstuffLists(newList);
-                            getBillData();
-                            // searchMaterisName(text.trim(), item.id);
-                          }}
-                          value={item.materialsName}
-                          style={styles.input_sty}
-                          placeholder="请输入"
-                        />
+                            getBillData(text.trim());
+                          }}>
+                          {materialsList.map(renderMateriaName)}
+                        </Autocomplete>
                       </View>
+                      {item.materialsName.length ? (
+                        <>
+                          <Text style={styles.stuff_item_title}>规格：</Text>
+                          <Select
+                            style={{width: 120}}
+                            value={item.materialsSpecs}
+                            onSelect={info => {
+                              let newList = [...stuffLists];
+                              newList.map(v => {
+                                if (v.id === item.id) {
+                                  v.materialsSpecs =
+                                    item.guigelist[info.row].materialsSpecs;
+                                  let news =
+                                    item.guigelist.filter(
+                                      n =>
+                                        n.materialsSpecs ===
+                                        item.materialsSpecs,
+                                    ) || [];
+                                  v.supernameList = news;
+                                }
+                              });
+                              setstuffLists(newList);
+                            }}>
+                            {item.guigelist.map(v => (
+                              <SelectItem title={v.materialsSpecs} />
+                            ))}
+                          </Select>
+                        </>
+                      ) : null}
+                    </View>
+                    {item.materialsSpecs.length ? (
+                      <View
+                        style={{
+                          display: 'flex',
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          marginTop: 10,
+                        }}>
+                        <Text style={styles.stuff_item_title}>
+                          供应商名称：
+                        </Text>
+                        <Select
+                          style={{width: 160}}
+                          value={item.supplierName}
+                          onSelect={info => {
+                            let newList = [...stuffLists];
+                            newList.map(v => {
+                              if (v.id === item.id) {
+                                v.supplierName =
+                                  item.supernameList[info.row].supplierName;
+                              }
+                            });
+                            setstuffLists(newList);
+                          }}>
+                          {item.supernameList.map(v => (
+                            <SelectItem title={v.supplierName} />
+                          ))}
+                        </Select>
+                      </View>
+                    ) : null}
+                    <View style={[styles.flex_row, {marginTop: 10}]}>
+                      {item.materialsSpecs.length ? (
+                        <>
+                          <Text
+                            style={[styles.stuff_item_title, {marginLeft: 6}]}>
+                            数量：
+                          </Text>
+                          <TextInput
+                            onChangeText={text => {
+                              let newList = [...stuffLists];
+                              newList.map(v => {
+                                if (v.id === item.id) {
+                                  v.materialsNum = text;
+                                }
+                              });
+                              setstuffLists(newList);
+                            }}
+                            value={item.materialsNum.toString()}
+                            style={styles.input_sty}
+                            placeholder="请输入"
+                          />
+                        </>
+                      ) : null}
                       <TouchableWithoutFeedback
                         onPress={() => {
                           delStuff(index);
@@ -457,69 +593,6 @@ const EditExit = props => {
                           source={require('../../../assets/stuff/del.png')}
                         />
                       </TouchableWithoutFeedback>
-                    </View>
-                    {item.id === curId && materialsList.length > 0 ? (
-                      <View
-                        style={{
-                          width: '100%',
-                          zIndex: 999,
-                          display: 'flex',
-                          flexDirection: 'row',
-                          flexWrap: 'wrap',
-                        }}>
-                        {materialsList.map(v => (
-                          <TouchableWithoutFeedback
-                            key={v.id}
-                            onPress={() => {
-                              let newList = [...stuffLists];
-                              newList.map(v1 => {
-                                if (v1.id === curId) {
-                                  v1.materialsName = v.materialsName;
-                                }
-                              });
-                              setstuffLists(newList);
-                              setMaterialsList([]);
-                            }}>
-                            <Text style={[styles.default_label]} key={v}>
-                              {v.materialsName}
-                            </Text>
-                          </TouchableWithoutFeedback>
-                        ))}
-                      </View>
-                    ) : null}
-                    <View style={[styles.flex_row, {marginTop: 10}]}>
-                      <Text style={styles.stuff_item_title}>规格：</Text>
-                      <TextInput
-                        onChangeText={text => {
-                          let newList = [...stuffLists];
-                          newList.map(v => {
-                            if (v.id === item.id) {
-                              v.materialsSpecs = text;
-                            }
-                          });
-                          setstuffLists(newList);
-                        }}
-                        value={item.materialsSpecs}
-                        style={styles.input_sty}
-                        placeholder="请输入"
-                      />
-                      <Text style={[styles.stuff_item_title, {marginLeft: 6}]}>
-                        数量：
-                      </Text>
-                      <TextInput
-                        onChangeText={text => {
-                          let newList = [...stuffLists];
-                          newList.map(v => {
-                            if (v.id === item.id) {
-                              v.materialsNum = text;
-                            }
-                          });
-                          setstuffLists(newList);
-                        }}
-                        value={item.materialsNum.toString()}
-                        style={styles.input_sty}
-                        placeholder="请输入"
-                      />
                     </View>
                   </View>
                 ))}
@@ -546,21 +619,30 @@ const EditExit = props => {
                 <View style={styles.other_item2}>
                   <Text style={styles.other_title}>退场去向：</Text>
                   <View>
-                    <ModalDropdown
-                      defaultValue={exitDirecte}
-                      options={EXIT_DIRECTION}
-                      textStyle={styles.dropdownText}
-                      dropdownStyle={styles.dropdownStyle}
-                      dropdownTextStyle={styles.DropDownPickerText}
-                      dropdownTextHighlightStyle={
-                        styles.dropdownTextHighlightStyle
-                      }
-                      onSelect={value => {
-                        setExitDirecte(EXIT_DIRECTION[value]);
-                      }}
-                    />
+                    <Select
+                      style={{width: 200}}
+                      value={exitDirecte}
+                      onSelect={info => {
+                        console.log(info.row);
+                        setExitDirecte(EXIT_DIRECTION[info.row]);
+                      }}>
+                      {EXIT_DIRECTION.map(v => (
+                        <SelectItem title={v} />
+                      ))}
+                    </Select>
                   </View>
                 </View>
+                {exitDirecte === '其他' && (
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>其他去向：</Text>
+                    <TextInput
+                      style={styles.input_no_border}
+                      placeholder="请输入其他去向"
+                      onChangeText={text => setPotherDirecte(text)}
+                      value={otherDirecte}
+                    />
+                  </View>
+                )}
                 <View style={styles.other_item2}>
                   <Text style={styles.other_title}>退场时间：</Text>
                   {Platform.OS === 'android' && (
@@ -594,8 +676,7 @@ const EditExit = props => {
           ) : (
             // 详情
             <View>
-              <StuffLists data={stuffLists} />
-
+              <StuffLists2 data={stuffLists} />
               <View>
                 <View style={styles.other_item}>
                   <Text style={styles.other_title}>申请主题：</Text>
@@ -648,11 +729,15 @@ const EditExit = props => {
             </View>
           )}
           {/* 审批流程 */}
-          <View style={styles.other_item4}>
-            <Text style={styles.other_title}>审批流程：</Text>
-            <RenderApproach></RenderApproach>
-          </View>
-          <RenderApprovalComments></RenderApprovalComments>
+          {routeType !== 'new' && (
+            <View>
+              <View style={styles.other_item4}>
+                <Text style={styles.other_title}>审批流程：</Text>
+                <RenderApproach></RenderApproach>
+              </View>
+              <RenderApprovalComments></RenderApprovalComments>
+            </View>
+          )}
           {/* 编辑 */}
           {routeType === 'confirm' && (
             <View>
@@ -846,7 +931,7 @@ const styles = StyleSheet.create({
   input_sty: {
     height: 38,
     borderRadius: 5,
-    paddingLeft: 10,
+    paddingLeft: 3,
     width: 136,
     borderWidth: 1,
     borderColor: '#999999',

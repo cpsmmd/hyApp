@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-09 22:07:09
+ * @LastEditTime: 2021-08-10 11:18:36
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -150,7 +150,7 @@ const EditApproach = props => {
     });
     let parms = {
       applyId: detailInfo.applyId,
-      idCard: userInfo.idCard,
+      idCard: global.userInfo.idCard,
       supplierName,
       theme,
       supplierContact,
@@ -188,7 +188,7 @@ const EditApproach = props => {
       state,
       applyId: detailInfo.applyId,
       content,
-      belongProject: userInfo.belongProject,
+      belongProject: global.userInfo.belongProject,
     };
     console.log('审批parms', parms);
     try {
@@ -736,7 +736,7 @@ const EditApproach = props => {
           {routeType === 'approave' && (
             <View style={styles.other_item3}>
               <Text style={styles.other_title}>
-                {userInfo.userName}审批意见：
+                {global.userInfo.userName}审批意见：
               </Text>
               <TextInput
                 style={{

@@ -2,9 +2,9 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 17:18:24
- * @LastEditTime: 2021-08-04 22:46:57
+ * @LastEditTime: 2021-08-10 21:11:05
  * @LastEditors: Please set LastEditors
- * @Description: 退场列表
+ * @Description: 退场管理-列表
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Exit/index.js
  */
 import React, {useState, useEffect} from 'react';
@@ -256,37 +256,11 @@ export default function Exit(props) {
                         style={styles.drawer_item_input}
                         placeholder="请输入"
                         onChangeText={text => {
-                          searcSupplierName(text.trim());
                           setSupplierName(text);
                         }}
                         value={supplierName}
                       />
                     </View>
-                    {supplierList.length > 0 ? (
-                      <View
-                        style={{
-                          width: '100%',
-                          zIndex: 999,
-                          display: 'flex',
-                          flexDirection: 'row',
-                          flexWrap: 'wrap',
-                          marginTop: 10,
-                          marginBottom: 10,
-                        }}>
-                        {supplierList.map(v => (
-                          <TouchableWithoutFeedback
-                            key={v.id}
-                            onPress={() => {
-                              setSupplierName(v.supplierName);
-                              setSupplierList([]);
-                            }}>
-                            <Text style={[styles.default_label]} key={v}>
-                              {v.supplierName}
-                            </Text>
-                          </TouchableWithoutFeedback>
-                        ))}
-                      </View>
-                    ) : null}
                     <View style={styles.drawer_item}>
                       <Text style={styles.drawer_item_title}>审批状态：</Text>
                       <ModalDropdown

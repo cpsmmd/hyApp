@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-08-01 22:39:56
- * @LastEditTime: 2021-08-10 00:41:29
+ * @LastEditTime: 2021-08-10 11:18:51
  * @LastEditors: Please set LastEditors
  * @Description: 详情、入库
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/edit.js
@@ -197,7 +197,7 @@ const EditApproach = props => {
         state,
       },
       warehouseMaterials: list,
-      idCard: userInfo.idCard,
+      idCard: global.userInfo.idCard,
     };
     console.log('入库parms', parms);
     console.log('detailInfo');
