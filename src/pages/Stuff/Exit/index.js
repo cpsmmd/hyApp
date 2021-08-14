@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 17:18:24
- * @LastEditTime: 2021-08-10 21:11:05
+ * @LastEditTime: 2021-08-15 00:06:50
  * @LastEditors: Please set LastEditors
  * @Description: 退场管理-列表
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Exit/index.js
@@ -54,7 +54,10 @@ export default function Exit(props) {
   }, []);
   // useEffect(() => {
   //   const navFocusListener = props.navigation.addListener('focus', async () => {
-  //     await getMaterialList(true, true);
+  //     setDrawer(false);
+  //     settableData([]);
+  //     setPageNumber(1);
+  //     await getLists(1);
   //   });
 
   //   return () => {
@@ -62,16 +65,29 @@ export default function Exit(props) {
   //   };
   // }, []);
   // 获取数据
-  const getLists = async num => {
-    let parms = {
-      pageNumber: num,
-      limit,
-      belongProject: global.userInfo.belongProject,
-      supplierName: supplierName || null,
-      state: stateValue || null,
-      myProcess: processValue || null,
-      idCard: global.userInfo.idCard,
-    };
+  const getLists = async (num, statue) => {
+    let parms = {};
+    if (statue === 'all') {
+      parms = {
+        pageNumber: num,
+        limit,
+        belongProject: global.userInfo.belongProject,
+        supplierName: null,
+        state: null,
+        myProcess: null,
+        idCard: global.userInfo.idCard,
+      };
+    } else {
+      parms = {
+        pageNumber: num,
+        limit,
+        belongProject: global.userInfo.belongProject,
+        supplierName: supplierName || null,
+        state: stateValue || null,
+        myProcess: processValue || null,
+        idCard: global.userInfo.idCard,
+      };
+    }
     console.log('分页查询退场申请', parms);
     // setLoading(true);
     try {
@@ -101,14 +117,22 @@ export default function Exit(props) {
     if (supplierList.length > 0) {
       return Toast.fail('请选择供应商');
     }
-    console.log('供应商', supplierName);
-    console.log('专业', professional);
-    console.log('流程', processValue);
-    console.log('状态', stateValue);
     setDrawer(false);
     settableData([]);
     setPageNumber(1);
     getLists(1);
+  };
+  const reset = async () => {
+    setSupplierName('');
+    setProfessional('选择专业');
+    setProcessValue(0);
+    setProcessName('选择流程');
+    setStateValue(0);
+    setStateName('选择审批状态');
+    setDrawer(false);
+    settableData([]);
+    setPageNumber(1);
+    getLists(1, 'all');
   };
   // 详情，修改，审批
   const navigationTo = (type, id) => {
@@ -175,11 +199,15 @@ export default function Exit(props) {
           }}>
           <Text>
             申请时间：
-            <Text style={styles.list_item_text}>{item.circulationTime}</Text>
+            <Text style={styles.list_item_text}>
+              {item.circulationTime.toString().substring(0, 10)}
+            </Text>
           </Text>
           <Text>
-            出库时间：
-            <Text style={styles.list_item_text}>{item.exitTime}</Text>
+            退场时间：
+            <Text style={styles.list_item_text}>
+              {item.exitTime.toString().substring(0, 10)}
+            </Text>
           </Text>
         </View>
         <View
@@ -318,6 +346,21 @@ export default function Exit(props) {
                               lineHeight: 17,
                             }}>
                             查询
+                          </Text>
+                        </View>
+                      </TouchableWithoutFeedback>
+                      <TouchableWithoutFeedback
+                        onPress={() => {
+                          reset();
+                        }}>
+                        <View style={styles.search_modal_btn_cancle}>
+                          <Text
+                            style={{
+                              color: '#333',
+                              fontSize: 14,
+                              lineHeight: 17,
+                            }}>
+                            重置
                           </Text>
                         </View>
                       </TouchableWithoutFeedback>
@@ -486,6 +529,8 @@ const styles = StyleSheet.create({
   },
   _operate: {
     marginTop: 50,
+    display: 'flex',
+    flexDirection: 'row',
   },
   search_modal_btn: {
     backgroundColor: '#108EE9',
@@ -495,7 +540,19 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     height: 38,
     width: 70,
-    marginLeft: 70,
+    marginLeft: 30,
+  },
+  search_modal_btn_cancle: {
+    borderWidth: 1,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#d9d9d9',
+    borderRadius: 6,
+    height: 38,
+    width: 70,
+    marginLeft: 30,
   },
   detail_btn: {
     fontSize: 12,

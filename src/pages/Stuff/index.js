@@ -2,12 +2,12 @@
 /*
  * @Author: your name
  * @Date: 2021-06-26 21:48:45
- * @LastEditTime: 2021-08-01 15:08:12
+ * @LastEditTime: 2021-08-14 20:56:32
  * @LastEditors: Please set LastEditors
  * @Description: 材料管理菜单页
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/index.js
  */
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   StyleSheet,
   Text,
@@ -16,7 +16,8 @@ import {
   Image,
   TouchableWithoutFeedback,
 } from 'react-native';
-const menuLists = [
+import {getNew, getUserMenu} from '../../api/user';
+const list = [
   {
     url: require('../../assets/stuff/qingdan.png'),
     title: '材料清单',
@@ -43,9 +44,45 @@ const menuLists = [
     route: 'outputList',
   },
 ];
-const index = props => {
+const Stuff = props => {
   const jumpRoute = info => {
     props.navigation.push(info.route);
+  };
+  const [menuLists, setmenuLists] = useState(list);
+  useEffect(() => {
+    getMenus();
+  }, []);
+  const getMenus = async () => {
+    try {
+      const res = await getUserMenu();
+      let mallMenus = res.data.data.menuList || [];
+      let newList = [];
+      let mLists =
+        mallMenus.find(v => v.menuName === 'material-management')
+          .childMenuList || [];
+      if (mLists.length) {
+        mLists.forEach(item => {
+          if (item.menuName === 'materialList') {
+            newList.push(list[0]);
+          }
+          if (item.menuName === 'approachManagement') {
+            newList.push(list[1]);
+          }
+          if (item.menuName === 'warehousingMangement') {
+            newList.push(list[3]);
+          }
+          if (item.menuName === 'deliveryManagement') {
+            newList.push(list[4]);
+          }
+          if (item.menuName === 'exitManagement') {
+            newList.push(list[2]);
+          }
+        });
+        setmenuLists(newList);
+      }
+    } catch (error) {
+      console.error();
+    }
   };
   return (
     <View style={styles.menu_page}>
@@ -82,7 +119,7 @@ const index = props => {
   );
 };
 
-export default index;
+export default Stuff;
 
 const styles = StyleSheet.create({
   menu_page: {

@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-19 21:40:00
- * @LastEditTime: 2021-08-08 21:17:15
+ * @LastEditTime: 2021-08-13 14:13:19
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理接口
  * @FilePath: /web/hy/hyApp/src/api/stuff.js
@@ -122,7 +122,7 @@ export const getOutputApply = params =>
   });
 // 添加出库申请
 export const addOutputApply = params =>
-  fetch.post('/hyOutboundApply/insertOutboundApply', params, {
+  fetch.post('/hyOutboundApply/insertOutboundApplyApp', params, {
     headers: defaultHeader,
   });
 // 出库审核

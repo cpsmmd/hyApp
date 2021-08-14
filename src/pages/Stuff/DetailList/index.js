@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-09 21:05:23
+ * @LastEditTime: 2021-08-14 21:50:04
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -18,16 +18,10 @@ import {
   ScrollView,
   Image,
 } from 'react-native';
-import {Toast} from '@ant-design/react-native';
-import {Input, Autocomplete, AutocompleteItem} from '@ui-kitten/components';
 import Empty from '../../../components/Empty';
 import Loading from '../../../components/Loading';
 import {dealFail} from '../../../util/common';
-import {
-  getBillList,
-  getMaterialsByName,
-  getSupplierByName,
-} from '../../../api/stuff';
+import {getBillList} from '../../../api/stuff';
 export default function StuffList(props) {
   let userInfo = global.userInfo;
   const limit = 10;
@@ -41,8 +35,6 @@ export default function StuffList(props) {
   const [materialsSpecs, setMaterialsSpecs] = useState(''); // 规格
   const [materialsName, setMaterialsName] = useState(''); // 材料名称
   // 模糊搜索材料名称
-  const [materialsList, setMaterialsList] = useState([]);
-  const [supplierList, setSupplierList] = useState([]);
   useEffect(() => {
     (async () => {
       setLoading(true);
@@ -50,20 +42,17 @@ export default function StuffList(props) {
     })();
   }, []);
   // 获取数据
-  const getLists = async num => {
+  const getLists = async (num, status) => {
+    let hasAll = status === 'all';
     let parms = {
       pageNumber: num,
       limit,
-      materialsName,
-      supplierName,
-      materialsSpecs,
+      materialsName: hasAll ? null : materialsName,
+      supplierName: hasAll ? null : supplierName,
+      materialsSpecs: hasAll ? null : materialsSpecs,
       idCard: global.userInfo.idCard,
     };
     console.log('材料清单parms', parms);
-    // let test = 1;
-    // if (test === 1) {
-    //   return;
-    // }
     try {
       const res = await getBillList(parms);
       if (res.data.code === 200) {
@@ -88,37 +77,21 @@ export default function StuffList(props) {
     setPageNumber(num);
     getLists(num);
   };
+  const reset = () => {
+    setSupplierName('');
+    setMaterialsSpecs('');
+    setMaterialsName('');
+    setDrawer(false);
+    settableData([]);
+    setPageNumber(1);
+    getLists(1, 'all');
+  };
   const search = () => {
-    if (supplierList.length > 0) {
-      return Toast.fail('请选择供应商');
-    }
-    if (supplierList.length > 0) {
-      return Toast.fail('请选择材料名称');
-    }
     setDrawer(false);
     settableData([]);
     setPageNumber(1);
     getLists(1);
   };
-  const searchMaterisName = async name => {
-    try {
-      const res = await getMaterialsByName(name);
-      let list = res.data.data || [];
-      setMaterialsList(list);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const searcSupplierName = async name => {
-    try {
-      const res = await getSupplierByName(name);
-      let list = res.data.data || [];
-      setSupplierList(list);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  // const renderItem = ({item}) => <Item item={item} />;
   const RenderItem = ({item}) => {
     return (
       <View key={item.name} style={styles.list_item}>
@@ -177,9 +150,6 @@ export default function StuffList(props) {
     );
   };
 
-  const renderSupplierName = (item, index) => (
-    <AutocompleteItem key={item.id} title={item.supplierName} />
-  );
   return (
     <View style={{position: 'relative', width: '100%', height: '100%'}}>
       {drawer && (
@@ -234,34 +204,10 @@ export default function StuffList(props) {
                         placeholder="请输入"
                         onChangeText={text => {
                           setMaterialsName(text);
-                          // searchMaterisName(text.trim());
                         }}
                         value={materialsName}
                       />
                     </View>
-                    {materialsList.length > 0 ? (
-                      <View
-                        style={{
-                          width: '100%',
-                          zIndex: 999,
-                          display: 'flex',
-                          flexDirection: 'row',
-                          flexWrap: 'wrap',
-                        }}>
-                        {materialsList.map(v => (
-                          <TouchableWithoutFeedback
-                            key={v.id}
-                            onPress={() => {
-                              setMaterialsName(v.materialsName);
-                              setMaterialsList([]);
-                            }}>
-                            <Text style={[styles.default_label]} key={v}>
-                              {v.materialsName}
-                            </Text>
-                          </TouchableWithoutFeedback>
-                        ))}
-                      </View>
-                    ) : null}
                     <View style={styles.drawer_item}>
                       <Text style={styles.drawer_item_title}>规格：</Text>
                       <TextInput
@@ -272,12 +218,6 @@ export default function StuffList(props) {
                         }}
                         value={materialsSpecs}
                       />
-                      {/* <Input
-                        style={styles.drawer_item_input}
-                        placeholder="请输入规格"
-                        value={materialsSpecs}
-                        onChangeText={nextValue => setMaterialsSpecs(nextValue)}
-                      /> */}
                     </View>
                     <View style={styles.drawer_item}>
                       <Text style={styles.drawer_item_title}>供应商：</Text>
@@ -290,44 +230,7 @@ export default function StuffList(props) {
                         }}
                         value={supplierName}
                       />
-                      {/* <Autocomplete
-                        style={styles.drawer_item_input}
-                        value={supplierName}
-                        onSelect={index => {
-                          setValue(supplierList[index].supplierName);
-                        }}
-                        onChangeText={nextValue => {
-                          supplierName(nextValue);
-                          searcSupplierName(nextValue.trim());
-                        }}>
-                        {supplierList.map(renderSupplierName)}
-                      </Autocomplete> */}
                     </View>
-                    {/* {supplierList.length > 0 ? (
-                      <View
-                        style={{
-                          width: '100%',
-                          zIndex: 999,
-                          display: 'flex',
-                          flexDirection: 'row',
-                          flexWrap: 'wrap',
-                          marginTop: 10,
-                          marginBottom: 10,
-                        }}>
-                        {supplierList.map(v => (
-                          <TouchableWithoutFeedback
-                            key={v.id}
-                            onPress={() => {
-                              setSupplierName(v.supplierName);
-                              setSupplierList([]);
-                            }}>
-                            <Text style={[styles.default_label]} key={v}>
-                              {v.supplierName}
-                            </Text>
-                          </TouchableWithoutFeedback>
-                        ))}
-                      </View>
-                    ) : null} */}
                     <View style={styles._operate}>
                       <TouchableWithoutFeedback
                         onPress={() => {
@@ -341,6 +244,21 @@ export default function StuffList(props) {
                               lineHeight: 17,
                             }}>
                             查询
+                          </Text>
+                        </View>
+                      </TouchableWithoutFeedback>
+                      <TouchableWithoutFeedback
+                        onPress={() => {
+                          reset();
+                        }}>
+                        <View style={styles.search_modal_btn_cancle}>
+                          <Text
+                            style={{
+                              color: '#333',
+                              fontSize: 14,
+                              lineHeight: 17,
+                            }}>
+                            重置
                           </Text>
                         </View>
                       </TouchableWithoutFeedback>
@@ -412,38 +330,15 @@ export default function StuffList(props) {
           </View>
         ) : (
           <View style={{display: 'flex', alignItems: 'center'}}>
-            <Text style={{height: 40, lineHeight: 40}}>已加载全部</Text>
+            <Text style={{height: 40, lineHeight: 40}}>
+              {' '}
+              {tableData.length > 0 ? '已加载全部' : ''}
+            </Text>
           </View>
         )}
       </ScrollView>
     </View>
   );
-  function RenderStatus(value) {
-    const {status} = value;
-    let statuss = [
-      {id: 1, color: '#2b85e4', value: '审批中'},
-      {id: 2, color: '#ed4014', value: '被驳回'},
-      {id: 3, color: '#19be6b', value: '已审批'},
-      {id: 4, color: '#19be6b', value: '已进场'},
-      {id: 5, color: '#2db7f5', value: '部分进场'},
-      {id: 6, color: '#ed4014', value: '拒绝进场'},
-      {id: 7, color: '#F30000', value: '未入库'},
-      {id: 8, color: '#19be6b', value: '已入库'},
-      {id: 9, color: '#ed4014', value: '拒绝入库'},
-      {id: 10, color: '#2db7f5', value: '"部分入库'},
-      {id: 11, color: '#ff9900', value: '待库管确认'},
-      {id: 12, color: '#ff9900', value: '待申请人确认'},
-      {id: 13, color: '#ed4014', value: '已终止'},
-      {id: 14, color: '#2b85e4', value: '出库中'},
-      {id: 15, color: '#19be6b', value: '已出库'},
-      {id: 16, color: '#2b85e4', value: '归还中'},
-      {id: 17, color: '#19be6b', value: '归还完成'},
-      {id: 18, color: '#ff9900', value: '待退场'},
-      {id: 19, color: '#19be6b', value: '已退场'},
-    ];
-    let info = statuss.find(item => item.id === status);
-    return <Text style={{color: info.color}}>{info.value}</Text>;
-  }
 }
 
 const styles = StyleSheet.create({
@@ -489,6 +384,8 @@ const styles = StyleSheet.create({
   },
   _operate: {
     marginTop: 50,
+    display: 'flex',
+    flexDirection: 'row',
   },
   search_modal_btn: {
     backgroundColor: '#108EE9',
@@ -498,7 +395,19 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     height: 38,
     width: 70,
-    marginLeft: 70,
+    marginLeft: 30,
+  },
+  search_modal_btn_cancle: {
+    borderWidth: 1,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#d9d9d9',
+    borderRadius: 6,
+    height: 38,
+    width: 70,
+    marginLeft: 30,
   },
   detail_btn: {
     fontSize: 12,

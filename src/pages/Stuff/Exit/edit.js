@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 17:40:17
- * @LastEditTime: 2021-08-11 00:13:51
+ * @LastEditTime: 2021-08-15 00:08:02
  * @LastEditors: Please set LastEditors
  * @Description: 退场 (增删改查)
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Exit/edit.js
@@ -18,13 +18,14 @@ import {
   Image,
   Platform,
   TextInput,
+  Modal,
   Dimensions,
 } from 'react-native';
 import SyanImagePicker from 'react-native-syan-image-picker';
-import ModalDropdown from 'react-native-modal-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
+import ImageViewer from 'react-native-image-zoom-viewer';
 import {Button, Toast} from '@ant-design/react-native';
-import {EXIT_DIRECTION} from '../../../util/constants';
+import {EXIT_DIRECTION, BSAE_IMAGE_URL} from '../../../util/constants';
 import {
   Autocomplete,
   AutocompleteItem,
@@ -34,8 +35,6 @@ import {
 
 import StuffLists2 from '../component/stuffLists2';
 import {
-  getMaterialsByName,
-  getSupplierByName,
   getExitDetail,
   getBillList2,
   addExitApply,
@@ -105,22 +104,22 @@ const EditExit = props => {
   const [show, setShow] = useState(false);
   const [mode, setMode] = useState('date');
   const [timeMode, settimeMode] = useState('date');
+  const [images, setImages] = useState([]);
+  const [modalShow, setModalShow] = useState(false);
 
   const [otherDirecte, setPotherDirecte] = useState('');
   const [exitDirecte, setExitDirecte] = useState('选择去向');
-  const [supplierName, setSupplierName] = useState(''); // 供应商名称
   const [theme, setTheme] = useState(''); // 申请主题
 
   const [approvalData, setApprovalData] = useState({});
   // 模糊搜索材料名称
   const [allMaterialLists, setallMaterialLists] = useState([]);
   const [materialsList, setMaterialsList] = useState([]);
-  const [supplierList, setSupplierList] = useState([]);
-  const [curId, setCurId] = useState('');
   // 审批
   const [content, setContent] = useState(''); // 退场审核意见
   // 编辑
   const [signFileurl, setsignFileurl] = useState(''); // 上传凭证
+  const [logPics, setLogPics] = useState([]);
   const [signContent, setSignContent] = useState(''); // 上传退场说明
   // 设置标题
   useEffect(() => {
@@ -139,18 +138,16 @@ const EditExit = props => {
         console.log('---------退场详情------', JSON.stringify(res.data.data));
         // setLists(res.data.data);
         let info = res.data.data;
+        let newmaterials = info.materials || [];
+        newmaterials.map(v => {
+          v.guigelist = [];
+          v.supernameList = [];
+        });
         setDetailInfo(info);
-        setstuffLists(info.materials || []);
+        setstuffLists(newmaterials);
         setTheme(info.theme);
         setExitDirecte(info.exitDirecte);
         setDate(info.exitTime);
-        // setPackingWay(info.packingWay);
-        // setTransporteWay(info.transporteWay);
-        // setUnloadingRequire(info.unloadingRequire);
-        // setContractName(info.contractName);
-        // setSupplierName(info.supplierName);
-        // setSupplierContact(info.supplierContact);
-        // setSupplierMobile(info.supplierMobile);
         setApprovalData(info.approvalProcedureDtos);
         // console.log('审批流程', JSON.stringify(info.approvalProcedureDtos));
       } else {
@@ -207,7 +204,7 @@ const EditExit = props => {
       materials,
     };
     if (routeType === 'edit') {
-      parms['applyId'] = detailInfo.applyId;
+      parms.applyId = detailInfo.applyId;
     }
     console.log('修改parms', parms);
     if (routeType === 'edit') {
@@ -267,13 +264,13 @@ const EditExit = props => {
     if (signContent.trim().length === 0) {
       return Toast.fail('请填写退场说明');
     }
-    if (signFileurl.trim().length === 0) {
-      return Toast.fail('请填写退场凭证');
+    if (logPics.length === 0) {
+      return Toast.fail('请上传退场凭证');
     }
     let parms = {
       applyId: detailInfo.applyId,
       signContent,
-      signFileurl,
+      signFileurl: JSON.stringify(logPics),
       belongProject: global.userInfo.belongProject,
     };
     console.log('审批parms', parms);
@@ -301,97 +298,163 @@ const EditExit = props => {
     setShow(true);
     settimeMode(currentMode);
   };
-  const RenderApproach = () => {
-    if (approvalData.length) {
-      let data = approvalData[0].approvalDtos || [];
-      let length = data.length;
-      let data1 = data.slice(0, length - 1);
-      let data2 = data[length - 1];
-      return (
-        <View style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap'}}>
-          {data1.map(v => (
-            <>
-              <Text style={{color: v.status ? '#1890ff' : ''}}>
-                {roleObj[v.roleType]}({v.userName})
-              </Text>
-              <Text style={{paddingRight: 5, paddingLeft: 5}}>——</Text>
-            </>
-          ))}
-          <Text style={{color: data2.status ? '#1890ff' : ''}}>
-            {roleObj[data2.roleType]}({data2.userName})
-          </Text>
-        </View>
-      );
-    } else {
-      return null;
-    }
+  const RenderApproach = obj => {
+    let data = obj.data;
+    let length = data.length;
+    let data1 = data.slice(0, length - 1);
+    let data2 = data[length - 1];
+    return (
+      <View
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+        }}>
+        {data1.map(v => (
+          <>
+            <Text
+              style={{
+                color: v.status ? (v.isReject === 1 ? 'red' : '#1890ff') : '',
+              }}>
+              {roleObj[v.roleType]}({v.userName})
+            </Text>
+            <Text style={{paddingRight: 5, paddingLeft: 5}}>——</Text>
+          </>
+        ))}
+        <Text
+          style={{
+            color: data2.status
+              ? data2.isReject === 1
+                ? 'red'
+                : '#1890ff'
+              : '',
+          }}>
+          {roleObj[data2.roleType]}({data2.userName})
+        </Text>
+      </View>
+    );
   };
-  const RenderApprovalComments = () => {
-    if (approvalData.length) {
-      let data = approvalData[0].hyApproachApprovals;
-      return (
-        <View>
-          {data.map(v => {
-            return (
-              <View style={styles.other_item3}>
-                <Text style={styles.other_title}>{v.userName}审批意见：</Text>
-                <View style={{flex: 1}}>
-                  <TextInput
-                    style={{
-                      backgroundColor: '#EEEEEE',
-                      borderWidth: 0,
-                      borderRadius: 5,
-                      paddingLeft: 15,
-                      textAlign: 'left',
-                      textAlignVertical: 'top',
-                      androidtextAlignVertical: 'top',
-                      width: '90%',
-                    }}
-                    numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
-                    minHeight={
-                      Platform.OS === 'ios' && numberOfLines
-                        ? 20 * numberOfLines
-                        : null
-                    }
-                    placeholder="简介"
-                    multiline
-                    editable={false}
-                    // onChangeText={text => onChangeText(text)}
-                    value={v.content}
-                    maxLength={20}
-                  />
-                  <Text style={{backgroundColor: '#fff'}}>
-                    审批时间：{v.approvalTime}
-                  </Text>
-                </View>
+  const RenderApprovalComments = obj => {
+    let data = obj.data;
+    return (
+      <View>
+        {data.map(v => {
+          return (
+            <View style={styles.other_item3}>
+              <Text style={styles.other_title}>{v.userName}审批意见：</Text>
+              <View style={{flex: 1}}>
+                <TextInput
+                  style={{
+                    backgroundColor: '#EEEEEE',
+                    borderWidth: 0,
+                    borderRadius: 5,
+                    paddingLeft: 15,
+                    textAlign: 'left',
+                    textAlignVertical: 'top',
+                    androidtextAlignVertical: 'top',
+                    width: '90%',
+                  }}
+                  numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
+                  minHeight={
+                    Platform.OS === 'ios' && numberOfLines
+                      ? 20 * numberOfLines
+                      : null
+                  }
+                  placeholder="简介"
+                  multiline
+                  editable={false}
+                  // onChangeText={text => onChangeText(text)}
+                  value={v.content}
+                  maxLength={20}
+                />
+                <Text style={{backgroundColor: '#fff'}}>
+                  审批时间：{v.approvalTime}
+                </Text>
               </View>
-            );
-          })}
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+  const RenderOutConfirm = obj => {
+    let info = obj.data;
+    if (info) {
+      let pics = JSON.parse(info.signFileurl) || [];
+      let image = [];
+      pics.map(v => {
+        image.push({
+          url: `${BSAE_IMAGE_URL}${v}`,
+        });
+      });
+      // setImages(image);
+      return (
+        <View style={{backgroundColor: '#fff'}}>
+          <View style={styles.other_item3}>
+            <Text style={styles.other_title}>退场说明：</Text>
+            <View style={{flex: 1}}>
+              <TextInput
+                style={{
+                  backgroundColor: '#EEEEEE',
+                  borderWidth: 0,
+                  borderRadius: 5,
+                  paddingLeft: 15,
+                  textAlign: 'left',
+                  textAlignVertical: 'top',
+                  androidtextAlignVertical: 'top',
+                  width: '90%',
+                }}
+                numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
+                minHeight={
+                  Platform.OS === 'ios' && numberOfLines
+                    ? 20 * numberOfLines
+                    : null
+                }
+                placeholder="简介"
+                multiline
+                editable={false}
+                value={info.signContent}
+                maxLength={20}
+              />
+              <Text style={{backgroundColor: '#fff'}}>
+                退场确认时间：{info.signTime}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.other_item3}>
+            <Text style={styles.other_title}>上传凭证：</Text>
+            <View style={{flex: 1}}>
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                }}>
+                {image.map(item => (
+                  <View key={item}>
+                    <TouchableWithoutFeedback
+                      onPress={() => {
+                        // setModalShow(true);
+                      }}>
+                      <Image
+                        style={{
+                          height: 160,
+                          width: 160,
+                          marginBottom: 10,
+                        }}
+                        source={{uri: `${item.url}`}}
+                        resizeMode="contain"
+                      />
+                    </TouchableWithoutFeedback>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
         </View>
       );
-    } else {
-      return null;
     }
-  };
-  const searchMaterisName = async (name, id) => {
-    setCurId(id);
-    try {
-      const res = await getMaterialsByName(name);
-      console.log('材料名称', res.data);
-      let list = res.data.data || [];
-      setMaterialsList(list);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  const searcSupplierName = async name => {
-    try {
-      const res = await getSupplierByName(name);
-      let list = res.data.data || [];
-      setSupplierList(list);
-    } catch (error) {
-      console.error(error);
-    }
+    return null;
   };
   // 根据材料名称获取列表
   const getBillData = async (materialsName = null, supplierName = null) => {
@@ -440,7 +503,10 @@ const EditExit = props => {
         const res = await upLoadFile(data);
         console.log('success', res.data);
         if (res.data.code === 200) {
-          setsignFileurl(res.data.data);
+          // setsignFileurl(res.data.data);
+          let newLists = [...logPics];
+          newLists.push(res.data.data);
+          setLogPics(newLists);
         }
       } catch (error) {
         console.log('error', error);
@@ -451,9 +517,6 @@ const EditExit = props => {
   };
   const renderMateriaName = (item, index) => (
     <AutocompleteItem key={item.id} title={item.materialsName} />
-  );
-  const renderSupplierName = (item, index) => (
-    <AutocompleteItem key={item.id} title={item.supplierName} />
   );
   return (
     <View>
@@ -731,11 +794,20 @@ const EditExit = props => {
           {/* 审批流程 */}
           {routeType !== 'new' && (
             <View>
-              <View style={styles.other_item4}>
-                <Text style={styles.other_title}>审批流程：</Text>
-                <RenderApproach></RenderApproach>
-              </View>
-              <RenderApprovalComments></RenderApprovalComments>
+              {approvalData.length ? (
+                <View>
+                  {approvalData.map(item => (
+                    <View>
+                      <View style={styles.other_item4}>
+                        <Text style={styles.other_title}>审批流程：</Text>
+                        <RenderApproach data={item.approvalDtos} />
+                      </View>
+                      <RenderApprovalComments data={item.hyApproachApprovals} />
+                      <RenderOutConfirm data={item.outConfirm} />
+                    </View>
+                  ))}
+                </View>
+              ) : null}
             </View>
           )}
           {/* 编辑 */}
@@ -777,6 +849,43 @@ const EditExit = props => {
                     resizeMode="contain"
                   />
                 </TouchableWithoutFeedback>
+                <View
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    flexWrap: 'wrap',
+                  }}>
+                  {logPics.map(item => (
+                    <View key={item} style={{position: 'relative'}}>
+                      <TouchableWithoutFeedback
+                        onPress={() => {
+                          // 删除图片
+                          let arr = [...logPics];
+                          const Index = arr.findIndex(v => v === item);
+                          arr.splice(Index, 1);
+                          setLogPics(arr);
+                        }}>
+                        <Image
+                          style={{
+                            height: 30,
+                            width: 30,
+                            position: 'absolute',
+                            right: 0,
+                            top: -10,
+                            zIndex: 100,
+                          }}
+                          source={require('../../../assets/del.png')}
+                          resizeMode="contain"
+                        />
+                      </TouchableWithoutFeedback>
+                      <Image
+                        style={{height: 160, width: 160, marginBottom: 10}}
+                        source={{uri: `${BSAE_IMAGE_URL}${item}`}}
+                        resizeMode="contain"
+                      />
+                    </View>
+                  ))}
+                </View>
               </View>
               <View
                 style={{
@@ -892,6 +1001,21 @@ const EditExit = props => {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      <Modal visible={modalShow} transparent={true}>
+        <ImageViewer
+          onClick={() => {
+            // 图片单击事件
+            setModalShow(false);
+          }}
+          enableImageZoom={true} // 是否开启手势缩放
+          saveToLocalByLongPress={false} //是否开启长按保存
+          // menuContext={{saveToLocal: '保存图片', cancel: '取消'}}
+          imageUrls={images}
+          // onSave={url => {
+          //   savePhoto(url);
+          // }}
+        />
+      </Modal>
     </View>
   );
 };

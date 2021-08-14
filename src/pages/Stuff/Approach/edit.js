@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-10 11:18:36
+ * @LastEditTime: 2021-08-14 23:56:36
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -22,7 +22,7 @@ import {
 import ModalDropdown from 'react-native-modal-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Button, Toast} from '@ant-design/react-native';
-import {MAJOR_LIST} from '../../../util/constants';
+import {MAJOR_LIST, BSAE_IMAGE_URL} from '../../../util/constants';
 import StuffLists from '../component/stuffLists';
 import {Autocomplete, AutocompleteItem} from '@ui-kitten/components';
 import {
@@ -57,9 +57,6 @@ const EditApproach = props => {
   const routeId = props.route.params.id;
   const [detailInfo, setDetailInfo] = useState({});
   const [stuffLists, setstuffLists] = useState([defaultData]);
-  const [majorName, setMajorName] = useState('选择专业'); // 显示名称
-  const [majorValue, setMajorValue] = useState(0); // 选中value
-  const [dateEnd, setDateEnd] = useState(new Date());
   const [date, setDate] = useState(new Date());
   const [show, setShow] = useState(false);
   const [mode, setMode] = useState('date');
@@ -95,8 +92,6 @@ const EditApproach = props => {
     try {
       const res = await approachApplyDetail(props.route.params.id);
       if (res.data.code === 200) {
-        console.log('---------进场详情------', res.data.data);
-        // setLists(res.data.data);
         let info = res.data.data;
         setDetailInfo(info);
         setstuffLists(info.materials || []);
@@ -105,12 +100,13 @@ const EditApproach = props => {
         setTransporteWay(info.transporteWay);
         setUnloadingRequire(info.unloadingRequire);
         setContractName(info.contractName);
+        setDate(info.approachTime);
+        console.log('info.approachTime', info.approachTime);
         setSupplierName(info.supplierName);
         setSupplierContact(info.supplierContact);
         setSupplierMobile(info.supplierMobile);
         setProfessional(info.professional);
         setApprovalData(info.approvalProcedureDtos);
-        console.log('审批流程', JSON.stringify(info.approvalProcedureDtos));
       } else {
         dealFail(props, res.data.code, res.data.message);
       }
@@ -121,6 +117,29 @@ const EditApproach = props => {
   };
   // 添加材料
   const addStuff = () => {
+    let isEmpty = false;
+    let notNum = false;
+    stuffLists.map(item => {
+      if (item.materialsName === '') {
+        isEmpty = true;
+      }
+      if (item.materialsSpecs === '') {
+        isEmpty = true;
+      }
+      if (item.materialsNum === '') {
+        isEmpty = true;
+      } else {
+        if (isNaN(item.materialsNum)) {
+          notNum = true;
+        }
+      }
+    });
+    if (isEmpty) {
+      return Toast.fail('材料所有选项均是必填');
+    }
+    if (notNum) {
+      return Toast.fail('数量为数字');
+    }
     let data = {...defaultData};
     data.id = new Date().getTime();
     setstuffLists(state => {
@@ -139,15 +158,65 @@ const EditApproach = props => {
   };
   // 修改提交材料
   const submit = async () => {
-    // 编辑
+    let isEmpty = false;
+    let notNum = false;
     let materials = [];
     stuffLists.forEach(item => {
+      if (item.materialsName === '') {
+        isEmpty = true;
+      }
+      if (item.materialsSpecs === '') {
+        isEmpty = true;
+      }
+      if (item.materialsNum === '') {
+        isEmpty = true;
+      } else {
+        if (isNaN(item.materialsNum)) {
+          notNum = true;
+        }
+      }
       materials.push({
         materialsName: item.materialsName,
         materialsSpecs: item.materialsSpecs,
         materialsNum: item.materialsNum,
       });
     });
+    if (isEmpty) {
+      return Toast.fail('材料所有选项均是必填');
+    }
+    if (notNum) {
+      return Toast.fail('数量为数字');
+    }
+    if (materials.length === 0) {
+      return Toast.fail('请添加材料');
+    }
+    if (theme.length === 0) {
+      return Toast.fail('请输入申请主题');
+    }
+    if (supplierName.length === 0) {
+      return Toast.fail('请输入供应商');
+    }
+    if (supplierContact.length === 0) {
+      return Toast.fail('请输入供应商联系人');
+    }
+    if (supplierMobile.length === 0) {
+      return Toast.fail('请输入联系方式');
+    }
+    if (packingWay.length === 0) {
+      return Toast.fail('请输入包装方式');
+    }
+    if (transporteWay.length === 0) {
+      return Toast.fail('请输入运输方式');
+    }
+    if (unloadingRequire.length === 0) {
+      return Toast.fail('请输入卸货需求');
+    }
+    if (contractName.length === 0) {
+      return Toast.fail('请输入归属合同');
+    }
+    if (professional.length === 0) {
+      return Toast.fail('请选择专业');
+    }
     let parms = {
       applyId: detailInfo.applyId,
       idCard: global.userInfo.idCard,
@@ -215,40 +284,51 @@ const EditApproach = props => {
     setShow(true);
     settimeMode(currentMode);
   };
-  const RenderApproach = () => {
-    if (approvalData.length) {
-      let data = approvalData[0].approvalDtos || [];
-      let length = data.length;
-      let data1 = data.slice(0, length - 1);
-      let data2 = data[length - 1];
-      return (
-        <View style={{display: 'flex', flexDirection: 'row', flexWrap: 'wrap'}}>
-          {data1.map(v => (
-            <>
-              <Text style={{color: v.status ? '#1890ff' : ''}}>
-                {roleObj[v.roleType]}({v.userName})
-              </Text>
-              <Text style={{paddingRight: 5, paddingLeft: 5}}>——</Text>
-            </>
-          ))}
-          <Text style={{color: data2.status ? '#1890ff' : ''}}>
-            {roleObj[data2.roleType]}({data2.userName})
-          </Text>
-        </View>
-      );
-    } else {
-      return null;
-    }
+  const RenderApproach = obj => {
+    let data = obj.data;
+    let length = data.length;
+    let data1 = data.slice(0, length - 1);
+    let data2 = data[length - 1];
+    return (
+      <View
+        style={{
+          display: 'flex',
+          flexDirection: 'row',
+          flexWrap: 'wrap',
+        }}>
+        {data1.map(v => (
+          <>
+            <Text
+              style={{
+                color: v.status ? (v.isReject === 1 ? 'red' : '#1890ff') : '',
+              }}>
+              {roleObj[v.roleType]}({v.userName})
+            </Text>
+            <Text style={{paddingRight: 5, paddingLeft: 5}}>——</Text>
+          </>
+        ))}
+        <Text
+          style={{
+            color: data2.status
+              ? data2.isReject === 1
+                ? 'red'
+                : '#1890ff'
+              : '',
+          }}>
+          {roleObj[data2.roleType]}({data2.userName})
+        </Text>
+      </View>
+    );
   };
-  const RenderApprovalComments = () => {
-    if (approvalData.length) {
-      let data = approvalData[0].hyApproachApprovals;
-      return (
-        <View>
-          {data.map(v => {
-            return (
-              <View style={styles.other_item3}>
-                <Text style={styles.other_title}>{v.userName}审批意见：</Text>
+  const RenderApprovalComments = obj => {
+    let data = obj.data;
+    return (
+      <View>
+        {data.map(v => {
+          return (
+            <View style={styles.other_item3}>
+              <Text style={styles.other_title}>{v.userName}审批意见：</Text>
+              <View style={{flex: 1}}>
                 <TextInput
                   style={{
                     backgroundColor: '#EEEEEE',
@@ -258,7 +338,7 @@ const EditApproach = props => {
                     textAlign: 'left',
                     textAlignVertical: 'top',
                     androidtextAlignVertical: 'top',
-                    width: '60%',
+                    width: '90%',
                   }}
                   numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
                   minHeight={
@@ -273,14 +353,94 @@ const EditApproach = props => {
                   value={v.content}
                   maxLength={20}
                 />
+                <Text style={{backgroundColor: '#fff'}}>
+                  审批时间：{v.approvalTime}
+                </Text>
               </View>
-            );
-          })}
+            </View>
+          );
+        })}
+      </View>
+    );
+  };
+  const RenderOutConfirm = obj => {
+    let info = obj.data;
+    if (info) {
+      let pics = JSON.parse(info.signFileurl) || [];
+      let image = [];
+      pics.map(v => {
+        image.push({
+          url: `${BSAE_IMAGE_URL}${v}`,
+        });
+      });
+      // setImages(image);
+      return (
+        <View style={{backgroundColor: '#fff'}}>
+          <View style={styles.other_item3}>
+            <Text style={styles.other_title}>退场说明：</Text>
+            <View style={{flex: 1}}>
+              <TextInput
+                style={{
+                  backgroundColor: '#EEEEEE',
+                  borderWidth: 0,
+                  borderRadius: 5,
+                  paddingLeft: 15,
+                  textAlign: 'left',
+                  textAlignVertical: 'top',
+                  androidtextAlignVertical: 'top',
+                  width: '90%',
+                }}
+                numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
+                minHeight={
+                  Platform.OS === 'ios' && numberOfLines
+                    ? 20 * numberOfLines
+                    : null
+                }
+                placeholder="简介"
+                multiline
+                editable={false}
+                value={info.signContent}
+                maxLength={20}
+              />
+              <Text style={{backgroundColor: '#fff'}}>
+                退场确认时间：{info.signTime}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.other_item3}>
+            <Text style={styles.other_title}>上传凭证：</Text>
+            <View style={{flex: 1}}>
+              <View
+                style={{
+                  display: 'flex',
+                  flexDirection: 'row',
+                  flexWrap: 'wrap',
+                }}>
+                {image.map(item => (
+                  <View key={item}>
+                    <TouchableWithoutFeedback
+                      onPress={() => {
+                        // setModalShow(true);
+                      }}>
+                      <Image
+                        style={{
+                          height: 160,
+                          width: 160,
+                          marginBottom: 10,
+                        }}
+                        source={{uri: `${item.url}`}}
+                        resizeMode="contain"
+                      />
+                    </TouchableWithoutFeedback>
+                  </View>
+                ))}
+              </View>
+            </View>
+          </View>
         </View>
       );
-    } else {
-      return null;
     }
+    return null;
   };
   const searchMaterisName = async (name, id) => {
     setCurId(id);
@@ -472,18 +632,6 @@ const EditApproach = props => {
                     {supplierList.map(renderSupplierName)}
                   </Autocomplete>
                 </View>
-                {/* <View style={styles.other_item}>
-                  <Text style={styles.other_title}>供应商名称：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    onChangeText={text => {
-                      setSupplierName(text);
-                      searcSupplierName(text.trim());
-                    }}
-                    value={supplierName}
-                  />
-                </View> */}
                 <View style={styles.other_item}>
                   <Text style={styles.other_title}>包装方式：</Text>
                   <TextInput
@@ -596,143 +744,88 @@ const EditApproach = props => {
           ) : (
             // 详情
             <View>
-              <StuffLists data={stuffLists} />
-              <View>
-                <View style={styles.other_item}>
-                  <Text style={styles.other_title}>申请主题：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    editable={false}
-                    onChangeText={text => setTheme(text)}
-                    value={theme}
-                  />
-                </View>
-                <View style={styles.other_item}>
-                  <Text style={styles.other_title}>包装方式：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    editable={false}
-                    onChangeText={text => setPackingWay(text)}
-                    value={packingWay}
-                  />
-                </View>
-                <View style={styles.other_item}>
-                  <Text style={styles.other_title}>进场运输方式：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    editable={false}
-                    onChangeText={text => setTransporteWay(text)}
-                    value={transporteWay}
-                  />
-                </View>
-                <View style={styles.other_item}>
-                  <Text style={styles.other_title}>卸货需求：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    editable={false}
-                    onChangeText={text => setUnloadingRequire(text)}
-                    value={unloadingRequire}
-                  />
-                </View>
-                <View style={styles.other_item}>
-                  <Text style={styles.other_title}>归属合同名称：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    editable={false}
-                    onChangeText={text => setContractName(text)}
-                    value={contractName}
-                  />
-                </View>
-                <View style={styles.other_item2}>
-                  <Text style={styles.other_title}>进场时间：</Text>
-                  {Platform.OS === 'android' && (
-                    <TouchableWithoutFeedback
-                      onPress={() => {
-                        // showDatepicker();
-                      }}>
-                      <Text
-                        style={{width: 200, color: '#999999', fontSize: 14}}>
-                        {JSON.stringify(date).substring(1, 11)}
-                      </Text>
-                    </TouchableWithoutFeedback>
-                  )}
-                  {show && (
-                    <DateTimePicker
-                      testID="dateTimePicker"
-                      value={date}
-                      mode={mode}
-                      is24Hour={true}
-                      display="default"
-                      locale="zh-CN"
-                      style={{width: 200}}
-                      onChange={(event, selectedDate) =>
-                        onChangeBegin(event, selectedDate)
-                      }
-                    />
-                  )}
-                </View>
-                <View style={styles.other_item}>
-                  <Text style={styles.other_title}>所属专业：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    editable={false}
-                    value={professional}
-                  />
-                </View>
-                <View style={styles.other_item}>
-                  <Text style={styles.other_title}>供应商名称：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    editable={false}
-                    onChangeText={text => setSupplierName(text)}
-                    value={supplierName}
-                  />
-                </View>
-                <View style={styles.other_item}>
-                  <Text style={styles.other_title}>供应商联系人：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    editable={false}
-                    onChangeText={text => setSupplierContact(text)}
-                    value={supplierContact}
-                  />
-                </View>
-                <View style={styles.other_item}>
-                  <Text style={styles.other_title}>联系方式：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    editable={false}
-                    onChangeText={text => setSupplierMobile(text)}
-                    value={supplierMobile}
-                  />
-                </View>
-                {/* <View style={styles.other_item}>
+              <Text style={styles.mode_title}>基本信息</Text>
+              <View style={{paddingLeft: 10, backgroundColor: '#fff'}}>
+                <StuffLists data={stuffLists} />
+                <View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>申请主题：</Text>
+                    <Text style={styles.item_value}>{theme}</Text>
+                  </View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>包装方式：</Text>
+                    <Text style={styles.item_value}>{packingWay}</Text>
+                  </View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>进场运输方式：</Text>
+                    <Text style={styles.item_value}>{transporteWay}</Text>
+                  </View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>卸货需求：</Text>
+                    <Text style={styles.item_value}>{unloadingRequire}</Text>
+                  </View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>归属合同名称：</Text>
+                    <Text style={styles.item_value}>{contractName}</Text>
+                  </View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>进场时间：</Text>
+                    <Text style={styles.item_value}>
+                      {date ? date.toString().substring(0, 10) : '-'}
+                    </Text>
+                  </View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>所属专业：</Text>
+                    <Text style={styles.item_value}>{professional}</Text>
+                  </View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>供应商名称：</Text>
+                    <Text style={styles.item_value}>{supplierName}</Text>
+                  </View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>供应商联系人：</Text>
+                    <Text style={styles.item_value}>{supplierContact}</Text>
+                  </View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>联系方式：</Text>
+                    <Text style={styles.item_value}>{supplierMobile}</Text>
+                  </View>
+                  {/* <View style={styles.other_item}>
                     <Text style={styles.other_title}>附件上传：</Text>
                     <TextInput
                       style={styles.input_no_border}
                       placeholder="请输入"
                     />
                   </View> */}
+                </View>
               </View>
             </View>
           )}
           {/* 审批流程 */}
           <View>
-            <View style={styles.other_item4}>
-              <Text style={styles.other_title}>审批流程：</Text>
-              <RenderApproach></RenderApproach>
+            <Text style={styles.mode_title}>审批流程</Text>
+            <View style={{paddingLeft: 10, backgroundColor: '#fff'}}>
+              {/* <View style={styles.other_item4}>
+                <Text style={styles.other_title}>审批流程：</Text>
+                <RenderApproach />
+              </View> */}
+              {/* <RenderApprovalComments /> */}
+              {approvalData.length ? (
+                <View>
+                  {approvalData.map(item => (
+                    <View>
+                      <View style={styles.other_item4}>
+                        <Text style={styles.other_title}>审批流程：</Text>
+                        <RenderApproach data={item.approvalDtos} />
+                      </View>
+                      <RenderApprovalComments data={item.hyApproachApprovals} />
+                      <RenderOutConfirm data={item.outConfirm} />
+                    </View>
+                  ))}
+                </View>
+              ) : null}
             </View>
           </View>
-          <RenderApprovalComments></RenderApprovalComments>
           {routeType === 'approave' && (
             <View style={styles.other_item3}>
               <Text style={styles.other_title}>
@@ -872,7 +965,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     width: 136,
     borderWidth: 1,
-    borderColor: '#999999',
+    borderColor: '#f8f8f8',
   },
   del_btn: {
     width: 24,
@@ -943,7 +1036,18 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 14,
     flex: 1,
-    paddingVertical: 18,
+    paddingVertical: 10,
+    flexDirection: 'column',
+    justifyContent: 'flex-start',
+    alignItems: 'flex-start',
+    fontWeight: '300',
+    minWidth: 160,
+  },
+  item_value: {
+    color: '#999',
+    fontSize: 14,
+    flex: 1,
+    paddingVertical: 12,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
@@ -989,5 +1093,10 @@ const styles = StyleSheet.create({
     marginRight: 5,
     marginTop: 6,
     fontSize: 14,
+  },
+  mode_title: {
+    color: '#1890ff',
+    fontSize: 16,
+    padding: 12,
   },
 });

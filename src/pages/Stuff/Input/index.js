@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 22:18:27
- * @LastEditTime: 2021-08-10 09:49:57
+ * @LastEditTime: 2021-08-14 21:07:29
  * @LastEditors: Please set LastEditors
  * @Description: 入库管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/index.js
@@ -17,7 +17,6 @@ import {
   TextInput,
   ScrollView,
   Image,
-  Dimensions,
 } from 'react-native';
 import {Toast} from '@ant-design/react-native';
 import ModalDropdown from 'react-native-modal-dropdown';
@@ -35,11 +34,6 @@ export default function Approach(props) {
   const [tableData, settableData] = useState([]);
   const [isAll, setIsAll] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
-  const [searchParms, setsearchParms] = useState({
-    name: '',
-    standards: '',
-    supplier: '',
-  });
   // 搜索区域
   const [stateName, setStateName] = useState('选择入库状态'); // 显示名称
   const [stateValue, setStateValue] = useState(0); // 选中value
@@ -59,9 +53,11 @@ export default function Approach(props) {
   }, []);
   useEffect(() => {
     const navFocusListener = props.navigation.addListener('focus', async () => {
-      await getMaterialList(true, true);
+      setDrawer(false);
+      settableData([]);
+      setPageNumber(1);
+      await getLists(1);
     });
-
     return () => {
       navFocusListener.remove();
     };
@@ -108,12 +104,15 @@ export default function Approach(props) {
     getLists(num);
   };
   const search = () => {
-    if (supplierList.length > 0) {
-      return Toast.fail('请选择供应商');
-    }
-    console.log(professional);
-    console.log(processValue);
-    console.log(stateValue);
+    setDrawer(false);
+    settableData([]);
+    setPageNumber(1);
+    getLists(1);
+  };
+  const reset = () => {
+    setSupplierName('');
+    // setMaterialsSpecs('');
+    // setMaterialsName('');
     setDrawer(false);
     settableData([]);
     setPageNumber(1);
@@ -334,6 +333,21 @@ export default function Approach(props) {
                           </Text>
                         </View>
                       </TouchableWithoutFeedback>
+                      <TouchableWithoutFeedback
+                        onPress={() => {
+                          reset();
+                        }}>
+                        <View style={styles.search_modal_btn_cancle}>
+                          <Text
+                            style={{
+                              color: '#333',
+                              fontSize: 14,
+                              lineHeight: 17,
+                            }}>
+                            重置
+                          </Text>
+                        </View>
+                      </TouchableWithoutFeedback>
                     </View>
                   </View>
                 </View>
@@ -480,6 +494,8 @@ const styles = StyleSheet.create({
   },
   _operate: {
     marginTop: 50,
+    display: 'flex',
+    flexDirection: 'row',
   },
   search_modal_btn: {
     backgroundColor: '#108EE9',
@@ -489,7 +505,19 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     height: 38,
     width: 70,
-    marginLeft: 70,
+    marginLeft: 30,
+  },
+  search_modal_btn_cancle: {
+    borderWidth: 1,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#d9d9d9',
+    borderRadius: 6,
+    height: 38,
+    width: 70,
+    marginLeft: 30,
   },
   detail_btn: {
     fontSize: 12,

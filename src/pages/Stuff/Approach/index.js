@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-09 21:58:33
+ * @LastEditTime: 2021-08-14 21:50:21
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -37,15 +37,13 @@ export default function Approach(props) {
   const [tableData, settableData] = useState([]);
   const [isAll, setIsAll] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
-  const [supplierName, setSupplierName] = useState('');
   // 搜索区域
+  const [supplierName, setSupplierName] = useState('');
   const [stateName, setStateName] = useState('选择审批状态'); // 显示名称
   const [stateValue, setStateValue] = useState(0); // 选中value
   const [processName, setProcessName] = useState('选择流程'); // 显示名称
   const [processValue, setProcessValue] = useState(0); // 选中value
   const [professional, setProfessional] = useState('选择专业'); // 专业 显示名称
-
-  const [supplierList, setSupplierList] = useState([]);
   useEffect(() => {
     (async () => {
       // setLoading(true);
@@ -65,26 +63,28 @@ export default function Approach(props) {
     };
   }, []);
   // 获取数据
-  const getLists = async num => {
+  const getLists = async (num, statue) => {
     let parms = {
       pageNumber: num,
       limit,
       idCard: global.userInfo.idCard,
     };
-    if (professional !== '选择专业') {
-      parms['professional'] = professional;
-    }
-    if (processValue !== 0) {
-      parms['myProcess'] = processValue;
-    }
-    if (stateValue !== 0) {
-      parms['state'] = stateValue;
-    }
-    if (supplierName !== '') {
-      parms['supplierName'] = supplierName;
+    if (statue !== 'all') {
+      if (professional !== '选择专业') {
+        parms['professional'] = professional;
+      }
+      if (processValue !== 0) {
+        parms['myProcess'] = processValue;
+      }
+      if (stateValue !== 0) {
+        parms['state'] = stateValue;
+      }
+      if (supplierName !== '') {
+        parms['supplierName'] = supplierName;
+      }
     }
     console.log('分页查询进场申请/appapi/selectApplyByPagination', parms);
-    // setLoading(true);
+    setLoading(true);
     try {
       const res = await getApproachApply(parms);
       if (res.data.code === 200) {
@@ -110,17 +110,22 @@ export default function Approach(props) {
     getLists(num);
   };
   const search = () => {
-    if (supplierList.length > 0) {
-      return Toast.fail('请选择供应商');
-    }
-    console.log('供应商', supplierName);
-    console.log('专业', professional);
-    console.log('流程', processValue);
-    console.log('状态', stateValue);
     setDrawer(false);
     settableData([]);
     setPageNumber(1);
     getLists(1);
+  };
+  const reset = async () => {
+    setSupplierName('');
+    setProfessional('选择专业');
+    setProcessValue(0);
+    setProcessName('选择流程');
+    setStateValue(0);
+    setStateName('选择审批状态');
+    setDrawer(false);
+    settableData([]);
+    setPageNumber(1);
+    getLists(1, 'all');
   };
   // 详情，修改，审批
   const navigationTo = (type, id) => {
@@ -129,16 +134,6 @@ export default function Approach(props) {
       id,
     });
   };
-  const searcSupplierName = async name => {
-    try {
-      const res = await getSupplierByName(name);
-      let list = res.data.data || [];
-      setSupplierList(list);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  // const renderItem = ({item}) => <Item item={item} />;
   const RenderItem = ({item}) => {
     return (
       <View key={item.name} style={styles.list_item}>
@@ -183,7 +178,9 @@ export default function Approach(props) {
           </Text>
           <Text>
             申请时间：
-            <Text style={styles.list_item_text}>{item.approachTime}</Text>
+            <Text style={styles.list_item_text}>
+              {item.approachTime.substring(0, 10)}
+            </Text>
           </Text>
         </View>
         <View
@@ -273,37 +270,11 @@ export default function Approach(props) {
                         style={styles.drawer_item_input}
                         placeholder="请输入"
                         onChangeText={text => {
-                          // searcSupplierName(text.trim());
                           setSupplierName(text);
                         }}
                         value={supplierName}
                       />
                     </View>
-                    {supplierList.length > 0 ? (
-                      <View
-                        style={{
-                          width: '100%',
-                          zIndex: 999,
-                          display: 'flex',
-                          flexDirection: 'row',
-                          flexWrap: 'wrap',
-                          marginTop: 10,
-                          marginBottom: 10,
-                        }}>
-                        {supplierList.map(v => (
-                          <TouchableWithoutFeedback
-                            key={v.id}
-                            onPress={() => {
-                              setSupplierName(v.supplierName);
-                              setSupplierList([]);
-                            }}>
-                            <Text style={[styles.default_label]} key={v}>
-                              {v.supplierName}
-                            </Text>
-                          </TouchableWithoutFeedback>
-                        ))}
-                      </View>
-                    ) : null}
                     <View style={styles.drawer_item}>
                       <Text style={styles.drawer_item_title}>审批状态：</Text>
                       <ModalDropdown
@@ -378,6 +349,21 @@ export default function Approach(props) {
                               lineHeight: 17,
                             }}>
                             查询
+                          </Text>
+                        </View>
+                      </TouchableWithoutFeedback>
+                      <TouchableWithoutFeedback
+                        onPress={() => {
+                          reset();
+                        }}>
+                        <View style={styles.search_modal_btn_cancle}>
+                          <Text
+                            style={{
+                              color: '#333',
+                              fontSize: 14,
+                              lineHeight: 17,
+                            }}>
+                            重置
                           </Text>
                         </View>
                       </TouchableWithoutFeedback>
@@ -545,6 +531,8 @@ const styles = StyleSheet.create({
   },
   _operate: {
     marginTop: 50,
+    display: 'flex',
+    flexDirection: 'row',
   },
   search_modal_btn: {
     backgroundColor: '#108EE9',
@@ -554,7 +542,19 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     height: 38,
     width: 70,
-    marginLeft: 70,
+    marginLeft: 30,
+  },
+  search_modal_btn_cancle: {
+    borderWidth: 1,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#d9d9d9',
+    borderRadius: 6,
+    height: 38,
+    width: 70,
+    marginLeft: 30,
   },
   detail_btn: {
     fontSize: 12,

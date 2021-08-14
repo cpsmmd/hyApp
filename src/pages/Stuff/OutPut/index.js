@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-09 00:02:37
+ * @LastEditTime: 2021-08-13 14:40:42
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -45,31 +45,34 @@ export default function OutputList(props) {
   // 搜索区域
   const [stateName, setStateName] = useState('选择审批状态'); // 显示名称
   const [stateValue, setStateValue] = useState(0); // 选中value
-  const [processName, setProcessName] = useState('选择流程'); // 显示名称
   const [processValue, setProcessValue] = useState(0); // 选中value
-  const [professional, setProfessional] = useState('选择专业'); // 专业 显示名称
+  const [processName, setProcessName] = useState('选择流程'); // 显示名称
+  const [supplierName, setSupplierName] = useState('');
   useEffect(() => {
     (async () => {
       await getLists(1);
     })();
   }, []);
-  // useEffect(() => {
-  //   const navFocusListener = props.navigation.addListener('focus', async () => {
-  //     await getMaterialList(true, true);
-  //   });
-
-  //   return () => {
-  //     navFocusListener.remove();
-  //   };
-  // }, []);
+  useEffect(() => {
+    const navFocusListener = props.navigation.addListener('focus', async () => {
+      setDrawer(false);
+      settableData([]);
+      setPageNumber(1);
+      await getLists(1);
+    });
+    return () => {
+      navFocusListener.remove();
+    };
+  }, []);
   // 获取数据
   const getLists = async num => {
     let parms = {
       pageNumber: num,
       limit,
-      state: null,
-      myProcess: null,
+      state: stateValue === 0 ? null : processValue,
+      myProcess: processValue === 0 ? null : processValue,
       belongProject: global.userInfo.belongProject,
+      supplierName,
       // idCard: global.userInfo.idCard,
     };
     console.log('分页查询出库申请', parms);
@@ -82,9 +85,9 @@ export default function OutputList(props) {
         // setLists(res.data.data);
         let list = res.data.data.list || [];
         setIsAll(list.length < limit);
-        let newList = [...tableData, ...list];
-        console.log(newList.length);
-        settableData(newList);
+        settableData(state => {
+          return [...state, ...list];
+        });
       } else {
         // Toast.fail(res.data.message);
         dealFail(props, res.data.code, res.data.message);
@@ -101,13 +104,10 @@ export default function OutputList(props) {
     getLists(num);
   };
   const search = () => {
-    console.log(professional);
-    console.log(processValue);
-    console.log(stateValue);
-    // setDrawer(false);
-    // settableData([]);
-    // setPageNumber(1);
-    // getLists(1);
+    setDrawer(false);
+    settableData([]);
+    setPageNumber(1);
+    getLists(1);
   };
   // 详情，修改，审批
   const navigationTo = (type, id) => {
@@ -139,12 +139,16 @@ export default function OutputList(props) {
               </TouchableWithoutFeedback>
             )}
             {item.isOperate &&
-              (item.outboundState === 11 || item.outboundState === 16) && (
+              (item.outboundState === 11 ||
+                item.outboundState === 16 ||
+                item.outboundState === 12) && (
                 <TouchableWithoutFeedback
                   onPress={() => {
-                    let status = 'edit';
+                    let status = 'edit'; // 待库管理员确认
                     if (item.outboundState === 16) {
-                      status = 'confirm';
+                      status = 'confirm'; // 归还中
+                    } else if (item.outboundState === 12) {
+                      status = 'editTotype2'; // 待申请人确认
                     }
                     navigationTo(status, item.id);
                   }}>
@@ -267,14 +271,10 @@ export default function OutputList(props) {
                         style={styles.drawer_item_input}
                         placeholder="请输入"
                         onChangeText={text => {
-                          setsearchParms(state => {
-                            return {
-                              ...state,
-                              name: text,
-                            };
-                          });
+                          // searcSupplierName(text.trim());
+                          setSupplierName(text);
                         }}
-                        value={searchParms.name}
+                        value={supplierName}
                       />
                     </View>
                     <View style={styles.drawer_item}>
@@ -317,24 +317,6 @@ export default function OutputList(props) {
                         onSelect={(value, item) => {
                           setProcessValue(item.value);
                           setProcessName(item.name);
-                        }}
-                      />
-                      <IconOutline color="#999999" name="down" />
-                    </View>
-                    <View style={styles.drawer_item}>
-                      <Text style={styles.drawer_item_title}>专业：</Text>
-                      <ModalDropdown
-                        defaultValue={'请选择专业'}
-                        options={MAJOR_LIST}
-                        textStyle={styles.dropdownText}
-                        dropdownStyle={styles.dropdownStyle}
-                        dropdownTextStyle={styles.DropDownPickerText}
-                        dropdownTextHighlightStyle={
-                          styles.dropdownTextHighlightStyle
-                        }
-                        onSelect={value => {
-                          // setMajorValue(item.value);
-                          setProfessional(value);
                         }}
                       />
                       <IconOutline color="#999999" name="down" />

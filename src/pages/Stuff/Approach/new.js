@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-06 23:08:05
- * @LastEditTime: 2021-08-10 11:17:58
+ * @LastEditTime: 2021-08-14 23:34:22
  * @LastEditors: Please set LastEditors
  * @Description: 发起进场申请
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/new.js
@@ -60,16 +60,33 @@ const New = props => {
   const [supplierList, setSupplierList] = useState([]);
   const [curId, setCurId] = useState('');
   useEffect(() => {
-    // props.navigation.setOptions({
-    //   title: 'hhahah',
-    // });
+    console.log(isNaN('放'));
   }, []);
   // 添加材料
   const addStuff = () => {
-    // if (materialsList.length > 0) {
-    //   Toast.fail('请选择材料名称');
-    //   return;
-    // }
+    let isEmpty = false;
+    let notNum = false;
+    stuffLists.map(item => {
+      if (item.materialsName === '') {
+        isEmpty = true;
+      }
+      if (item.materialsSpecs === '') {
+        isEmpty = true;
+      }
+      if (item.materialsNum === '') {
+        isEmpty = true;
+      } else {
+        if (isNaN(item.materialsNum)) {
+          notNum = true;
+        }
+      }
+    });
+    if (isEmpty) {
+      return Toast.fail('材料所有选项均是必填');
+    }
+    if (notNum) {
+      return Toast.fail('数量为数字');
+    }
     let data = {...defaultData};
     data.id = new Date().getTime();
     setstuffLists(state => {
@@ -88,18 +105,64 @@ const New = props => {
   };
   // 提交材料
   const submit = async () => {
+    let isEmpty = false;
+    let notNum = false;
     let materials = [];
     stuffLists.forEach(item => {
-      // item.materialsName
+      if (item.materialsName === '') {
+        isEmpty = true;
+      }
+      if (item.materialsSpecs === '') {
+        isEmpty = true;
+      }
+      if (item.materialsNum === '') {
+        isEmpty = true;
+      } else {
+        if (isNaN(item.materialsNum)) {
+          notNum = true;
+        }
+      }
       materials.push({
         materialsName: item.materialsName,
         materialsSpecs: item.materialsSpecs,
         materialsNum: item.materialsNum,
       });
     });
+    if (isEmpty) {
+      return Toast.fail('材料所有选项均是必填');
+    }
+    if (notNum) {
+      return Toast.fail('数量为数字');
+    }
     if (materials.length === 0) {
-      Toast.fail('请添加材料');
-      return;
+      return Toast.fail('请添加材料');
+    }
+    if (theme.length === 0) {
+      return Toast.fail('请输入申请主题');
+    }
+    if (supplierName.length === 0) {
+      return Toast.fail('请输入供应商');
+    }
+    if (supplierContact.length === 0) {
+      return Toast.fail('请输入供应商联系人');
+    }
+    if (supplierMobile.length === 0) {
+      return Toast.fail('请输入联系方式');
+    }
+    if (packingWay.length === 0) {
+      return Toast.fail('请输入包装方式');
+    }
+    if (transporteWay.length === 0) {
+      return Toast.fail('请输入运输方式');
+    }
+    if (unloadingRequire.length === 0) {
+      return Toast.fail('请输入卸货需求');
+    }
+    if (contractName.length === 0) {
+      return Toast.fail('请输入归属合同');
+    }
+    if (professional.length === 0) {
+      return Toast.fail('请选择专业');
     }
     let parms = {
       idCard: global.userInfo.idCard,
@@ -119,7 +182,6 @@ const New = props => {
     console.log('新增parms', parms);
     try {
       const res = await addApproachApply(parms);
-      console.log('res.data', res.data);
       if (res.data.code === 200) {
         props.navigation.goBack();
         Toast.success(res.data.message);
@@ -489,7 +551,7 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     width: 136,
     borderWidth: 1,
-    borderColor: '#999999',
+    borderColor: '#f0f0f0',
   },
   del_btn: {
     width: 24,
@@ -534,7 +596,7 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 14,
     flex: 1,
-    paddingVertical: 18,
+    paddingVertical: 12,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',

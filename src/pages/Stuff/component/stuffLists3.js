@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:57:34
- * @LastEditTime: 2021-08-14 23:35:15
+ * @LastEditTime: 2021-08-12 23:21:33
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/component/stuffLists.js
@@ -17,17 +17,27 @@ const StuffLists = props => {
       {data.map(item => (
         <View style={styles.items} key={item.id}>
           <View style={styles.flex_row}>
-            <Text style={styles.title}>材料名称：</Text>
-            <Text style={styles.value}>{item.materialsName}</Text>
-          </View>
-          <View style={[styles.flex_row, {marginTop: 8}]}>
+            <View style={[styles.flex_row, {flex: 1}]}>
+              <Text style={styles.title}>材料名称：</Text>
+              <Text style={styles.value}>{item.materialsName}</Text>
+            </View>
             <View style={[styles.flex_row, {flex: 1}]}>
               <Text style={styles.title}>规格：</Text>
               <Text style={styles.value}>{item.materialsSpecs}</Text>
             </View>
+          </View>
+          <View style={[styles.flex_row, {marginTop: 8}]}>
             <View style={[styles.flex_row, {flex: 1}]}>
-              <Text style={styles.title}>数量：</Text>
-              <Text style={styles.value}>{item.materialsNum}</Text>
+              <Text style={styles.title}>供应商名称：</Text>
+              <Text style={styles.value}>
+                {item.supplierNames[0].supplierName}
+              </Text>
+            </View>
+            <View style={[styles.flex_row, {flex: 1}]}>
+              <Text style={styles.title}>领用数量：</Text>
+              <Text style={styles.value}>
+                {item.supplierNames[0].outboundNum}
+              </Text>
             </View>
           </View>
         </View>
@@ -44,8 +54,6 @@ const styles = StyleSheet.create({
     padding: 12,
     backgroundColor: '#fff',
     marginBottom: 2,
-    borderBottomWidth: 1,
-    borderColor: '#f8f8f8',
   },
   flex_row: {
     display: 'flex',
