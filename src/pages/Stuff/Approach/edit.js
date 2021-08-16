@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-14 23:56:36
+ * @LastEditTime: 2021-08-15 21:39:44
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -329,31 +329,8 @@ const EditApproach = props => {
             <View style={styles.other_item3}>
               <Text style={styles.other_title}>{v.userName}审批意见：</Text>
               <View style={{flex: 1}}>
-                <TextInput
-                  style={{
-                    backgroundColor: '#EEEEEE',
-                    borderWidth: 0,
-                    borderRadius: 5,
-                    paddingLeft: 15,
-                    textAlign: 'left',
-                    textAlignVertical: 'top',
-                    androidtextAlignVertical: 'top',
-                    width: '90%',
-                  }}
-                  numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
-                  minHeight={
-                    Platform.OS === 'ios' && numberOfLines
-                      ? 20 * numberOfLines
-                      : null
-                  }
-                  placeholder="简介"
-                  multiline
-                  editable={false}
-                  // onChangeText={text => onChangeText(text)}
-                  value={v.content}
-                  maxLength={20}
-                />
-                <Text style={{backgroundColor: '#fff'}}>
+                <Text style={{color: '#808695'}}>{v.content || '暂无'}</Text>
+                <Text style={{backgroundColor: '#fff', color: '#808695'}}>
                   审批时间：{v.approvalTime}
                 </Text>
               </View>
@@ -805,11 +782,6 @@ const EditApproach = props => {
           <View>
             <Text style={styles.mode_title}>审批流程</Text>
             <View style={{paddingLeft: 10, backgroundColor: '#fff'}}>
-              {/* <View style={styles.other_item4}>
-                <Text style={styles.other_title}>审批流程：</Text>
-                <RenderApproach />
-              </View> */}
-              {/* <RenderApprovalComments /> */}
               {approvalData.length ? (
                 <View>
                   {approvalData.map(item => (

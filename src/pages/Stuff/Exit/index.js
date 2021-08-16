@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 17:18:24
- * @LastEditTime: 2021-08-15 00:06:50
+ * @LastEditTime: 2021-08-15 21:10:21
  * @LastEditors: Please set LastEditors
  * @Description: 退场管理-列表
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Exit/index.js
@@ -52,18 +52,18 @@ export default function Exit(props) {
       await getLists(1);
     })();
   }, []);
-  // useEffect(() => {
-  //   const navFocusListener = props.navigation.addListener('focus', async () => {
-  //     setDrawer(false);
-  //     settableData([]);
-  //     setPageNumber(1);
-  //     await getLists(1);
-  //   });
+  useEffect(() => {
+    const navFocusListener = props.navigation.addListener('focus', async () => {
+      setDrawer(false);
+      settableData([]);
+      setPageNumber(1);
+      await getLists(1);
+    });
 
-  //   return () => {
-  //     navFocusListener.remove();
-  //   };
-  // }, []);
+    return () => {
+      navFocusListener.remove();
+    };
+  }, []);
   // 获取数据
   const getLists = async (num, statue) => {
     let parms = {};

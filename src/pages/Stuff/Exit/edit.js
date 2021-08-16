@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 17:40:17
- * @LastEditTime: 2021-08-15 00:08:02
+ * @LastEditTime: 2021-08-15 21:32:51
  * @LastEditors: Please set LastEditors
  * @Description: 退场 (增删改查)
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Exit/edit.js
@@ -118,7 +118,6 @@ const EditExit = props => {
   // 审批
   const [content, setContent] = useState(''); // 退场审核意见
   // 编辑
-  const [signFileurl, setsignFileurl] = useState(''); // 上传凭证
   const [logPics, setLogPics] = useState([]);
   const [signContent, setSignContent] = useState(''); // 上传退场说明
   // 设置标题
@@ -160,6 +159,29 @@ const EditExit = props => {
   };
   // 添加材料
   const addStuff = () => {
+    let isEmpty = false;
+    let notNum = false;
+    stuffLists.map(item => {
+      if (item.materialsName === '') {
+        isEmpty = true;
+      }
+      if (item.materialsSpecs === '') {
+        isEmpty = true;
+      }
+      if (item.materialsNum === '') {
+        isEmpty = true;
+      } else {
+        if (isNaN(item.materialsNum)) {
+          notNum = true;
+        }
+      }
+    });
+    if (isEmpty) {
+      return Toast.fail('材料所有选项均是必填');
+    }
+    if (notNum) {
+      return Toast.fail('数量为数字');
+    }
     let newData = {...defaultData};
     newData.id = Math.random().toString(16);
     setstuffLists(state => {
@@ -178,9 +200,21 @@ const EditExit = props => {
   };
   // 申请、修改提交材料
   const submit = async () => {
+    if (theme.length === 0) {
+      return Toast.fail('请输入申请主题');
+    }
+    let isEmpty = false;
     let materials = [];
     stuffLists.forEach(item => {
-      // item.materialsName
+      if (item.materialsName === '') {
+        isEmpty = true;
+      }
+      if (item.materialsSpecs === '') {
+        isEmpty = true;
+      }
+      if (item.materialsNum === '') {
+        isEmpty = true;
+      }
       materials.push({
         materialsName: item.materialsName,
         materialsSpecs: item.materialsSpecs,
@@ -188,6 +222,9 @@ const EditExit = props => {
         supplierName: item.supplierName,
       });
     });
+    if (isEmpty) {
+      return Toast.fail('材料所有选项均是必填');
+    }
     // 编辑
     let fangxiang = exitDirecte;
     if (fangxiang === '其他') {
@@ -343,31 +380,8 @@ const EditExit = props => {
             <View style={styles.other_item3}>
               <Text style={styles.other_title}>{v.userName}审批意见：</Text>
               <View style={{flex: 1}}>
-                <TextInput
-                  style={{
-                    backgroundColor: '#EEEEEE',
-                    borderWidth: 0,
-                    borderRadius: 5,
-                    paddingLeft: 15,
-                    textAlign: 'left',
-                    textAlignVertical: 'top',
-                    androidtextAlignVertical: 'top',
-                    width: '90%',
-                  }}
-                  numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
-                  minHeight={
-                    Platform.OS === 'ios' && numberOfLines
-                      ? 20 * numberOfLines
-                      : null
-                  }
-                  placeholder="简介"
-                  multiline
-                  editable={false}
-                  // onChangeText={text => onChangeText(text)}
-                  value={v.content}
-                  maxLength={20}
-                />
-                <Text style={{backgroundColor: '#fff'}}>
+                <Text style={{color: '#808695'}}>{v.content || '暂无'}</Text>
+                <Text style={{backgroundColor: '#fff', color: '#808695'}}>
                   审批时间：{v.approvalTime}
                 </Text>
               </View>
@@ -633,6 +647,9 @@ const EditExit = props => {
                           </Text>
                           <TextInput
                             onChangeText={text => {
+                              if (isNaN(text)) {
+                                return Toast.fail('请输入数字');
+                              }
                               let newList = [...stuffLists];
                               newList.map(v => {
                                 if (v.id === item.id) {
@@ -739,54 +756,57 @@ const EditExit = props => {
           ) : (
             // 详情
             <View>
-              <StuffLists2 data={stuffLists} />
-              <View>
-                <View style={styles.other_item}>
-                  <Text style={styles.other_title}>申请主题：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    editable={false}
-                    onChangeText={text => setTheme(text)}
-                    value={theme}
-                  />
-                </View>
-                <View style={styles.other_item}>
-                  <Text style={styles.other_title}>退场去向：</Text>
-                  <TextInput
-                    style={styles.input_no_border}
-                    placeholder="请输入"
-                    editable={false}
-                    value={exitDirecte}
-                  />
-                </View>
-                <View style={styles.other_item2}>
-                  <Text style={styles.other_title}>退场时间：</Text>
-                  {Platform.OS === 'android' && (
-                    <TouchableWithoutFeedback
-                      onPress={() => {
-                        // showDatepicker();
-                      }}>
-                      <Text
-                        style={{width: 200, color: '#999999', fontSize: 14}}>
-                        {JSON.stringify(date).substring(1, 11)}
-                      </Text>
-                    </TouchableWithoutFeedback>
-                  )}
-                  {show && (
-                    <DateTimePicker
-                      testID="dateTimePicker"
-                      value={date}
-                      mode={mode}
-                      is24Hour={true}
-                      display="default"
-                      locale="zh-CN"
-                      style={{width: 200}}
-                      onChange={(event, selectedDate) =>
-                        onChangeBegin(event, selectedDate)
-                      }
+              <Text style={styles.mode_title}>基本信息</Text>
+              <View style={{paddingLeft: 10, backgroundColor: '#fff'}}>
+                <StuffLists2 data={stuffLists} />
+                <View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>申请主题：</Text>
+                    <TextInput
+                      style={styles.input_no_border}
+                      placeholder="请输入"
+                      editable={false}
+                      onChangeText={text => setTheme(text)}
+                      value={theme}
                     />
-                  )}
+                  </View>
+                  <View style={styles.other_item}>
+                    <Text style={styles.other_title}>退场去向：</Text>
+                    <TextInput
+                      style={styles.input_no_border}
+                      placeholder="请输入"
+                      editable={false}
+                      value={exitDirecte}
+                    />
+                  </View>
+                  <View style={styles.other_item2}>
+                    <Text style={styles.other_title}>退场时间：</Text>
+                    {Platform.OS === 'android' && (
+                      <TouchableWithoutFeedback
+                        onPress={() => {
+                          // showDatepicker();
+                        }}>
+                        <Text
+                          style={{width: 200, color: '#999999', fontSize: 14}}>
+                          {JSON.stringify(date).substring(1, 11)}
+                        </Text>
+                      </TouchableWithoutFeedback>
+                    )}
+                    {show && (
+                      <DateTimePicker
+                        testID="dateTimePicker"
+                        value={date}
+                        mode={mode}
+                        is24Hour={true}
+                        display="default"
+                        locale="zh-CN"
+                        style={{width: 200}}
+                        onChange={(event, selectedDate) =>
+                          onChangeBegin(event, selectedDate)
+                        }
+                      />
+                    )}
+                  </View>
                 </View>
               </View>
             </View>
@@ -794,20 +814,25 @@ const EditExit = props => {
           {/* 审批流程 */}
           {routeType !== 'new' && (
             <View>
-              {approvalData.length ? (
-                <View>
-                  {approvalData.map(item => (
-                    <View>
-                      <View style={styles.other_item4}>
-                        <Text style={styles.other_title}>审批流程：</Text>
-                        <RenderApproach data={item.approvalDtos} />
+              <Text style={styles.mode_title}>审批流程</Text>
+              <View style={{paddingLeft: 10, backgroundColor: '#fff'}}>
+                {approvalData.length ? (
+                  <View>
+                    {approvalData.map(item => (
+                      <View>
+                        <View style={styles.other_item4}>
+                          <Text style={styles.other_title}>审批流程：</Text>
+                          <RenderApproach data={item.approvalDtos} />
+                        </View>
+                        <RenderApprovalComments
+                          data={item.hyApproachApprovals}
+                        />
+                        <RenderOutConfirm data={item.outConfirm} />
                       </View>
-                      <RenderApprovalComments data={item.hyApproachApprovals} />
-                      <RenderOutConfirm data={item.outConfirm} />
-                    </View>
-                  ))}
-                </View>
-              ) : null}
+                    ))}
+                  </View>
+                ) : null}
+              </View>
             </View>
           )}
           {/* 编辑 */}
@@ -1120,7 +1145,7 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 14,
     flex: 1,
-    paddingVertical: 18,
+    paddingVertical: 12,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',
@@ -1165,5 +1190,10 @@ const styles = StyleSheet.create({
     marginRight: 5,
     marginTop: 6,
     fontSize: 14,
+  },
+  mode_title: {
+    color: '#1890ff',
+    fontSize: 16,
+    padding: 12,
   },
 });

@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 22:18:27
- * @LastEditTime: 2021-08-14 21:07:29
+ * @LastEditTime: 2021-08-15 21:39:11
  * @LastEditors: Please set LastEditors
  * @Description: 入库管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/index.js
@@ -37,9 +37,6 @@ export default function Approach(props) {
   // 搜索区域
   const [stateName, setStateName] = useState('选择入库状态'); // 显示名称
   const [stateValue, setStateValue] = useState(0); // 选中value
-  const [processName, setProcessName] = useState('选择流程'); // 显示名称
-  const [processValue, setProcessValue] = useState(0); // 选中value
-  const [professional, setProfessional] = useState('选择专业'); // 专业 显示名称
 
   const [supplierList, setSupplierList] = useState([]);
   const [supplierName, setSupplierName] = useState('');
@@ -56,24 +53,26 @@ export default function Approach(props) {
       setDrawer(false);
       settableData([]);
       setPageNumber(1);
-      await getLists(1);
+      await getLists(1, 'all');
     });
     return () => {
       navFocusListener.remove();
     };
   }, []);
   // 获取数据
-  const getLists = async num => {
+  const getLists = async (num, statue) => {
     let parms = {
       pageNumber: num,
       limit,
       idCard: global.userInfo.idCard,
     };
-    if (stateValue !== 0) {
-      parms['state'] = stateValue;
-    }
-    if (supplierName !== '') {
-      parms['supplierName'] = supplierName;
+    if (statue !== 'all') {
+      if (stateValue !== 0) {
+        parms['state'] = stateValue;
+      }
+      if (supplierName !== '') {
+        parms['supplierName'] = supplierName;
+      }
     }
     console.log('分页查询入库列表', parms);
     // setLoading(true);
@@ -111,12 +110,10 @@ export default function Approach(props) {
   };
   const reset = () => {
     setSupplierName('');
-    // setMaterialsSpecs('');
-    // setMaterialsName('');
     setDrawer(false);
     settableData([]);
     setPageNumber(1);
-    getLists(1);
+    getLists(1, 'all');
   };
   // 详情，修改，审批
   const navigationTo = (type, id) => {
@@ -125,16 +122,6 @@ export default function Approach(props) {
       id,
     });
   };
-  const searcSupplierName = async name => {
-    try {
-      const res = await getSupplierByName(name);
-      let list = res.data.data || [];
-      setSupplierList(list);
-    } catch (error) {
-      console.error(error);
-    }
-  };
-  // const renderItem = ({item}) => <Item item={item} />;
   const RenderItem = ({item}) => {
     return (
       <View key={item.name} style={styles.list_item}>
@@ -148,14 +135,15 @@ export default function Approach(props) {
               }}>
               <Text style={styles.detail_btn}>详情</Text>
             </TouchableWithoutFeedback>
-            {item.isOperate && item.warehouseState === 7 && (
-              <TouchableWithoutFeedback
-                onPress={() => {
-                  navigationTo('approave', item.id);
-                }}>
-                <Text style={styles.edit_btn}>入库</Text>
-              </TouchableWithoutFeedback>
-            )}
+            {item.isOperate &&
+              (item.warehouseState === 7 || item.warehouseState === 10) && (
+                <TouchableWithoutFeedback
+                  onPress={() => {
+                    navigationTo('approave', item.id);
+                  }}>
+                  <Text style={styles.edit_btn}>入库</Text>
+                </TouchableWithoutFeedback>
+              )}
           </View>
         </View>
         <View
@@ -167,7 +155,9 @@ export default function Approach(props) {
           }}>
           <Text>
             申请时间：
-            <Text style={styles.list_item_text}>{item.approachTime}</Text>
+            <Text style={styles.list_item_text}>
+              {item.approachTime.substring(0, 10)}
+            </Text>
           </Text>
           <Text>
             申请人：
