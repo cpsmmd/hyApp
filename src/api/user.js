@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 15:22:36
- * @LastEditTime: 2021-07-26 20:51:26
+ * @LastEditTime: 2021-08-20 15:35:24
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/api/user.js
@@ -60,7 +60,7 @@ export const selectWage = params =>
   });
 // 通知记录
 export const getNotice = params =>
-  fetch.post('/HyNotify/selectHyNotify', params, {
+  fetch.post('/HyNotify/selectHyNotifyApp', params, {
     headers: {
       idCard: global.userInfo.idCard,
       token: global.userInfo.token,
@@ -76,7 +76,7 @@ export const getMaterials = params =>
   });
 // 通知
 export const getNew = params =>
-  fetch.post('/HyNotify/selectNotifyCount', params, {
+  fetch.post('/HyNotify/selectNotifyCountApp', params, {
     headers: {
       idCard: global.userInfo.idCard,
       token: global.userInfo.token,

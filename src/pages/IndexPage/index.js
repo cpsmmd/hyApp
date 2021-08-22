@@ -127,6 +127,7 @@ const IndexPage = props => {
       let parms = {
         idCard: global.userInfo.idCard,
       };
+      console.log('获取通知消息个数【HyNotify/selectNotifyCountApp】', parms);
       try {
         const res = await getNew(parms);
         console.log('res', res.data);

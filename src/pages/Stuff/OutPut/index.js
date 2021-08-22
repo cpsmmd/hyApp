@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-13 14:40:42
+ * @LastEditTime: 2021-08-22 13:09:52
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -37,11 +37,6 @@ export default function OutputList(props) {
   const [isAll, setIsAll] = useState(false);
   const [pageNumber, setPageNumber] = useState(1);
   const [isLoading, setisLoading] = useState(false);
-  const [searchParms, setsearchParms] = useState({
-    name: '',
-    standards: '',
-    supplier: '',
-  });
   // 搜索区域
   const [stateName, setStateName] = useState('选择审批状态'); // 显示名称
   const [stateValue, setStateValue] = useState(0); // 选中value
