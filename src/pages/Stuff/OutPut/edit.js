@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-22 22:31:42
+ * @LastEditTime: 2021-08-23 20:24:34
  * @LastEditors: Please set LastEditors
  * @Description: 出库管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -197,7 +197,13 @@ const EditOutput = props => {
           setmateriasEdit([...list2]);
         }
         if (routeType === 'confirm') {
-          setrconfirmList([...newmaterials]);
+          let listss = [...info.confirmMaterials];
+          listss.map(v => {
+            v.supplierNames.map(v2 => {
+              v2.outboundNum2 = v2.outboundNum;
+            });
+          });
+          setrconfirmList([...info.confirmMaterials]);
         }
         // 签收查看图片
         let imgq = [];
@@ -404,27 +410,48 @@ const EditOutput = props => {
     if (logPics.length === 0) {
       return Toast.fail('请上传凭证');
     }
+    console.log('hhhhh', JSON.stringify(confirmList));
     let materials = [];
+    let isOk1 = true;
+    let isOk2 = true;
     confirmList.forEach(item => {
+      let supplierNames = [];
+      item.supplierNames.map(v => {
+        if (isNaN(v.outboundNum)) {
+          isOk1 = false;
+        }
+        if (v.outboundNum * 1 > v.outboundNum2 * 1) {
+          isOk2 = false;
+        }
+        supplierNames.push({
+          outboundNum: v.outboundNum,
+          supplierName: v.supplierName,
+        });
+      });
       materials.push({
         materialsName: item.materialsName,
         materialsSpecs: item.materialsSpecs,
         outboundApplyId: item.outboundApplyId,
-        supplierNames: [
-          {
-            outboundNum: item.materialsNum,
-            supplierName: item.supplierName,
-          },
-        ],
+        supplierNames,
       });
     });
+    if (!isOk1) {
+      return Toast.fail('归还数量为数字');
+    }
+    if (!isOk2) {
+      return Toast.fail('规划数量不能大于领取数量');
+    }
     let parms = {
       applyId: detailInfo.applyId,
       returnFileurl: JSON.stringify(logPics),
       belongProject: global.userInfo.belongProject,
-      materials, // !待开发
+      materials,
     };
     console.log('确认归还parms', parms);
+    let test = 1;
+    if (test === 1) {
+      return;
+    }
     try {
       const res = await returnConfirmOutputApply(parms);
       if (res.data.code === 200) {
@@ -557,7 +584,7 @@ const EditOutput = props => {
             <View style={styles.other_item3}>
               <Text style={styles.other_title}>{v.userName}审批意见：</Text>
               <View style={{flex: 1}}>
-                <Text style={{color: '#808695'}}>{v.content || '暂无'}</Text>
+                <Text style={{color: '#808695'}}>{v.content}</Text>
                 <Text style={{backgroundColor: '#fff', color: '#808695'}}>
                   审批时间：{v.approvalTime}
                 </Text>
@@ -1457,50 +1484,49 @@ const EditOutput = props => {
                       </Text>
                     </View>
                   </View>
-                  {item.materialsSpecs.length ? (
+                  {item.supplierNames.map(vc => (
                     <View
+                      key={vc.supplierName}
                       style={{
                         display: 'flex',
                         flexDirection: 'row',
-                        alignItems: 'center',
-                        marginTop: 10,
                       }}>
-                      <Text style={styles.stuff_item_title}>供应商名称：</Text>
-                      <Text style={{color: '#999', fontSize: 14}}>
-                        {item.supplierName}
-                      </Text>
-                    </View>
-                  ) : null}
-                  <View style={[styles.flex_row, {marginTop: 10}]}>
-                    <>
-                      <Text style={[styles.stuff_item_title, {marginLeft: 6}]}>
-                        归还数量：
-                      </Text>
-                      <TextInput
-                        onChangeText={text => {
-                          let newList = [...stuffLists];
-                          newList.map(v => {
-                            if (v.id === item.id) {
-                              v.materialsNum = text;
+                      <View style={styles.flex_row}>
+                        <Text style={styles.stuff_item_title}>
+                          供应商名称：
+                        </Text>
+                        <Text style={{color: '#999', fontSize: 14}}>
+                          {vc.supplierName}
+                        </Text>
+                      </View>
+                      <View style={styles.flex_row}>
+                        <Text
+                          style={[styles.stuff_item_title, {marginLeft: 10}]}>
+                          归还数量：
+                        </Text>
+                        <TextInput
+                          onChangeText={text => {
+                            if (text * 1 > vc.outboundNum2 * 1) {
+                              Toast.fail('规划数量不能大于领取数量');
                             }
-                          });
-                          setstuffLists(newList);
-                        }}
-                        value={item.materialsNum.toString()}
-                        style={styles.input_sty}
-                        placeholder="请输入"
-                      />
-                    </>
-                    {/* <TouchableWithoutFeedback
-                      onPress={() => {
-                        delStuff(index);
-                      }}>
-                      <Image
-                        style={styles.del_btn}
-                        source={require('../../../assets/stuff/del.png')}
-                      />
-                    </TouchableWithoutFeedback> */}
-                  </View>
+                            let newList = [...confirmList];
+                            newList.map(vv => {
+                              if (vv.materialsName === item.materialsName) {
+                                vv.supplierNames.map(vb => {
+                                  if (vb.supplierName === vc.supplierName) {
+                                    vb.outboundNum = text;
+                                  }
+                                });
+                              }
+                            });
+                          }}
+                          value={vc.outboundNum}
+                          style={styles.input_sty}
+                          placeholder="请输入"
+                        />
+                      </View>
+                    </View>
+                  ))}
                 </View>
               ))}
               <View style={styles.other_item3}>

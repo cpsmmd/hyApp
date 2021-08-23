@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-22 17:03:48
+ * @LastEditTime: 2021-08-23 15:11:46
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -338,7 +338,7 @@ const EditApproach = props => {
             <View style={styles.other_item3}>
               <Text style={styles.other_title}>{v.userName}审批意见：</Text>
               <View style={{flex: 1}}>
-                <Text style={{color: '#808695'}}>{v.content || '暂无'}</Text>
+                <Text style={{color: '#808695'}}>{v.content}</Text>
                 <Text
                   style={{
                     backgroundColor: '#fff',

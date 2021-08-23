@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-08-01 22:39:56
- * @LastEditTime: 2021-08-22 22:07:31
+ * @LastEditTime: 2021-08-23 15:47:54
  * @LastEditors: Please set LastEditors
  * @Description: 详情、入库
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/edit.js
@@ -85,6 +85,7 @@ let userInfo = global.userInfo;
 const EditApproach = props => {
   const routeType = props.route.params.type;
   const routeId = props.route.params.id;
+  const routeStatus = props.route.params.status;
   const [getInfos, setGetInfos] = useState({});
   const [detailInfo, setDetailInfo] = useState({});
   const [hyWarehouseDtos, sethyWarehouseDtos] = useState([]);
@@ -157,15 +158,15 @@ const EditApproach = props => {
           // 入库总数列表
           let inputLIst = info.materials;
           // 入库信息列表
-          let appLIst = [];
+          let appLast = []; // 最后一次入库
           let hyList = res.data.data.hyWarehouseDtos;
           if (hyList.length > 0) {
-            appLIst = hyList[hyList.length - 1].warehouseMaterials;
+            appLast = hyList[hyList.length - 1].warehouseMaterials;
           }
           let listcc = [];
-          if (appLIst.length > 0) {
+          if (appLast.length > 0) {
             inputLIst.forEach(item => {
-              appLIst.map(v => {
+              appLast.map(v => {
                 if (
                   item.materialsName === v.materialsName &&
                   item.materialsSpecs === v.materialsSpecs
@@ -174,6 +175,7 @@ const EditApproach = props => {
                     listcc.push({
                       id: item.id,
                       lackNum: '',
+                      lackNum2: v.lackNum,
                       materialsName: item.materialsName,
                       materialsSpecs: item.materialsSpecs,
                       warehouseNum: '',
@@ -230,11 +232,18 @@ const EditApproach = props => {
   const changeStatus = async state => {
     let list = [];
     let isOk = true;
+    let isOk2 = true;
     warehouseMaterials.map(v => {
       let num = v.materialsNum * 1;
       let num2 = v.warehouseNum * 1 + v.lackNum * 1;
       if (num !== num2) {
         isOk = false;
+      }
+      if (v.lackNum2) {
+        let numtt = v.warehouseNum * 1 + v.lackNum * 1;
+        if (v.lackNum2 !== numtt) {
+          isOk2 = false;
+        }
       }
       list.push({
         materialsName: v.materialsName,
@@ -244,9 +253,17 @@ const EditApproach = props => {
         applyMaterialsId: v.id,
       });
     });
-    if (!isOk) {
-      Toast.fail('请检查入库数量与缺补数量之和是否与总数量相等');
-      return;
+    // 10 部分
+    if (props.route.params.status * 1 === 10) {
+      if (!isOk2) {
+        Toast.fail('入库数量与缺补数量之和要等于上一次缺补数量');
+        return;
+      }
+    } else {
+      if (!isOk) {
+        Toast.fail('请检查入库数量与缺补数量之和是否与总数量相等');
+        return;
+      }
     }
     let parms = {
       id: props.route.params.id,
@@ -330,7 +347,7 @@ const EditApproach = props => {
             <View style={styles.other_item3}>
               <Text style={styles.other_title}>{v.userName}审批意见：</Text>
               <View style={{flex: 1}}>
-                <Text style={{color: '#808695'}}>{v.content || '暂无'}</Text>
+                <Text style={{color: '#808695'}}>{v.content}</Text>
                 <Text style={{backgroundColor: '#fff', color: '#808695'}}>
                   审批时间：{v.approvalTime}
                 </Text>

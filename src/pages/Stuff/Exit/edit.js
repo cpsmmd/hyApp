@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 17:40:17
- * @LastEditTime: 2021-08-22 22:06:46
+ * @LastEditTime: 2021-08-23 15:12:03
  * @LastEditors: Please set LastEditors
  * @Description: 退场 (增删改查)
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Exit/edit.js
@@ -399,7 +399,7 @@ const EditExit = props => {
             <View style={styles.other_item3}>
               <Text style={styles.other_title}>{v.userName}审批意见：</Text>
               <View style={{flex: 1}}>
-                <Text style={{color: '#808695'}}>{v.content || '暂无'}</Text>
+                <Text style={{color: '#808695'}}>{v.content}</Text>
                 <Text style={{backgroundColor: '#fff', color: '#808695'}}>
                   审批时间：{v.approvalTime}
                 </Text>

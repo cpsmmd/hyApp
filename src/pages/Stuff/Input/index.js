@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 22:18:27
- * @LastEditTime: 2021-08-15 21:39:11
+ * @LastEditTime: 2021-08-23 15:21:17
  * @LastEditors: Please set LastEditors
  * @Description: 入库管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/index.js
@@ -116,10 +116,11 @@ export default function Approach(props) {
     getLists(1, 'all');
   };
   // 详情，修改，审批
-  const navigationTo = (type, id) => {
+  const navigationTo = (type, id, status = 0) => {
     props.navigation.push('editInput', {
       type,
       id,
+      status,
     });
   };
   const RenderItem = ({item}) => {
@@ -139,7 +140,7 @@ export default function Approach(props) {
               (item.warehouseState === 7 || item.warehouseState === 10) && (
                 <TouchableWithoutFeedback
                   onPress={() => {
-                    navigationTo('approave', item.id);
+                    navigationTo('approave', item.id, item.warehouseState);
                   }}>
                   <Text style={styles.edit_btn}>入库</Text>
                 </TouchableWithoutFeedback>
