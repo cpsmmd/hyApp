@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-06 23:08:05
- * @LastEditTime: 2021-08-14 23:34:22
+ * @LastEditTime: 2021-08-22 16:39:08
  * @LastEditors: Please set LastEditors
  * @Description: 发起进场申请
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/new.js
@@ -37,7 +37,6 @@ let defaultData = {
 };
 let userInfo = global.userInfo;
 const New = props => {
-  console.log(props.navigation);
   const [stuffLists, setstuffLists] = useState([defaultData]);
   const [professional, setProfessional] = useState('选择专业'); // 专业 显示名称
   const [majorValue, setMajorValue] = useState(0); // 选中value
@@ -59,9 +58,6 @@ const New = props => {
   const [materialsList, setMaterialsList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
   const [curId, setCurId] = useState('');
-  useEffect(() => {
-    console.log(isNaN('放'));
-  }, []);
   // 添加材料
   const addStuff = () => {
     let isEmpty = false;
@@ -87,7 +83,13 @@ const New = props => {
     if (notNum) {
       return Toast.fail('数量为数字');
     }
-    let data = {...defaultData};
+
+    let data = {
+      materialsName: '',
+      materialsSpecs: '',
+      materialsNum: '',
+      id: new Date().getTime(),
+    };
     data.id = new Date().getTime();
     setstuffLists(state => {
       return [...state, data];
@@ -99,8 +101,7 @@ const New = props => {
     if (newList.length === 1) {
       return Toast.info('至少保留一项');
     }
-    const Index = newList.findIndex(v => v === num);
-    newList.splice(Index, 1);
+    newList.splice(num, 1);
     setstuffLists(newList);
   };
   // 提交材料
@@ -179,7 +180,6 @@ const New = props => {
       fileUrl,
       materials: materials,
     };
-    console.log('新增parms', parms);
     try {
       const res = await addApproachApply(parms);
       if (res.data.code === 200) {
@@ -208,7 +208,6 @@ const New = props => {
     setCurId(id);
     try {
       const res = await getMaterialsByName(name);
-      console.log('模糊查询材料名称/appapi/selectMaterialsByName', res.data);
       let list = res.data.data || [];
       setMaterialsList(list);
     } catch (error) {
@@ -457,7 +456,6 @@ const New = props => {
                       styles.dropdownTextHighlightStyle
                     }
                     onSelect={value => {
-                      console.log('专业', value);
                       // setMajorValue(item.value);
                       setProfessional(MAJOR_LIST[value]);
                     }}

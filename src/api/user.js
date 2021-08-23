@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 15:22:36
- * @LastEditTime: 2021-08-20 15:35:24
+ * @LastEditTime: 2021-08-22 15:21:24
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/api/user.js
@@ -14,7 +14,7 @@ if (global.userInfo && global.userInfo.idCard) {
   idCard = global.userInfo.idCard;
 }
 axios.defaults.headers.common['idCard'] = idCard;
-console.log('global.userInfo.token', global.userInfo.token);
+console.log('api 获取token', global.userInfo.token);
 // 登录
 export const login = params =>
   fetch.post('/appapi/selectAppUserForLogin', params);

@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-26 21:48:45
- * @LastEditTime: 2021-08-14 20:56:32
+ * @LastEditTime: 2021-08-22 16:01:28
  * @LastEditors: Please set LastEditors
  * @Description: 材料管理菜单页
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/index.js
@@ -12,11 +12,11 @@ import {
   StyleSheet,
   Text,
   View,
-  ScrollView,
   Image,
   TouchableWithoutFeedback,
 } from 'react-native';
-import {getNew, getUserMenu} from '../../api/user';
+import {getUserMenu} from '../../api/user';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 const list = [
   {
     url: require('../../assets/stuff/qingdan.png'),
@@ -62,23 +62,33 @@ const Stuff = props => {
           .childMenuList || [];
       if (mLists.length) {
         mLists.forEach(item => {
+          let btns = item.buttonList.filter(v =>
+            v.buttonTitle.includes('发起'),
+          );
+          let isShow = btns.length > 0;
           if (item.menuName === 'materialList') {
+            list[0].isShow = isShow;
             newList.push(list[0]);
           }
           if (item.menuName === 'approachManagement') {
+            list[1].isShow = isShow;
             newList.push(list[1]);
           }
           if (item.menuName === 'warehousingMangement') {
+            list[3].isShow = isShow;
             newList.push(list[3]);
           }
           if (item.menuName === 'deliveryManagement') {
+            list[4].isShow = isShow;
             newList.push(list[4]);
           }
           if (item.menuName === 'exitManagement') {
+            list[2].isShow = isShow;
             newList.push(list[2]);
           }
         });
         setmenuLists(newList);
+        await AsyncStorage.setItem('menuList', JSON.stringify(newList));
       }
     } catch (error) {
       console.error();

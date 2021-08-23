@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-14 21:50:21
+ * @LastEditTime: 2021-08-22 16:34:32
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -19,7 +19,7 @@ import {
   Image,
   Dimensions,
 } from 'react-native';
-import {Toast} from '@ant-design/react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import ModalDropdown from 'react-native-modal-dropdown';
 import {IconOutline} from '@ant-design/icons-react-native';
 import Empty from '../../../components/Empty';
@@ -44,9 +44,14 @@ export default function Approach(props) {
   const [processName, setProcessName] = useState('选择流程'); // 显示名称
   const [processValue, setProcessValue] = useState(0); // 选中value
   const [professional, setProfessional] = useState('选择专业'); // 专业 显示名称
+
+  const [appIsShow, setappIsShow] = useState(true);
   useEffect(() => {
     (async () => {
-      // setLoading(true);
+      let lists = JSON.parse(await AsyncStorage.getItem('menuList'));
+      let isShow = lists.find(v => v.route === 'approach').isShow;
+      setappIsShow(isShow);
+      setLoading(true);
       await getLists(1);
     })();
   }, []);
@@ -404,24 +409,26 @@ export default function Approach(props) {
                 </Text>
               </View>
             </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback
-              onPress={() => {
-                props.navigation.push('newapproach');
-              }}>
-              <View
-                style={{
-                  backgroundColor: '#108EE9',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 6,
-                  height: 38,
-                  width: 80,
+            {appIsShow && (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  props.navigation.push('newapproach');
                 }}>
-                <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                  发起申请
-                </Text>
-              </View>
-            </TouchableWithoutFeedback>
+                <View
+                  style={{
+                    backgroundColor: '#108EE9',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 6,
+                    height: 38,
+                    width: 80,
+                  }}>
+                  <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
+                    发起申请
+                  </Text>
+                </View>
+              </TouchableWithoutFeedback>
+            )}
           </View>
         </View>
         {/* list */}

@@ -35,26 +35,26 @@ const IndexPage = props => {
   const [newsNum, setNewsNum] = useState(0);
   const [loading, setLoading] = useState(true);
   // !要去掉注释
-  // useEffect(() => {
-  //   const navFocusListener = props.navigation.addListener('focus', async () => {
-  //     await getNews();
-  //     if (JSON.stringify(global.userInfo) === '{}') {
-  //       let info = await AsyncStorage.getItem('userInfo');
-  //       if (JSON.stringify(info) === 'null') {
-  //         goLogin();
-  //       } else {
-  //         global.userInfo = JSON.parse(info);
-  //       }
-  //       setUserMsg(global.userInfo);
-  //     } else {
-  //       setUserMsg(global.userInfo);
-  //     }
-  //     setLoading(false);
-  //   });
-  //   return () => {
-  //     navFocusListener.remove();
-  //   };
-  // }, []);
+  useEffect(() => {
+    const navFocusListener = props.navigation.addListener('focus', async () => {
+      await getNews();
+      if (JSON.stringify(global.userInfo) === '{}') {
+        let info = await AsyncStorage.getItem('userInfo');
+        if (JSON.stringify(info) === 'null') {
+          goLogin();
+        } else {
+          global.userInfo = JSON.parse(info);
+        }
+        setUserMsg(global.userInfo);
+      } else {
+        setUserMsg(global.userInfo);
+      }
+      setLoading(false);
+    });
+    return () => {
+      navFocusListener.remove();
+    };
+  }, []);
   useEffect(() => {
     (async () => {
       if (JSON.stringify(global.userInfo) === '{}') {
@@ -85,14 +85,14 @@ const IndexPage = props => {
                 route: 'material',
               },
               {
+                url: require('../../assets/stuff.jpg'),
+                title: '材料管理',
+                route: 'stuffMenu',
+              },
+              {
                 url: require('../../assets/setting.jpg'),
                 title: '设置',
                 route: 'setting',
-              },
-              {
-                url: require('../../assets/material.png'),
-                title: '材料管理',
-                route: 'stuffMenu',
               },
             ]
           : [
@@ -192,8 +192,8 @@ const IndexPage = props => {
   };
   const getPower = async () => {
     try {
-      const res = await getUserMenu();
-      // console.log('菜单权限', JSON.stringify(res.data));
+      await getUserMenu();
+      console.log('菜单权限');
     } catch (error) {
       console.error();
     }

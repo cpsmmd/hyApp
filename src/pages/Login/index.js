@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 15:41:45
- * @LastEditTime: 2021-08-03 21:14:36
+ * @LastEditTime: 2021-08-22 15:15:45
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Login/index.js
@@ -26,15 +26,15 @@ import {Button, Toast} from '@ant-design/react-native';
 import JSEncrypt from 'jsencrypt';
 import {PUB_KEY} from '../../util/constants';
 import {login} from '../../api/user';
-import {dealFail} from '../../util/common';
 import MQTT from 'sp-react-native-mqtt';
 const Login = props => {
-  // 412825198903031210
-  // 031210
   const [idCard, setIdCard] = useState('');
   const [userPwd, setUserPwd] = useState('');
   useEffect(() => {
-    // dealMqtt();
+    (async () => {
+      let info = await AsyncStorage.getItem('userInfo');
+      console.log('获取用户信息', info);
+    })();
   }, []);
   const loginAccount = async () => {
     if (idCard.trim().length === 0) {
@@ -67,49 +67,6 @@ const Login = props => {
   };
   const editPw = () => {
     props.navigation.push('editPw');
-  };
-  const dealMqtt = () => {
-    // mqtt://116.62.231.156:8900/warning/app/data
-    // console.log('ready');
-    MQTT.createClient({
-      uri: 'mqtt://116.62.231.156:1883',
-      clientId: 'mqttx_5afa9f86hhdjsdwefiwe22i',
-      user: 'guest',
-      pass: 'guest',
-      tls: false,
-    })
-      .then(function (client) {
-        console.log('client', client);
-        client.on('closed', function () {
-          console.log('mqtt.event.closed');
-        });
-
-        client.on('error', function (msg) {
-          console.log('mqtt.event.error', msg);
-        });
-
-        client.on('message', function (msg) {
-          console.log('mqtt.event.message', msg);
-        });
-
-        client.on('connect', function () {
-          console.log('cps2-----------connected');
-          // client.subscribe('/warning/app/data', function (err) {
-          //   if (!err) {
-          //     console.log('cps3-----------connected');
-          //     client.publish('/warning/app/data', 'Hello mqtt');
-          //   }
-          // });
-          // client.subscribe('/data', 0);
-          // client.publish('/data', 'test', 0, false);
-        });
-
-        client.connect();
-        // client.publish('/warning/app/data', 'Hello mqtt');
-      })
-      .catch(function (err) {
-        console.error('mqtt连接失败', err);
-      });
   };
   return (
     <SafeAreaView forceInset={{top: 0, bottom: 0}}>

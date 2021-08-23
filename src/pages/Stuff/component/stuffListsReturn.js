@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:57:34
- * @LastEditTime: 2021-08-22 16:50:32
+ * @LastEditTime: 2021-08-22 14:55:38
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/component/stuffLists.js
@@ -34,26 +34,12 @@ const StuffLists = props => {
                   <Text style={styles.value}>{v.supplierName}</Text>
                 </View>
                 <View style={[styles.flex_row, {flex: 1}]}>
-                  <Text style={styles.title}>领用数量：</Text>
+                  <Text style={styles.title}>归还数量：</Text>
                   <Text style={styles.value}>{v.outboundNum}</Text>
                 </View>
               </View>
             );
           })}
-          {/* <View style={[styles.flex_row, {marginTop: 8}]}>
-            <View style={[styles.flex_row, {flex: 1}]}>
-              <Text style={styles.title}>供应商名称：</Text>
-              <Text style={styles.value}>
-                {item.supplierNames[0].supplierName}
-              </Text>
-            </View>
-            <View style={[styles.flex_row, {flex: 1}]}>
-              <Text style={styles.title}>领用数量：</Text>
-              <Text style={styles.value}>
-                {item.supplierNames[0].outboundNum}
-              </Text>
-            </View>
-          </View> */}
         </View>
       ))}
     </View>

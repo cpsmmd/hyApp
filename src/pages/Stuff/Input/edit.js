@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-08-01 22:39:56
- * @LastEditTime: 2021-08-16 09:36:45
+ * @LastEditTime: 2021-08-22 22:07:31
  * @LastEditors: Please set LastEditors
  * @Description: 详情、入库
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/edit.js
@@ -19,8 +19,10 @@ import {
   Platform,
   TextInput,
   Dimensions,
+  Modal,
 } from 'react-native';
 import SyanImagePicker from 'react-native-syan-image-picker';
+import ImageViewer from 'react-native-image-zoom-viewer';
 import ModalDropdown from 'react-native-modal-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Button, Toast} from '@ant-design/react-native';
@@ -115,13 +117,15 @@ const EditApproach = props => {
 
   const [warehouseMaterials, setwarehouseMaterials] = useState([]);
   const [approvalContent, setapprovalContent] = useState('');
-  const [fileList, setfileList] = useState([]);
+
+  // 查看图片
+  const [imageModal, setimageModal] = useState(false);
+  const [images, setimages] = useState([]);
   // 设置标题
   useEffect(() => {
     props.navigation.setOptions({
       title: menuObj[props.route.params.type],
     });
-    console.log('props.route.params.type', menuObj[props.route.params.type]);
     if (routeType !== 'new') {
       getDetail();
     }
@@ -131,7 +135,6 @@ const EditApproach = props => {
     try {
       const res = await getInputDetail(props.route.params.id);
       if (res.data.code === 200) {
-        console.log('详情', JSON.stringify(res.data.data));
         setGetInfos(res.data.data);
         let info = res.data.data.approachRootBean;
         setDetailInfo(info);
@@ -149,23 +152,64 @@ const EditApproach = props => {
         setApprovalData(info.approvalProcedureDtos);
         // 入库流程
         sethyWarehouseDtos(res.data.data.hyWarehouseDtos);
-        // 当是approval的时候 warehouseMaterials
+        // 当是approval的时候 warehouseMaterials（判断入库总数与申请总数是否相等）
         if (routeType === 'approave') {
-          if (res.data.data.hyWarehouseDtos.length === 0) {
-            let list = [];
-            info.materials.map(v => {
-              list.push({
-                id: v.id,
-                lackNum: '',
-                materialsName: v.materialsName,
-                materialsSpecs: v.materialsSpecs,
-                warehouseNum: '',
-                materialsNum: v.materialsNum,
+          // 入库总数列表
+          let inputLIst = info.materials;
+          // 入库信息列表
+          let appLIst = [];
+          let hyList = res.data.data.hyWarehouseDtos;
+          if (hyList.length > 0) {
+            appLIst = hyList[hyList.length - 1].warehouseMaterials;
+          }
+          let listcc = [];
+          if (appLIst.length > 0) {
+            inputLIst.forEach(item => {
+              appLIst.map(v => {
+                if (
+                  item.materialsName === v.materialsName &&
+                  item.materialsSpecs === v.materialsSpecs
+                ) {
+                  if (item.materialsNum !== v.warehouseNum) {
+                    listcc.push({
+                      id: item.id,
+                      lackNum: '',
+                      materialsName: item.materialsName,
+                      materialsSpecs: item.materialsSpecs,
+                      warehouseNum: '',
+                      materialsNum: item.materialsNum,
+                    });
+                  }
+                }
               });
             });
-            setwarehouseMaterials(list);
+          } else {
+            inputLIst.forEach(item => {
+              listcc.push({
+                id: item.id,
+                lackNum: '',
+                materialsName: item.materialsName,
+                materialsSpecs: item.materialsSpecs,
+                warehouseNum: '',
+                materialsNum: item.materialsNum,
+              });
+            });
           }
+          setwarehouseMaterials(listcc);
         }
+        // 入库凭证图片
+        let imgs = [];
+        res.data.data.hyWarehouseDtos.map(v1 => {
+          if (v1.hyWarehouseExplain) {
+            let imgs2 = JSON.parse(v1.hyWarehouseExplain.warehouseUrl) || [];
+            imgs2.map(v2 => {
+              imgs.push({
+                url: `${BSAE_IMAGE_URL}${v2}?v=3&s=460`,
+              });
+            });
+          }
+        });
+        setimages(imgs);
       } else {
         dealFail(props, res.data.code, res.data.message);
       }
@@ -179,8 +223,7 @@ const EditApproach = props => {
     if (newList.length === 1) {
       return Toast.info('至少保留一项');
     }
-    const Index = newList.findIndex(v => v === num);
-    newList.splice(Index, 1);
+    newList.splice(num, 1);
     setstuffLists(newList);
   };
   // 审批
@@ -412,8 +455,6 @@ const EditApproach = props => {
                         </Text>
                       </View>
                       <View style={[styles.flex_row, {marginTop: 10}]}>
-                        <Text style={styles.stuff_item_title}> 缺补数量:</Text>
-                        <Text style={styles.item_de_value}>{item.lackNum}</Text>
                         <Text
                           style={[styles.stuff_item_title, {marginLeft: 6}]}>
                           入库数量：
@@ -421,6 +462,8 @@ const EditApproach = props => {
                         <Text style={styles.item_de_value}>
                           {item.warehouseNum}
                         </Text>
+                        <Text style={styles.stuff_item_title}> 缺补数量:</Text>
+                        <Text style={styles.item_de_value}>{item.lackNum}</Text>
                       </View>
                     </View>
                   );
@@ -430,6 +473,13 @@ const EditApproach = props => {
                   <View style={{flex: 1}}>
                     <Text style={{color: '#999'}}>
                       {v.hyWarehouseExplain.content}
+                    </Text>
+                    <Text style={{color: '#999', marginTop: 10}}>
+                      入库时间：{v.hyWarehouseExplain.warehouseTime}
+                    </Text>
+                    <Text style={{color: '#999'}}>
+                      {' '}
+                      入库人：{v.hyWarehouseExplain.userName}
                     </Text>
                   </View>
                 </View>
@@ -446,7 +496,11 @@ const EditApproach = props => {
                         {JSON.parse(v.hyWarehouseExplain.warehouseUrl).map(
                           gg => (
                             <View key={gg}>
-                              <TouchableWithoutFeedback>
+                              <TouchableWithoutFeedback
+                                onPress={() => {
+                                  console.log(1111);
+                                  setimageModal(true);
+                                }}>
                                 <Image
                                   style={{
                                     height: 160,
@@ -477,7 +531,7 @@ const EditApproach = props => {
     setCurId(id);
     try {
       const res = await getMaterialsByName(name);
-      console.log('模糊查询材料名称/appapi/selectMaterialsByName', res.data);
+      // console.log('模糊查询材料名称/appapi/selectMaterialsByName', res.data);
       let list = res.data.data || [];
       setMaterialsList(list);
     } catch (error) {
@@ -497,7 +551,6 @@ const EditApproach = props => {
     SyanImagePicker.showImagePicker(imgOptions, async (err, photos) => {
       if (err) {
         // 取消选择
-        console.log('取消');
         return;
       }
       let data = new FormData();
@@ -507,10 +560,8 @@ const EditApproach = props => {
         type: 'image/jpeg',
       });
       data.append('type', 3);
-      console.log(photos);
       try {
         const res = await upLoadFile(data);
-        console.log('success', res.data);
         if (res.data.code === 200) {
           // setsignFileurl(res.data.data);
           let newLists = [...logPics];
@@ -518,13 +569,12 @@ const EditApproach = props => {
           setLogPics(newLists);
         }
       } catch (error) {
-        console.log('error', error);
+        console.error('error', error);
       }
       // 选择成功，渲染图片
       // ...
     });
   };
-  // 入库信息
   return (
     <View>
       <KeyboardAvoidingView>
@@ -937,8 +987,20 @@ const EditApproach = props => {
               <View style={{paddingLeft: 10, backgroundColor: '#fff'}}>
                 {approvalData.length ? (
                   <View>
-                    {approvalData.map(item => (
+                    {approvalData.map((item, index) => (
                       <View>
+                        <Text
+                          style={{
+                            display: 'flex',
+                            marginBottom: 5,
+                            marginTop: 10,
+                            width: '100%',
+                            textAlign: 'center',
+                            fontSize: 16,
+                            color: '#b7eb8f',
+                          }}>
+                          第{index + 1}次审批流程
+                        </Text>
                         <View style={styles.other_item4}>
                           <Text style={styles.other_title}>审批流程：</Text>
                           <RenderApproach data={item.approvalDtos} />
@@ -954,31 +1016,64 @@ const EditApproach = props => {
               </View>
             </View>
             {/* 入库信息 */}
-            {routeType === 'detail' && <RenderInput />}
+            <RenderInput />
             {/* 提交 */}
             {routeType === 'approave' && (
               <View>
                 {warehouseMaterials.length ? (
                   <View>
-                    <Text
-                      style={{
-                        fontSize: 16,
-                        fontWeight: 'bold',
-                        color: '#1890ff',
-                      }}>
-                      入库信息
-                    </Text>
+                    <Text style={styles.mode_title}>入库信息</Text>
                     <View style={{backgroundColor: '#fff', paddingLeft: 10}}>
                       {warehouseMaterials.map(item => {
                         return (
                           <View key={item.id} style={styles.stuff_items}>
-                            <View style={styles.flex_row}>
-                              <Text style={styles.stuff_item_title}>
-                                材料名称:
+                            <View
+                              style={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                              }}>
+                              <View style={styles.flex_row}>
+                                <Text style={styles.stuff_item_title}>
+                                  材料名称:
+                                </Text>
+                                <Text
+                                  style={{
+                                    color: '#999',
+                                    fontSize: 14,
+                                    marginRight: 20,
+                                  }}>
+                                  {item.materialsName}
+                                </Text>
+                              </View>
+                              <View
+                                style={[
+                                  styles.flex_row,
+                                  {marginLeft: 'auto', marginRight: 20},
+                                ]}>
+                                <Text style={styles.stuff_item_title}>
+                                  规格：
+                                </Text>
+                                <Text style={{color: '#999', fontSize: 14}}>
+                                  {item.materialsSpecs}
+                                </Text>
+                              </View>
+                            </View>
+                            <View style={[styles.flex_row, {marginTop: 10}]}>
+                              <Text style={[styles.stuff_item_title]}>
+                                入库数量：
                               </Text>
                               <TextInput
-                                value={item.materialsName}
-                                editable={false}
+                                onChangeText={text => {
+                                  let newList = [...warehouseMaterials];
+                                  newList.map(v => {
+                                    if (v.id === item.id) {
+                                      v.warehouseNum = text;
+                                    }
+                                  });
+                                  setwarehouseMaterials(newList);
+                                }}
+                                value={item.warehouseNum}
                                 style={styles.input_sty2}
                                 placeholder="请输入"
                               />
@@ -998,40 +1093,6 @@ const EditApproach = props => {
                                   setwarehouseMaterials(newList);
                                 }}
                                 value={item.lackNum}
-                                style={styles.input_sty2}
-                                placeholder="请输入"
-                              />
-                            </View>
-                            <View style={[styles.flex_row, {marginTop: 10}]}>
-                              <Text style={styles.stuff_item_title}>
-                                规格：
-                              </Text>
-                              <TextInput
-                                value={item.materialsSpecs}
-                                editable={false}
-                                style={styles.input_sty2}
-                                placeholder="请输入"
-                              />
-                            </View>
-                            <View style={[styles.flex_row, {marginTop: 10}]}>
-                              <Text
-                                style={[
-                                  styles.stuff_item_title,
-                                  {marginLeft: 6},
-                                ]}>
-                                入库数量：
-                              </Text>
-                              <TextInput
-                                onChangeText={text => {
-                                  let newList = [...warehouseMaterials];
-                                  newList.map(v => {
-                                    if (v.id === item.id) {
-                                      v.warehouseNum = text;
-                                    }
-                                  });
-                                  setwarehouseMaterials(newList);
-                                }}
-                                value={item.warehouseNum}
                                 style={styles.input_sty2}
                                 placeholder="请输入"
                               />
@@ -1180,6 +1241,21 @@ const EditApproach = props => {
           </ScrollView>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
+      <Modal visible={imageModal} transparent={true}>
+        <ImageViewer
+          onClick={() => {
+            // 图片单击事件
+            setimageModal(false);
+          }}
+          enableImageZoom={true} // 是否开启手势缩放
+          saveToLocalByLongPress={false} //是否开启长按保存
+          // menuContext={{saveToLocal: '保存图片', cancel: '取消'}}
+          imageUrls={images}
+          // onSave={url => {
+          //   savePhoto(url);
+          // }}
+        />
+      </Modal>
     </View>
   );
 };

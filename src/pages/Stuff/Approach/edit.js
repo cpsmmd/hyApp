@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-15 21:39:44
+ * @LastEditTime: 2021-08-22 17:03:48
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -18,7 +18,9 @@ import {
   Image,
   Platform,
   TextInput,
+  Modal,
 } from 'react-native';
+import ImageViewer from 'react-native-image-zoom-viewer';
 import ModalDropdown from 'react-native-modal-dropdown';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {Button, Toast} from '@ant-design/react-native';
@@ -80,6 +82,10 @@ const EditApproach = props => {
   const [curId, setCurId] = useState('');
   // 审批
   const [content, setContent] = useState('');
+
+  // 查看图片
+  const [imageModal, setimageModal] = useState(false);
+  const [images, setimages] = useState([]);
   // 设置标题
   useEffect(() => {
     props.navigation.setOptions({
@@ -101,7 +107,6 @@ const EditApproach = props => {
         setUnloadingRequire(info.unloadingRequire);
         setContractName(info.contractName);
         setDate(info.approachTime);
-        console.log('info.approachTime', info.approachTime);
         setSupplierName(info.supplierName);
         setSupplierContact(info.supplierContact);
         setSupplierMobile(info.supplierMobile);
@@ -140,7 +145,12 @@ const EditApproach = props => {
     if (notNum) {
       return Toast.fail('数量为数字');
     }
-    let data = {...defaultData};
+    let data = {
+      materialsName: '',
+      materialsSpecs: '',
+      materialsNum: '',
+      id: new Date().getTime(),
+    };
     data.id = new Date().getTime();
     setstuffLists(state => {
       return [...state, data];
@@ -152,8 +162,7 @@ const EditApproach = props => {
     if (newList.length === 1) {
       return Toast.info('至少保留一项');
     }
-    const Index = newList.findIndex(v => v === num);
-    newList.splice(Index, 1);
+    newList.splice(num, 1);
     setstuffLists(newList);
   };
   // 修改提交材料
@@ -330,7 +339,12 @@ const EditApproach = props => {
               <Text style={styles.other_title}>{v.userName}审批意见：</Text>
               <View style={{flex: 1}}>
                 <Text style={{color: '#808695'}}>{v.content || '暂无'}</Text>
-                <Text style={{backgroundColor: '#fff', color: '#808695'}}>
+                <Text
+                  style={{
+                    backgroundColor: '#fff',
+                    color: '#808695',
+                    marginTop: 5,
+                  }}>
                   审批时间：{v.approvalTime}
                 </Text>
               </View>
@@ -350,7 +364,7 @@ const EditApproach = props => {
           url: `${BSAE_IMAGE_URL}${v}`,
         });
       });
-      // setImages(image);
+      // setimages(image);
       return (
         <View style={{backgroundColor: '#fff'}}>
           <View style={styles.other_item3}>
@@ -397,7 +411,7 @@ const EditApproach = props => {
                   <View key={item}>
                     <TouchableWithoutFeedback
                       onPress={() => {
-                        // setModalShow(true);
+                        // setimageModal(true);
                       }}>
                       <Image
                         style={{
@@ -784,8 +798,20 @@ const EditApproach = props => {
             <View style={{paddingLeft: 10, backgroundColor: '#fff'}}>
               {approvalData.length ? (
                 <View>
-                  {approvalData.map(item => (
+                  {approvalData.map((item, index) => (
                     <View>
+                      <Text
+                        style={{
+                          display: 'flex',
+                          marginBottom: 5,
+                          marginTop: 10,
+                          width: '100%',
+                          textAlign: 'center',
+                          fontSize: 16,
+                          color: '#b7eb8f',
+                        }}>
+                        第{index + 1}次审批流程
+                      </Text>
                       <View style={styles.other_item4}>
                         <Text style={styles.other_title}>审批流程：</Text>
                         <RenderApproach data={item.approvalDtos} />
@@ -895,6 +921,21 @@ const EditApproach = props => {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      <Modal visible={imageModal} transparent={true}>
+        <ImageViewer
+          onClick={() => {
+            // 图片单击事件
+            setimageModal(false);
+          }}
+          enableImageZoom={true} // 是否开启手势缩放
+          saveToLocalByLongPress={false} //是否开启长按保存
+          // menuContext={{saveToLocal: '保存图片', cancel: '取消'}}
+          imageUrls={images}
+          // onSave={url => {
+          //   savePhoto(url);
+          // }}
+        />
+      </Modal>
     </View>
   );
 };

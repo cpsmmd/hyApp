@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-14 17:11:55
+ * @LastEditTime: 2021-08-22 22:31:42
  * @LastEditors: Please set LastEditors
  * @Description: 出库管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -19,8 +19,10 @@ import {
   Platform,
   TextInput,
   Dimensions,
+  Modal,
 } from 'react-native';
 import SyanImagePicker from 'react-native-syan-image-picker';
+import ImageViewer from 'react-native-image-zoom-viewer';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import {
   Autocomplete,
@@ -30,6 +32,7 @@ import {
 } from '@ui-kitten/components';
 import StuffLists2 from '../component/stuffLists2';
 import StuffLists3 from '../component/stuffLists3';
+import StuffListsReturn from '../component/stuffListsReturn';
 import {Button, Toast} from '@ant-design/react-native';
 import {BSAE_IMAGE_URL} from '../../../util/constants';
 import {
@@ -109,21 +112,19 @@ const EditOutput = props => {
   const [show, setShow] = useState(false);
   const [mode, setMode] = useState('date');
   const [timeMode, settimeMode] = useState('date');
-  const [images, setImages] = useState([]);
 
   const [purpose, setpPurpose] = useState('');
   const [theme, setTheme] = useState(''); // 申请主题
 
   const [approvalData, setApprovalData] = useState({});
   const [confirmMaterials, setconfirmMaterials] = useState([]); // 库管理员确认信息
+  const [returnMaterials, setreturnMaterials] = useState([]); // 归还材料信息
+  const [returnImgs, setreturnImgs] = useState([]); // 归还凭证图片
   // 模糊搜索材料名称
   const [allMaterialLists, setallMaterialLists] = useState([]);
   const [materialsList, setMaterialsList] = useState([]);
-  const [supplierList, setSupplierList] = useState([]);
-  const [curId, setCurId] = useState('');
   // 审批
   const [content, setContent] = useState('');
-  const [signFileurl, setsignFileurl] = useState(''); // 上传凭证
   // 复核 签收
   const [logPics, setLogPics] = useState([]);
   const [signContent, setSignContent] = useState(''); // 上传签收说明
@@ -131,6 +132,13 @@ const EditOutput = props => {
   const [confirmList, setrconfirmList] = useState([]); // 确认归还凭证
   // 编辑 待库管理员确认信息
   const [materiasEdit, setmateriasEdit] = useState([]);
+
+  // 查看签收凭证
+  // 查看图片
+  const [imageModal, setimageModal] = useState(false);
+  const [images, setimages] = useState([]);
+  const [imageModal2, setimageModal2] = useState(false);
+  const [images2, setimages2] = useState([]);
   // 设置标题
   useEffect(() => {
     props.navigation.setOptions({
@@ -152,8 +160,6 @@ const EditOutput = props => {
     try {
       const res = await reardOutputApply(props.route.params.id);
       if (res.data.code === 200) {
-        console.log('---------出库详情------', JSON.stringify(res.data.data));
-        // setLists(res.data.data);
         let info = res.data.data;
         let newmaterials = info.materials || [];
         newmaterials.map(v => {
@@ -167,6 +173,17 @@ const EditOutput = props => {
         setpPurpose(info.purpose);
         setApprovalData(info.approvalProcedureDtos);
         setconfirmMaterials(info.confirmMaterials);
+        setreturnMaterials(info.returnMaterials || []);
+        // 归还凭证图片
+        let imgs = JSON.parse(info.returnFileurl) || [];
+        let imgr = [];
+        imgs.map(vv => {
+          imgr.push({
+            url: `${BSAE_IMAGE_URL}${vv}?v=3&s=460`,
+          });
+        });
+        setimages2(imgr);
+        setreturnImgs(imgs);
         if (routeType === 'edit') {
           // 当时待库管理员确认时
           let list2 = info.materials || [];
@@ -182,7 +199,19 @@ const EditOutput = props => {
         if (routeType === 'confirm') {
           setrconfirmList([...newmaterials]);
         }
-        // console.log('审批流程', JSON.stringify(info.approvalProcedureDtos));
+        // 签收查看图片
+        let imgq = [];
+        info.approvalProcedureDtos.map(v1 => {
+          if (v1.outConfirm) {
+            let imgs2 = JSON.parse(v1.outConfirm.signFileurl) || [];
+            imgs2.map(v2 => {
+              imgq.push({
+                url: `${BSAE_IMAGE_URL}${v2}?v=3&s=460`,
+              });
+            });
+          }
+        });
+        setimages(imgq);
       } else {
         dealFail(props, res.data.code, res.data.message);
       }
@@ -193,8 +222,41 @@ const EditOutput = props => {
   };
   // 添加材料
   const addStuff = () => {
-    let newData = {...defaultData};
-    newData.id = Math.random().toString(16);
+    let isEmpty = false;
+    let notNum = false;
+    stuffLists.map(item => {
+      if (item.materialsName === '') {
+        isEmpty = true;
+      }
+      if (item.materialsSpecs === '') {
+        isEmpty = true;
+      }
+      if (item.supplierName === '') {
+        isEmpty = true;
+      }
+      if (item.materialsNum === '') {
+        isEmpty = true;
+      } else {
+        if (isNaN(item.materialsNum)) {
+          notNum = true;
+        }
+      }
+    });
+    if (isEmpty) {
+      return Toast.fail('材料所有选项均是必填');
+    }
+    if (notNum) {
+      return Toast.fail('数量为数字');
+    }
+    let newData = {
+      materialsName: '',
+      materialsSpecs: '',
+      materialsNum: '',
+      supplierName: '',
+      guigelist: [],
+      supernameList: [],
+      id: Math.random().toString(16),
+    };
     setstuffLists(state => {
       return [...state, newData];
     });
@@ -205,8 +267,7 @@ const EditOutput = props => {
     if (newList.length === 1) {
       return Toast.info('至少保留一项');
     }
-    const Index = newList.findIndex(v => v === num);
-    newList.splice(Index, 1);
+    newList.splice(num, 1);
     setstuffLists(newList);
   };
   // 修改提交材料 done
@@ -551,7 +612,7 @@ const EditOutput = props => {
             </View>
           </View>
           <View style={styles.other_item3}>
-            <Text style={styles.other_title}>上传凭证：</Text>
+            <Text style={styles.other_title}>签收凭证：</Text>
             <View style={{flex: 1}}>
               <View
                 style={{
@@ -563,7 +624,7 @@ const EditOutput = props => {
                   <View key={item}>
                     <TouchableWithoutFeedback
                       onPress={() => {
-                        // setModalShow(true);
+                        setimageModal(true);
                       }}>
                       <Image
                         style={{
@@ -949,14 +1010,27 @@ const EditOutput = props => {
                   </View>
                 </View>
               ) : null}
+              {/* 审批流程 */}
               {approvalData.length ? (
                 <View>
                   <Text style={{color: '#1890ff', fontSize: 16, padding: 12}}>
                     审批流程
                   </Text>
                   <View style={{backgroundColor: '#fff', paddingLeft: 20}}>
-                    {approvalData.map(item => (
+                    {approvalData.map((item, index) => (
                       <View>
+                        <Text
+                          style={{
+                            display: 'flex',
+                            marginBottom: 5,
+                            marginTop: 10,
+                            width: '100%',
+                            textAlign: 'center',
+                            fontSize: 16,
+                            color: '#b7eb8f',
+                          }}>
+                          第{index + 1}次审批流程
+                        </Text>
                         <View style={styles.other_item4}>
                           <Text style={styles.other_title}>审批流程：</Text>
                           <RenderApproach data={item.approvalDtos} />
@@ -968,6 +1042,49 @@ const EditOutput = props => {
                       </View>
                     ))}
                   </View>
+                </View>
+              ) : null}
+              {/* 归还材料信息 */}
+              {returnMaterials.length ? (
+                <View>
+                  <Text style={{color: '#1890ff', fontSize: 16, padding: 12}}>
+                    归还材料信息
+                  </Text>
+                  <View style={{backgroundColor: '#fff', paddingLeft: 20}}>
+                    <StuffListsReturn data={returnMaterials}></StuffListsReturn>
+                  </View>
+                  {returnImgs.length ? (
+                    <View style={styles.other_item3}>
+                      <Text style={styles.other_title}>归还凭证：</Text>
+                      <View style={{flex: 1}}>
+                        <View
+                          style={{
+                            display: 'flex',
+                            flexDirection: 'row',
+                            flexWrap: 'wrap',
+                          }}>
+                          {returnImgs.map(item => (
+                            <View key={item}>
+                              <TouchableWithoutFeedback
+                                onPress={() => {
+                                  setimageModal2(true);
+                                }}>
+                                <Image
+                                  style={{
+                                    height: 160,
+                                    width: 160,
+                                    marginBottom: 10,
+                                  }}
+                                  source={{uri: `${BSAE_IMAGE_URL}${item}`}}
+                                  resizeMode="contain"
+                                />
+                              </TouchableWithoutFeedback>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    </View>
+                  ) : null}
                 </View>
               ) : null}
             </View>
@@ -1316,71 +1433,29 @@ const EditOutput = props => {
           {/* 确认归还 */}
           {routeType === 'confirm' && (
             <View>
+              <Text style={{color: '#1890ff', fontSize: 16, padding: 12}}>
+                归还材料信息
+              </Text>
               {confirmList.map((item, index) => (
                 <View key={item.id} style={styles.stuff_items}>
                   <View style={styles.flex_row}>
                     <Text style={styles.stuff_item_title}>材料名称：</Text>
-                    <View>
-                      <Autocomplete
-                        style={styles.input_sty}
-                        value={item.materialsName}
-                        onSelect={index => {
-                          let newList = [...stuffLists];
-                          newList.map(v => {
-                            if (v.id === item.id) {
-                              let name = materialsList[index].materialsName;
-                              v.materialsName = name;
-                              let news =
-                                allMaterialLists.filter(
-                                  c => c.materialsName === name,
-                                ) || [];
-                              v.guigelist = news;
-                              v.materialsSpecs = '选择';
-                            }
-                          });
-                          setstuffLists(newList);
-                        }}
-                        onChangeText={text => {
-                          let newList = [...stuffLists];
-                          newList.map(v => {
-                            if (v.id === item.id) {
-                              v.materialsName = text;
-                            }
-                          });
-                          setstuffLists(newList);
-                          getBillData(text.trim());
-                        }}>
-                        {materialsList.map(renderMateriaName)}
-                      </Autocomplete>
+                    <Text
+                      style={{color: '#999', fontSize: 14, marginRight: 20}}>
+                      {item.materialsName}
+                    </Text>
+                    <View
+                      style={{
+                        display: 'flex',
+                        flexDirection: 'row',
+                        marginLeft: 'auto',
+                        marginRight: 20,
+                      }}>
+                      <Text style={styles.stuff_item_title}>规格：</Text>
+                      <Text style={{color: '#999', fontSize: 14}}>
+                        {item.materialsSpecs}
+                      </Text>
                     </View>
-                    {item.materialsName.length ? (
-                      <>
-                        <Text style={styles.stuff_item_title}>规格：</Text>
-                        <Select
-                          style={{width: 120}}
-                          value={item.materialsSpecs}
-                          onSelect={info => {
-                            let newList = [...stuffLists];
-                            newList.map(v => {
-                              if (v.id === item.id) {
-                                v.materialsSpecs =
-                                  item.guigelist[info.row].materialsSpecs;
-                                let news =
-                                  item.guigelist.filter(
-                                    n =>
-                                      n.materialsSpecs === item.materialsSpecs,
-                                  ) || [];
-                                v.supernameList = news;
-                              }
-                            });
-                            setstuffLists(newList);
-                          }}>
-                          {item.guigelist.map(v => (
-                            <SelectItem title={v.materialsSpecs} />
-                          ))}
-                        </Select>
-                      </>
-                    ) : null}
                   </View>
                   {item.materialsSpecs.length ? (
                     <View
@@ -1391,49 +1466,32 @@ const EditOutput = props => {
                         marginTop: 10,
                       }}>
                       <Text style={styles.stuff_item_title}>供应商名称：</Text>
-                      <Select
-                        style={{width: 160}}
-                        value={item.supplierName}
-                        onSelect={info => {
-                          let newList = [...stuffLists];
-                          newList.map(v => {
-                            if (v.id === item.id) {
-                              v.supplierName =
-                                item.supernameList[info.row].supplierName;
-                            }
-                          });
-                          setstuffLists(newList);
-                        }}>
-                        {item.supernameList.map(v => (
-                          <SelectItem title={v.supplierName} />
-                        ))}
-                      </Select>
+                      <Text style={{color: '#999', fontSize: 14}}>
+                        {item.supplierName}
+                      </Text>
                     </View>
                   ) : null}
                   <View style={[styles.flex_row, {marginTop: 10}]}>
-                    {item.materialsSpecs.length ? (
-                      <>
-                        <Text
-                          style={[styles.stuff_item_title, {marginLeft: 6}]}>
-                          归还数量：
-                        </Text>
-                        <TextInput
-                          onChangeText={text => {
-                            let newList = [...stuffLists];
-                            newList.map(v => {
-                              if (v.id === item.id) {
-                                v.materialsNum = text;
-                              }
-                            });
-                            setstuffLists(newList);
-                          }}
-                          value={item.materialsNum.toString()}
-                          style={styles.input_sty}
-                          placeholder="请输入"
-                        />
-                      </>
-                    ) : null}
-                    <TouchableWithoutFeedback
+                    <>
+                      <Text style={[styles.stuff_item_title, {marginLeft: 6}]}>
+                        归还数量：
+                      </Text>
+                      <TextInput
+                        onChangeText={text => {
+                          let newList = [...stuffLists];
+                          newList.map(v => {
+                            if (v.id === item.id) {
+                              v.materialsNum = text;
+                            }
+                          });
+                          setstuffLists(newList);
+                        }}
+                        value={item.materialsNum.toString()}
+                        style={styles.input_sty}
+                        placeholder="请输入"
+                      />
+                    </>
+                    {/* <TouchableWithoutFeedback
                       onPress={() => {
                         delStuff(index);
                       }}>
@@ -1441,7 +1499,7 @@ const EditOutput = props => {
                         style={styles.del_btn}
                         source={require('../../../assets/stuff/del.png')}
                       />
-                    </TouchableWithoutFeedback>
+                    </TouchableWithoutFeedback> */}
                   </View>
                 </View>
               ))}
@@ -1559,6 +1617,36 @@ const EditOutput = props => {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
+      <Modal visible={imageModal} transparent={true}>
+        <ImageViewer
+          onClick={() => {
+            // 图片单击事件
+            setimageModal(false);
+          }}
+          enableImageZoom={true} // 是否开启手势缩放
+          saveToLocalByLongPress={false} //是否开启长按保存
+          // menuContext={{saveToLocal: '保存图片', cancel: '取消'}}
+          imageUrls={images}
+          // onSave={url => {
+          //   savePhoto(url);
+          // }}
+        />
+      </Modal>
+      <Modal visible={imageModal2} transparent={true}>
+        <ImageViewer
+          onClick={() => {
+            // 图片单击事件
+            setimageModal2(false);
+          }}
+          enableImageZoom={true} // 是否开启手势缩放
+          saveToLocalByLongPress={false} //是否开启长按保存
+          // menuContext={{saveToLocal: '保存图片', cancel: '取消'}}
+          imageUrls={images2}
+          // onSave={url => {
+          //   savePhoto(url);
+          // }}
+        />
+      </Modal>
     </View>
   );
 };
@@ -1665,7 +1753,7 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 14,
     flex: 1,
-    paddingVertical: 18,
+    paddingVertical: 12,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',

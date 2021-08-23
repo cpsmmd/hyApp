@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-22 13:09:52
+ * @LastEditTime: 2021-08-22 22:32:26
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -20,10 +20,11 @@ import {
   Dimensions,
 } from 'react-native';
 import ModalDropdown from 'react-native-modal-dropdown';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import {IconOutline} from '@ant-design/icons-react-native';
 import Empty from '../../../components/Empty';
 import Loading from '../../../components/Loading';
-import {PASS_STATUS, MY_PASS, MAJOR_LIST} from '../../../util/constants';
+import {PASS_STATUS_OUTPUT, MY_PASS} from '../../../util/constants';
 import {dealFail} from '../../../util/common';
 import {getOutputApply} from '../../../api/stuff';
 const {height: deviceHeight} = Dimensions.get('window');
@@ -43,8 +44,14 @@ export default function OutputList(props) {
   const [processValue, setProcessValue] = useState(0); // 选中value
   const [processName, setProcessName] = useState('选择流程'); // 显示名称
   const [supplierName, setSupplierName] = useState('');
+
+  // 发起申请按钮
+  const [appIsShow, setappIsShow] = useState(true);
   useEffect(() => {
     (async () => {
+      let lists = JSON.parse(await AsyncStorage.getItem('menuList'));
+      let isShow = lists.find(v => v.route === 'outputList').isShow;
+      setappIsShow(isShow);
       await getLists(1);
     })();
   }, []);
@@ -60,31 +67,39 @@ export default function OutputList(props) {
     };
   }, []);
   // 获取数据
-  const getLists = async num => {
-    let parms = {
-      pageNumber: num,
-      limit,
-      state: stateValue === 0 ? null : processValue,
-      myProcess: processValue === 0 ? null : processValue,
-      belongProject: global.userInfo.belongProject,
-      supplierName,
-      // idCard: global.userInfo.idCard,
-    };
+  const getLists = async (num, statue) => {
+    let parms = {};
+    if (statue === 'all') {
+      parms = {
+        pageNumber: num,
+        limit,
+        state: null,
+        myProcess: null,
+        belongProject: global.userInfo.belongProject,
+        supplierName: null,
+      };
+    } else {
+      console.log('stateValue', stateValue);
+      parms = {
+        pageNumber: num,
+        limit,
+        state: stateValue === 0 ? null : stateValue,
+        myProcess: processValue === 0 ? null : processValue,
+        belongProject: global.userInfo.belongProject,
+        supplierName,
+      };
+    }
     console.log('分页查询出库申请', parms);
     // setLoading(true);
     try {
       const res = await getOutputApply(parms);
       if (res.data.code === 200) {
-        // console.log('res', JSON.stringify(res.data.data));
-        console.log('出库列表', res.data.data);
-        // setLists(res.data.data);
         let list = res.data.data.list || [];
         setIsAll(list.length < limit);
         settableData(state => {
           return [...state, ...list];
         });
       } else {
-        // Toast.fail(res.data.message);
         dealFail(props, res.data.code, res.data.message);
       }
       setLoading(false);
@@ -103,6 +118,17 @@ export default function OutputList(props) {
     settableData([]);
     setPageNumber(1);
     getLists(1);
+  };
+  const reset = async () => {
+    setSupplierName('');
+    setProcessValue(0);
+    setProcessName('选择流程');
+    setStateValue(0);
+    setStateName('选择审批状态');
+    setDrawer(false);
+    settableData([]);
+    setPageNumber(1);
+    getLists(1, 'all');
   };
   // 详情，修改，审批
   const navigationTo = (type, id) => {
@@ -189,7 +215,9 @@ export default function OutputList(props) {
           </Text>
           <Text>
             出库时间：
-            <Text style={styles.list_item_text}>{item.useTime}</Text>
+            <Text style={styles.list_item_text}>
+              {item.useTime.substring(0, 10)}
+            </Text>
           </Text>
         </View>
         <View
@@ -276,7 +304,7 @@ export default function OutputList(props) {
                       <Text style={styles.drawer_item_title}>审批状态：</Text>
                       <ModalDropdown
                         defaultValue={stateName}
-                        options={PASS_STATUS}
+                        options={PASS_STATUS_OUTPUT}
                         renderButtonText={({name}) => name}
                         renderRow={({name}) => (
                           <Text style={styles.row_sty}>{name}</Text>
@@ -332,6 +360,21 @@ export default function OutputList(props) {
                           </Text>
                         </View>
                       </TouchableWithoutFeedback>
+                      <TouchableWithoutFeedback
+                        onPress={() => {
+                          reset();
+                        }}>
+                        <View style={styles.search_modal_btn_cancle}>
+                          <Text
+                            style={{
+                              color: '#333',
+                              fontSize: 14,
+                              lineHeight: 17,
+                            }}>
+                            重置
+                          </Text>
+                        </View>
+                      </TouchableWithoutFeedback>
                     </View>
                   </View>
                 </View>
@@ -369,25 +412,26 @@ export default function OutputList(props) {
                 </Text>
               </View>
             </TouchableWithoutFeedback>
-            <TouchableWithoutFeedback
-              onPress={() => {
-                // props.navigation.push('newapproach');
-                navigationTo('new');
-              }}>
-              <View
-                style={{
-                  backgroundColor: '#108EE9',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: 6,
-                  height: 38,
-                  width: 80,
+            {appIsShow && (
+              <TouchableWithoutFeedback
+                onPress={() => {
+                  navigationTo('new');
                 }}>
-                <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
-                  发起申请
-                </Text>
-              </View>
-            </TouchableWithoutFeedback>
+                <View
+                  style={{
+                    backgroundColor: '#108EE9',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: 6,
+                    height: 38,
+                    width: 80,
+                  }}>
+                  <Text style={{color: '#FFF', fontSize: 14, lineHeight: 17}}>
+                    发起申请
+                  </Text>
+                </View>
+              </TouchableWithoutFeedback>
+            )}
           </View>
         </View>
         {/* list */}
@@ -497,6 +541,8 @@ const styles = StyleSheet.create({
   },
   _operate: {
     marginTop: 50,
+    display: 'flex',
+    flexDirection: 'row',
   },
   search_modal_btn: {
     backgroundColor: '#108EE9',
@@ -507,6 +553,18 @@ const styles = StyleSheet.create({
     height: 38,
     width: 70,
     marginLeft: 70,
+  },
+  search_modal_btn_cancle: {
+    borderWidth: 1,
+    backgroundColor: '#fff',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderColor: '#d9d9d9',
+    borderRadius: 6,
+    height: 38,
+    width: 70,
+    marginLeft: 30,
   },
   detail_btn: {
     fontSize: 12,

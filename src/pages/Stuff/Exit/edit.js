@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 17:40:17
- * @LastEditTime: 2021-08-15 21:32:51
+ * @LastEditTime: 2021-08-22 22:06:46
  * @LastEditors: Please set LastEditors
  * @Description: 退场 (增删改查)
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Exit/edit.js
@@ -104,8 +104,6 @@ const EditExit = props => {
   const [show, setShow] = useState(false);
   const [mode, setMode] = useState('date');
   const [timeMode, settimeMode] = useState('date');
-  const [images, setImages] = useState([]);
-  const [modalShow, setModalShow] = useState(false);
 
   const [otherDirecte, setPotherDirecte] = useState('');
   const [exitDirecte, setExitDirecte] = useState('选择去向');
@@ -120,6 +118,10 @@ const EditExit = props => {
   // 编辑
   const [logPics, setLogPics] = useState([]);
   const [signContent, setSignContent] = useState(''); // 上传退场说明
+
+  // 查看图片
+  const [imageModal, setimageModal] = useState(false);
+  const [images, setimages] = useState([]);
   // 设置标题
   useEffect(() => {
     props.navigation.setOptions({
@@ -134,7 +136,6 @@ const EditExit = props => {
     try {
       const res = await getExitDetail(props.route.params.id);
       if (res.data.code === 200) {
-        console.log('---------退场详情------', JSON.stringify(res.data.data));
         // setLists(res.data.data);
         let info = res.data.data;
         let newmaterials = info.materials || [];
@@ -148,7 +149,19 @@ const EditExit = props => {
         setExitDirecte(info.exitDirecte);
         setDate(info.exitTime);
         setApprovalData(info.approvalProcedureDtos);
-        // console.log('审批流程', JSON.stringify(info.approvalProcedureDtos));
+        // 退场查看图片
+        let imgs = [];
+        info.approvalProcedureDtos.map(v1 => {
+          if (v1.outConfirm) {
+            let imgs2 = JSON.parse(v1.outConfirm?.signFileurl) || [];
+            imgs2.map(v2 => {
+              imgs.push({
+                url: `${BSAE_IMAGE_URL}${v2}?v=3&s=460`,
+              });
+            });
+          }
+        });
+        setimages(imgs);
       } else {
         dealFail(props, res.data.code, res.data.message);
       }
@@ -182,8 +195,15 @@ const EditExit = props => {
     if (notNum) {
       return Toast.fail('数量为数字');
     }
-    let newData = {...defaultData};
-    newData.id = Math.random().toString(16);
+    let newData = {
+      materialsName: '',
+      materialsSpecs: '',
+      materialsNum: '',
+      supplierName: '',
+      guigelist: [],
+      supernameList: [],
+      id: Math.random().toString(16),
+    };
     setstuffLists(state => {
       return [...state, newData];
     });
@@ -194,8 +214,7 @@ const EditExit = props => {
     if (newList.length === 1) {
       return Toast.info('至少保留一项');
     }
-    const Index = newList.findIndex(v => v === num);
-    newList.splice(Index, 1);
+    newList.splice(num, 1);
     setstuffLists(newList);
   };
   // 申请、修改提交材料
@@ -401,7 +420,6 @@ const EditExit = props => {
           url: `${BSAE_IMAGE_URL}${v}`,
         });
       });
-      // setImages(image);
       return (
         <View style={{backgroundColor: '#fff'}}>
           <View style={styles.other_item3}>
@@ -436,7 +454,7 @@ const EditExit = props => {
             </View>
           </View>
           <View style={styles.other_item3}>
-            <Text style={styles.other_title}>上传凭证：</Text>
+            <Text style={styles.other_title}>退场凭证：</Text>
             <View style={{flex: 1}}>
               <View
                 style={{
@@ -448,7 +466,7 @@ const EditExit = props => {
                   <View key={item}>
                     <TouchableWithoutFeedback
                       onPress={() => {
-                        // setModalShow(true);
+                        setimageModal(true);
                       }}>
                       <Image
                         style={{
@@ -517,7 +535,6 @@ const EditExit = props => {
         const res = await upLoadFile(data);
         console.log('success', res.data);
         if (res.data.code === 200) {
-          // setsignFileurl(res.data.data);
           let newLists = [...logPics];
           newLists.push(res.data.data);
           setLogPics(newLists);
@@ -1026,11 +1043,11 @@ const EditExit = props => {
           )}
         </ScrollView>
       </KeyboardAvoidingView>
-      <Modal visible={modalShow} transparent={true}>
+      <Modal visible={imageModal} transparent={true}>
         <ImageViewer
           onClick={() => {
             // 图片单击事件
-            setModalShow(false);
+            setimageModal(false);
           }}
           enableImageZoom={true} // 是否开启手势缩放
           saveToLocalByLongPress={false} //是否开启长按保存
@@ -1145,7 +1162,7 @@ const styles = StyleSheet.create({
     color: '#666',
     fontSize: 14,
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 10,
     flexDirection: 'column',
     justifyContent: 'flex-start',
     alignItems: 'flex-start',

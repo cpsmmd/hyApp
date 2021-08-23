@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-05 10:39:14
- * @LastEditTime: 2021-08-08 23:13:37
+ * @LastEditTime: 2021-08-22 15:12:26
  * @LastEditors: Please set LastEditors
  * @Description: 个人设置
  * @FilePath: hy/hyApp/src/pages/Setting/index.js
@@ -38,7 +38,6 @@ export default function Setting(props) {
       if (res.data.code === 200 || res.data.code === 500) {
         // 清除缓存
         AsyncStorage.clear();
-        // props.navigation.push('login');
         global.userInfo = {};
         props.navigation.dispatch(
           CommonActions.reset({

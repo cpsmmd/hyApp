@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-09 14:03:03
- * @LastEditTime: 2021-06-21 22:53:09
+ * @LastEditTime: 2021-08-22 17:11:10
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Material/newMaterial/index.js
@@ -63,7 +63,7 @@ const imgOptions = {
   sortAscendingByModificationDate: true, // 对照片排序，按修改时间升序，默认是YES。如果设置为NO,最新的照片会显示在最前面，内部的拍照按钮会排在第一个,
   showSelectedIndex: true,
 };
-export default function NewMaterial(props) {
+export default function WatchMaterial(props) {
   const id = props.route.params.id;
   const getLogType = props.route.params.logType;
   const [labelList, setLabelList] = useState([]);

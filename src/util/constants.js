@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-06 13:37:26
- * @LastEditTime: 2021-08-04 00:00:53
+ * @LastEditTime: 2021-08-22 13:34:10
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/util/constants.js
@@ -41,6 +41,17 @@ export const PASS_STATUS = [
   {name: '已进场', value: 4},
   {name: '部分进场', value: 5},
   {name: '拒绝进场', value: 6},
+];
+export const PASS_STATUS_OUTPUT = [
+  {name: '审批中', value: 1},
+  {name: '被驳回', value: 2},
+  {name: '待库管确认', value: 11},
+  {name: '出库中', value: 14},
+  {name: '已出库', value: 15},
+  {name: '申请人确认', value: 12},
+  {name: '已终止', value: 13},
+  {name: '归还中', value: 16},
+  {name: '归还完成', value: 17},
 ];
 export const EXIT_STATUS = [
   {name: '审批中', value: 1},
