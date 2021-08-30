@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-22 22:32:26
+ * @LastEditTime: 2021-08-30 11:46:35
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -31,7 +31,7 @@ const {height: deviceHeight} = Dimensions.get('window');
 import {LOG_TYPE, TYPELOG_OPTIONS} from '../../util/constants';
 export default function OutputList(props) {
   let userInfo = global.userInfo;
-  const limit = 10;
+  const limit = 8;
   const [drawer, setDrawer] = useState(false);
   const [loading, setLoading] = useState(false);
   const [tableData, settableData] = useState([]);
@@ -49,16 +49,18 @@ export default function OutputList(props) {
   const [appIsShow, setappIsShow] = useState(true);
   useEffect(() => {
     (async () => {
+      // setLoading(true);
       let lists = JSON.parse(await AsyncStorage.getItem('menuList'));
       let isShow = lists.find(v => v.route === 'outputList').isShow;
       setappIsShow(isShow);
-      await getLists(1);
+      // await getLists(1);
     })();
   }, []);
   useEffect(() => {
     const navFocusListener = props.navigation.addListener('focus', async () => {
       setDrawer(false);
       settableData([]);
+      // setLoading(true);
       setPageNumber(1);
       await getLists(1);
     });
@@ -68,6 +70,9 @@ export default function OutputList(props) {
   }, []);
   // 获取数据
   const getLists = async (num, statue) => {
+    // if (loading) {
+    //   return;
+    // }
     let parms = {};
     if (statue === 'all') {
       parms = {
@@ -79,7 +84,6 @@ export default function OutputList(props) {
         supplierName: null,
       };
     } else {
-      console.log('stateValue', stateValue);
       parms = {
         pageNumber: num,
         limit,
@@ -90,15 +94,17 @@ export default function OutputList(props) {
       };
     }
     console.log('分页查询出库申请', parms);
-    // setLoading(true);
     try {
       const res = await getOutputApply(parms);
       if (res.data.code === 200) {
         let list = res.data.data.list || [];
-        setIsAll(list.length < limit);
+        console.log('获取数据', list);
+        let nowNum = list.length + tableData.length;
         settableData(state => {
           return [...state, ...list];
         });
+        let totlal = res.data.data.countSize;
+        setIsAll(nowNum === totlal);
       } else {
         dealFail(props, res.data.code, res.data.message);
       }

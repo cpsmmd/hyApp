@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 17:18:24
- * @LastEditTime: 2021-08-22 18:00:57
+ * @LastEditTime: 2021-08-30 11:47:10
  * @LastEditors: Please set LastEditors
  * @Description: 退场管理-列表
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Exit/index.js
@@ -55,7 +55,7 @@ export default function Exit(props) {
       let isShow = lists.find(v => v.route === 'exitList').isShow;
       setappIsShow(isShow);
       setLoading(true);
-      await getLists(1);
+      // await getLists(1);
     })();
   }, []);
   useEffect(() => {

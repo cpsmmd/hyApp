@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-23 20:24:34
+ * @LastEditTime: 2021-08-30 11:59:57
  * @LastEditors: Please set LastEditors
  * @Description: 出库管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -118,6 +118,7 @@ const EditOutput = props => {
 
   const [approvalData, setApprovalData] = useState({});
   const [confirmMaterials, setconfirmMaterials] = useState([]); // 库管理员确认信息
+  const [confirmApproval, setconfirmApproval] = useState({}); // 库管理员确认信息
   const [returnMaterials, setreturnMaterials] = useState([]); // 归还材料信息
   const [returnImgs, setreturnImgs] = useState([]); // 归还凭证图片
   // 模糊搜索材料名称
@@ -173,6 +174,7 @@ const EditOutput = props => {
         setpPurpose(info.purpose);
         setApprovalData(info.approvalProcedureDtos);
         setconfirmMaterials(info.confirmMaterials);
+        setconfirmApproval(info.confirmApproval);
         setreturnMaterials(info.returnMaterials || []);
         // 归还凭证图片
         let imgs = JSON.parse(info.returnFileurl) || [];
@@ -439,7 +441,7 @@ const EditOutput = props => {
       return Toast.fail('归还数量为数字');
     }
     if (!isOk2) {
-      return Toast.fail('规划数量不能大于领取数量');
+      return Toast.fail('规还数量不能大于领取数量');
     }
     let parms = {
       applyId: detailInfo.applyId,
@@ -448,10 +450,6 @@ const EditOutput = props => {
       materials,
     };
     console.log('确认归还parms', parms);
-    let test = 1;
-    if (test === 1) {
-      return;
-    }
     try {
       const res = await returnConfirmOutputApply(parms);
       if (res.data.code === 200) {
@@ -487,7 +485,7 @@ const EditOutput = props => {
     let parms = {
       state,
       applyId: detailInfo.applyId,
-      content,
+      content: signContent,
       belongProject: global.userInfo.belongProject,
       materials: mlist,
     };
@@ -610,30 +608,13 @@ const EditOutput = props => {
           <View style={styles.other_item3}>
             <Text style={styles.other_title}>退场说明：</Text>
             <View style={{flex: 1}}>
-              <TextInput
+              <Text style={{color: '#808695'}}>{info.signContent}</Text>
+              <Text
                 style={{
-                  backgroundColor: '#EEEEEE',
-                  borderWidth: 0,
-                  borderRadius: 5,
-                  paddingLeft: 15,
-                  textAlign: 'left',
-                  textAlignVertical: 'top',
-                  androidtextAlignVertical: 'top',
-                  width: '90%',
-                }}
-                numberOfLines={Platform.OS === 'ios' ? null : numberOfLines}
-                minHeight={
-                  Platform.OS === 'ios' && numberOfLines
-                    ? 20 * numberOfLines
-                    : null
-                }
-                placeholder="简介"
-                multiline
-                editable={false}
-                value={info.signContent}
-                maxLength={20}
-              />
-              <Text style={{backgroundColor: '#fff'}}>
+                  backgroundColor: '#fff',
+                  color: '#808695',
+                  marginTop: 3,
+                }}>
                 出库确认时间：{info.signTime}
               </Text>
             </View>
@@ -1034,6 +1015,32 @@ const EditOutput = props => {
                   </Text>
                   <View style={{backgroundColor: '#fff', paddingLeft: 20}}>
                     <StuffLists3 data={confirmMaterials} />
+                    {confirmApproval && (
+                      <View style={styles.other_item3}>
+                        <Text style={styles.other_title}>说明：</Text>
+                        <View style={{flex: 1}}>
+                          <Text style={{color: '#808695'}}>
+                            {confirmApproval.content}
+                          </Text>
+                          <Text
+                            style={{
+                              backgroundColor: '#fff',
+                              color: '#808695',
+                              marginTop: 6,
+                            }}>
+                            确认时间：{confirmApproval.approvalTime}
+                          </Text>
+                          <Text
+                            style={{
+                              backgroundColor: '#fff',
+                              color: '#808695',
+                              marginTop: 6,
+                            }}>
+                            确认人：{confirmApproval.userName}
+                          </Text>
+                        </View>
+                      </View>
+                    )}
                   </View>
                 </View>
               ) : null}
@@ -1507,7 +1514,7 @@ const EditOutput = props => {
                         <TextInput
                           onChangeText={text => {
                             if (text * 1 > vc.outboundNum2 * 1) {
-                              Toast.fail('规划数量不能大于领取数量');
+                              Toast.fail('规换数量不能大于领取数量');
                             }
                             let newList = [...confirmList];
                             newList.map(vv => {

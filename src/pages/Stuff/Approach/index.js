@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-22 16:34:32
+ * @LastEditTime: 2021-08-30 11:47:21
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -52,7 +52,7 @@ export default function Approach(props) {
       let isShow = lists.find(v => v.route === 'approach').isShow;
       setappIsShow(isShow);
       setLoading(true);
-      await getLists(1);
+      // await getLists(1);
     })();
   }, []);
   useEffect(() => {

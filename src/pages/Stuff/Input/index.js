@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 22:18:27
- * @LastEditTime: 2021-08-23 15:21:17
+ * @LastEditTime: 2021-08-30 11:47:04
  * @LastEditors: Please set LastEditors
  * @Description: 入库管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/index.js
@@ -45,7 +45,7 @@ export default function Approach(props) {
       setDrawer(false);
       settableData([]);
       setPageNumber(1);
-      await getLists(1);
+      // await getLists(1);
     })();
   }, []);
   useEffect(() => {
