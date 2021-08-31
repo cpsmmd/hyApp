@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-26 21:48:45
- * @LastEditTime: 2021-08-22 16:01:28
+ * @LastEditTime: 2021-08-30 13:57:22
  * @LastEditors: Please set LastEditors
  * @Description: 材料管理菜单页
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/index.js
@@ -15,6 +15,7 @@ import {
   Image,
   TouchableWithoutFeedback,
 } from 'react-native';
+import {Button} from '@ant-design/react-native';
 import {getUserMenu} from '../../api/user';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 const list = [
@@ -49,6 +50,7 @@ const Stuff = props => {
     props.navigation.push(info.route);
   };
   const [menuLists, setmenuLists] = useState(list);
+  const [loading, setloading] = useState(false);
   useEffect(() => {
     getMenus();
   }, []);
@@ -125,6 +127,18 @@ const Stuff = props => {
           );
         })}
       </View>
+      {/* <Button
+        onPress={() => {
+          // submit();
+          setloading(true);
+          setTimeout(() => {
+            setloading(false);
+          }, 2000);
+        }}
+        disabled={loading}
+        type="primary">
+        提交
+      </Button> */}
     </View>
   );
 };

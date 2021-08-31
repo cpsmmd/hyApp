@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-30 11:59:57
+ * @LastEditTime: 2021-08-30 15:49:28
  * @LastEditors: Please set LastEditors
  * @Description: 出库管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -190,12 +190,14 @@ const EditOutput = props => {
           // 当时待库管理员确认时
           let list2 = info.materials || [];
           list2.map(v => {
+            v.num2 = v.materialsNum;
             v.supernameList = bills.filter(
               b =>
                 v.materialsName === b.materialsName &&
                 v.materialsSpecs === b.materialsSpecs,
             );
           });
+          console.log('list2', list2);
           setmateriasEdit([...list2]);
         }
         if (routeType === 'confirm') {
@@ -279,6 +281,7 @@ const EditOutput = props => {
     setstuffLists(newList);
   };
   // 修改提交材料 done
+  const [sunloading, setsunloading] = useState(false);
   const submit = async () => {
     let materials = [];
     stuffLists.forEach(item => {
@@ -301,10 +304,7 @@ const EditOutput = props => {
       parms.applyId = detailInfo.applyId;
     }
     console.log('出库管理parms', parms);
-    // let test = 1;
-    // if (test === 1) {
-    //   return;
-    // }
+    setsunloading(true);
     if (routeType === 'modify') {
       try {
         const res = await updateOutputApply(parms);
@@ -314,28 +314,29 @@ const EditOutput = props => {
         } else {
           Toast.fail(res.data.message);
         }
-        console.log(res.data.message);
+        setsunloading(false);
       } catch (error) {
         console.error(error);
+        setsunloading(false);
       }
     } else if (routeType === 'new') {
-      console.log('new');
       try {
         const res = await addOutputApply(parms);
-        console.log(res);
         if (res.data.code === 200) {
           props.navigation.goBack();
           Toast.success(res.data.message);
         } else {
           Toast.fail(res.data.message);
         }
-        console.log(res.data.message);
+        setsunloading(false);
       } catch (error) {
         console.error(error);
+        setsunloading(false);
       }
     }
   };
   // 审批（done）
+  const [statusloading, setstatusloading] = useState(false);
   const changeStatus = async state => {
     if (content.trim().length === 0) {
       return Toast.fail('请填写审批意见');
@@ -348,6 +349,10 @@ const EditOutput = props => {
       materials: [],
     };
     console.log('审批parms', parms);
+    if (statusloading) {
+      return;
+    }
+    setstatusloading(true);
     try {
       const res = await approaveOutputApply(parms);
       console.log('审批意见', res.data);
@@ -357,11 +362,14 @@ const EditOutput = props => {
       } else {
         Toast.fail(res.data.message);
       }
+      setstatusloading(false);
     } catch (error) {
       console.error(error);
+      setstatusloading(false);
     }
   };
   // 复核签收（done）
+  const [reviewloading, setreviewloading] = useState(false);
   const reviewBtn = async () => {
     if (signContent.trim().length === 0) {
       return Toast.fail('请填写签收说明');
@@ -376,6 +384,7 @@ const EditOutput = props => {
       belongProject: global.userInfo.belongProject,
     };
     console.log('复核parms', parms);
+    setreviewloading(true);
     try {
       const res = await reviewOutputApply(parms);
       if (res.data.code === 200) {
@@ -384,17 +393,21 @@ const EditOutput = props => {
       } else {
         Toast.fail(res.data.message);
       }
+      setreviewloading(false);
     } catch (error) {
       console.error(error);
+      setreviewloading(false);
     }
   };
   // 归还(done)
+  const [returnloading, setreturnloading] = useState(false);
   const returnBtn = async () => {
     let parms = {
       applyId: detailInfo.applyId,
       belongProject: global.userInfo.belongProject,
     };
     console.log('归还parms', parms);
+    setreturnloading(true);
     try {
       const res = await returnOutputApply(parms);
       if (res.data.code === 200) {
@@ -403,11 +416,14 @@ const EditOutput = props => {
       } else {
         Toast.fail(res.data.message);
       }
+      setreturnloading(false);
     } catch (error) {
       console.error(error);
+      setreturnloading(false);
     }
   };
   // 确认归还（ 1.16 App出库归还确认）
+  const [backLoading, setbackLoading] = useState(false);
   const confirmBack = async () => {
     if (logPics.length === 0) {
       return Toast.fail('请上传凭证');
@@ -441,7 +457,7 @@ const EditOutput = props => {
       return Toast.fail('归还数量为数字');
     }
     if (!isOk2) {
-      return Toast.fail('规还数量不能大于领取数量');
+      return Toast.fail('归还数量不能大于领用数量');
     }
     let parms = {
       applyId: detailInfo.applyId,
@@ -450,6 +466,7 @@ const EditOutput = props => {
       materials,
     };
     console.log('确认归还parms', parms);
+    setbackLoading(true);
     try {
       const res = await returnConfirmOutputApply(parms);
       if (res.data.code === 200) {
@@ -458,11 +475,14 @@ const EditOutput = props => {
       } else {
         Toast.fail(res.data.message);
       }
+      setbackLoading(false);
     } catch (error) {
       console.error(error);
+      setbackLoading(false);
     }
   };
   // 编辑(待仓库管理员确认) -done
+  const [editloading, seteditloading] = useState(false);
   const editBtn = async state => {
     if (signContent.trim().length === 0) {
       return Toast.fail('请填写审批意见');
@@ -490,6 +510,10 @@ const EditOutput = props => {
       materials: mlist,
     };
     console.log('审批parms', parms);
+    if (editloading) {
+      return;
+    }
+    seteditloading(true);
     try {
       const res = await approaveOutputApply(parms);
       console.log('审批意见', res.data);
@@ -499,11 +523,14 @@ const EditOutput = props => {
       } else {
         Toast.fail(res.data.message);
       }
+      seteditloading(false);
     } catch (error) {
       console.error(error);
+      seteditloading(false);
     }
   };
   // 编辑(待申请人确认)(done)
+  const [edit2loading, setedit2loading] = useState(false);
   const editTotype2Btn = async state => {
     let parms = {
       state,
@@ -513,6 +540,10 @@ const EditOutput = props => {
       materials: [],
     };
     console.log('待申请人确认parms', parms);
+    if (edit2loading) {
+      return;
+    }
+    setedit2loading(true);
     try {
       const res = await approaveOutputApply(parms);
       if (res.data.code === 200) {
@@ -521,8 +552,10 @@ const EditOutput = props => {
       } else {
         Toast.fail(res.data.message);
       }
+      setedit2loading(false);
     } catch (error) {
       console.error(error);
+      setedit2loading(false);
     }
   };
   const onChangeBegin = (event, selectedDate) => {
@@ -1210,6 +1243,7 @@ const EditOutput = props => {
                   onPress={() => {
                     reviewBtn();
                   }}
+                  disabled={reviewloading}
                   type="primary">
                   签收
                 </Button>
@@ -1228,6 +1262,7 @@ const EditOutput = props => {
                 onPress={() => {
                   returnBtn();
                 }}
+                disabled={returnloading}
                 type="primary">
                 归还
               </Button>
@@ -1277,10 +1312,18 @@ const EditOutput = props => {
                         <Text>领用数量：</Text>
                         <TextInput
                           onChangeText={text => {
+                            if (text * 1 > v.num2 * 1) {
+                              Toast.fail('领用数量不能大于申请数量');
+                            }
+                            let text1 = text * 1 > v.num2 * 1 ? v.num2 : text;
+                            if (isNaN(text1)) {
+                              Toast.fail('请输入数字');
+                              text1 = v.num2;
+                            }
                             let newList = [...stuffLists];
                             newList.map(v2 => {
                               if (v.id === v2.id) {
-                                v.materialsNum = text;
+                                v.materialsNum = text1;
                               }
                             });
                             setstuffLists(newList);
@@ -1381,6 +1424,7 @@ const EditOutput = props => {
                 onPress={() => {
                   submit();
                 }}
+                disabled={sunloading}
                 type="primary">
                 提交
               </Button>
@@ -1514,7 +1558,7 @@ const EditOutput = props => {
                         <TextInput
                           onChangeText={text => {
                             if (text * 1 > vc.outboundNum2 * 1) {
-                              Toast.fail('规换数量不能大于领取数量');
+                              Toast.fail('归还数量不能大于领用数量');
                             }
                             let newList = [...confirmList];
                             newList.map(vv => {
@@ -1593,6 +1637,7 @@ const EditOutput = props => {
                   onPress={() => {
                     confirmBack();
                   }}
+                  disabled={backLoading}
                   type="primary">
                   确认归还
                 </Button>

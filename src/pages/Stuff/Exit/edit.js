@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 17:40:17
- * @LastEditTime: 2021-08-23 15:12:03
+ * @LastEditTime: 2021-08-30 13:45:08
  * @LastEditors: Please set LastEditors
  * @Description: 退场 (增删改查)
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Exit/edit.js
@@ -218,6 +218,7 @@ const EditExit = props => {
     setstuffLists(newList);
   };
   // 申请、修改提交材料
+  const [subloading, setsubloading] = useState(false);
   const submit = async () => {
     if (theme.length === 0) {
       return Toast.fail('请输入申请主题');
@@ -263,6 +264,7 @@ const EditExit = props => {
       parms.applyId = detailInfo.applyId;
     }
     console.log('修改parms', parms);
+    setsubloading(true);
     if (routeType === 'edit') {
       try {
         const res = await editExitApply(parms);
@@ -272,8 +274,10 @@ const EditExit = props => {
         } else {
           Toast.fail(res.data.message);
         }
+        setsubloading(false);
       } catch (error) {
         console.error(error);
+        setsubloading(false);
       }
     } else if (routeType === 'new') {
       try {
@@ -284,13 +288,15 @@ const EditExit = props => {
         } else {
           Toast.fail(res.data.message);
         }
-        console.log(res.data.message);
+        setsubloading(false);
       } catch (error) {
         console.error(error);
+        setsubloading(false);
       }
     }
   };
   // 审批（退场审核）
+  const [statusloading, setstatusloading] = useState(false);
   const changeStatus = async state => {
     if (content.trim().length === 0) {
       return Toast.fail('请填写审批意见');
@@ -302,6 +308,10 @@ const EditExit = props => {
       belongProject: global.userInfo.belongProject,
     };
     console.log('审批parms', parms);
+    if (statusloading) {
+      return;
+    }
+    setstatusloading(true);
     try {
       const res = await approaveExitApply(parms);
       console.log('审批意见', res.data);
@@ -311,11 +321,14 @@ const EditExit = props => {
       } else {
         Toast.fail(res.data.message);
       }
+      setstatusloading(false);
     } catch (error) {
       console.error(error);
+      setstatusloading(false);
     }
   };
   // 编辑
+  const [confirloading, setconfirloading] = useState(false);
   const confirmEditBtn = async () => {
     if (signContent.trim().length === 0) {
       return Toast.fail('请填写退场说明');
@@ -330,6 +343,7 @@ const EditExit = props => {
       belongProject: global.userInfo.belongProject,
     };
     console.log('审批parms', parms);
+    setconfirloading(true);
     try {
       const res = await confirmExitApply(parms);
       if (res.data.code === 200) {
@@ -338,8 +352,10 @@ const EditExit = props => {
       } else {
         Toast.fail(res.data.message);
       }
+      setconfirloading(false);
     } catch (error) {
       console.error(error);
+      setconfirloading(false);
     }
   };
   const onChangeBegin = (event, selectedDate) => {
@@ -939,6 +955,7 @@ const EditExit = props => {
                   onPress={() => {
                     confirmEditBtn();
                   }}
+                  disabled={confirloading}
                   type="primary">
                   退场
                 </Button>
@@ -957,6 +974,7 @@ const EditExit = props => {
                 onPress={() => {
                   submit();
                 }}
+                disabled={subloading}
                 type="primary">
                 提交
               </Button>

@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 15:34:33
- * @LastEditTime: 2021-08-23 15:11:46
+ * @LastEditTime: 2021-08-30 13:39:32
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/edit.js
@@ -82,10 +82,10 @@ const EditApproach = props => {
   const [curId, setCurId] = useState('');
   // 审批
   const [content, setContent] = useState('');
-
   // 查看图片
   const [imageModal, setimageModal] = useState(false);
   const [images, setimages] = useState([]);
+  // 按钮disable
   // 设置标题
   useEffect(() => {
     props.navigation.setOptions({
@@ -165,6 +165,7 @@ const EditApproach = props => {
     newList.splice(num, 1);
     setstuffLists(newList);
   };
+  const [subLoading, setsubLoading] = useState(false);
   // 修改提交材料
   const submit = async () => {
     let isEmpty = false;
@@ -242,6 +243,7 @@ const EditApproach = props => {
       fileUrl,
       materials: stuffLists,
     };
+    setsubLoading(true);
     console.log('修改parms', parms);
     if (routeType === 'edit') {
       try {
@@ -252,12 +254,15 @@ const EditApproach = props => {
         } else {
           Toast.fail(res.data.message);
         }
+        setsubLoading(false);
       } catch (error) {
+        setsubLoading(false);
         console.error(error);
       }
     }
   };
   // 审批
+  const [statusLoading, setstatusLoading] = useState(false);
   const changeStatus = async state => {
     if (content.trim().length === 0) {
       return Toast.fail('请填写审批意见');
@@ -269,6 +274,10 @@ const EditApproach = props => {
       belongProject: global.userInfo.belongProject,
     };
     console.log('审批parms', parms);
+    if (statusLoading) {
+      return;
+    }
+    setstatusLoading(true);
     try {
       const res = await updateToApproval(parms);
       if (res.data.code === 200) {
@@ -277,7 +286,9 @@ const EditApproach = props => {
       } else {
         Toast.fail(res.data.message);
       }
+      setstatusLoading(false);
     } catch (error) {
+      setstatusLoading(false);
       console.error(error);
     }
   };
@@ -866,6 +877,7 @@ const EditApproach = props => {
                 onPress={() => {
                   submit();
                 }}
+                disabled={subLoading}
                 type="primary">
                 提交
               </Button>

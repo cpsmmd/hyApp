@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-08-01 22:39:56
- * @LastEditTime: 2021-08-23 15:47:54
+ * @LastEditTime: 2021-08-30 13:47:33
  * @LastEditors: Please set LastEditors
  * @Description: 详情、入库
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/edit.js
@@ -229,6 +229,7 @@ const EditApproach = props => {
     setstuffLists(newList);
   };
   // 审批
+  const [statusloading, setstatusloading] = useState(false);
   const changeStatus = async state => {
     let list = [];
     let isOk = true;
@@ -276,7 +277,11 @@ const EditApproach = props => {
       warehouseMaterials: list,
       idCard: global.userInfo.idCard,
     };
+    if (statusloading) {
+      return;
+    }
     console.log('入库parms', parms);
+    setstatusloading(true);
     try {
       const res = await updateInputApply(parms);
       if (res.data.code === 200) {
@@ -285,8 +290,10 @@ const EditApproach = props => {
       } else {
         Toast.fail(res.data.message);
       }
+      setstatusloading(false);
     } catch (error) {
       console.error(error);
+      setstatusloading(false);
     }
   };
   const onChangeBegin = (event, selectedDate) => {

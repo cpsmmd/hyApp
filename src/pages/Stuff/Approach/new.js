@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-06 23:08:05
- * @LastEditTime: 2021-08-22 16:39:08
+ * @LastEditTime: 2021-08-30 13:35:40
  * @LastEditors: Please set LastEditors
  * @Description: 发起进场申请
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/new.js
@@ -58,6 +58,9 @@ const New = props => {
   const [materialsList, setMaterialsList] = useState([]);
   const [supplierList, setSupplierList] = useState([]);
   const [curId, setCurId] = useState('');
+
+  // 按钮loading
+  const [subLoading, setsubLoading] = useState(false);
   // 添加材料
   const addStuff = () => {
     let isEmpty = false;
@@ -165,6 +168,7 @@ const New = props => {
     if (professional.length === 0) {
       return Toast.fail('请选择专业');
     }
+    setsubLoading(true);
     let parms = {
       idCard: global.userInfo.idCard,
       supplierName,
@@ -188,8 +192,10 @@ const New = props => {
       } else {
         Toast.fail(res.data.message);
       }
+      setsubLoading(false);
     } catch (error) {
       console.error(error);
+      setsubLoading(false);
     }
   };
   const onChangeBegin = (event, selectedDate) => {
@@ -499,6 +505,7 @@ const New = props => {
                 onPress={() => {
                   submit();
                 }}
+                disabled={subLoading}
                 type="primary">
                 提交
               </Button>
