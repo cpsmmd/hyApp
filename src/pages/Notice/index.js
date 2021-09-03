@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-05-07 20:47:58
- * @LastEditTime: 2021-06-01 13:54:24
+ * @LastEditTime: 2021-08-31 10:44:36
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Notice/index.js
@@ -22,7 +22,7 @@ export default function Notice(props) {
     (async () => {
       await getNotices();
       console.log(
-        `http://116.62.231.156:8900/HyVisitors/downFileApp?path=files/baidu932.numbers`,
+        `http://47.117.123.129:8900/HyVisitors/downFileApp?path=files/baidu932.numbers`,
       );
     })();
   }, []);
@@ -56,7 +56,7 @@ export default function Notice(props) {
       } else {
         url = results[0].uri.replace('file://', '');
       }
-      // http://116.62.231.156:8900
+      // http://47.117.123.129:8900
       console.log('url', url);
       console.log(RNFetchBlob.wrap(url));
       let parms = new FormData();
@@ -69,7 +69,7 @@ export default function Notice(props) {
       console.log('parms', parms);
       RNFetchBlob.fetch(
         'POST',
-        'http://116.62.231.156:8900/HyVisitors/uploadBatchApp',
+        'http://47.117.123.129:8900/HyVisitors/uploadBatchApp',
         {
           otherHeader: 'foo',
           'Content-Type': 'multipart/form-data',
@@ -113,7 +113,7 @@ export default function Notice(props) {
   const downFil = () => {
     RNFetchBlob.fetch(
       'GET',
-      'http://116.62.231.156:8900/HyVisitors/downFileApp?path=files/baidu932.numbers',
+      'http://47.117.123.129:8900/HyVisitors/downFileApp?path=files/baidu932.numbers',
       {
         Authorization: 'Bearer access-token...',
         // more headers  ..

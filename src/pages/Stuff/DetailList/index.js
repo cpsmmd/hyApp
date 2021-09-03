@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-06-27 15:37:22
- * @LastEditTime: 2021-08-14 21:50:04
+ * @LastEditTime: 2021-09-03 15:26:30
  * @LastEditors: Please set LastEditors
  * @Description: 进场管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Approach/index.js
@@ -56,7 +56,7 @@ export default function StuffList(props) {
     try {
       const res = await getBillList(parms);
       if (res.data.code === 200) {
-        console.log('材料清单', JSON.stringify(res.data));
+        // console.log('材料清单', JSON.stringify(res.data));
         let list = res.data.data.list || [];
         setIsAll(true);
         settableData(state => {
@@ -154,7 +154,13 @@ export default function StuffList(props) {
     <View style={{position: 'relative', width: '100%', height: '100%'}}>
       {drawer && (
         <View
-          style={{position: 'absolute', width: '100%', height: '100%', top: 0}}>
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            top: 0,
+            zIndex: 999,
+          }}>
           <TouchableWithoutFeedback
             onPress={() => {
               setDrawer(false);
@@ -371,7 +377,7 @@ const styles = StyleSheet.create({
     color: '#108EE9',
     fontSize: 14,
     fontWeight: '500',
-    width: 70,
+    width: 76,
     textAlign: 'right',
   },
   drawer_item_input: {

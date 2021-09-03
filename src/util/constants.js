@@ -7,12 +7,12 @@
  * @FilePath: /web/hy/hyApp/src/util/constants.js
  */
 // 服务端地址
-export const BSAE_API = 'http://116.62.231.156:8900/';
-export const BSAE_API2 = 'http://116.62.231.156/';
+export const BSAE_API = 'http://47.117.123.129:8900/';
+export const BSAE_API2 = 'http://47.117.123.129/';
 // 服务端地址
-export const BSAE_IMAGE_URL = 'http://116.62.231.156:8900/image/';
+export const BSAE_IMAGE_URL = 'http://47.117.123.129:8900/image/';
 // 管理岗登录后获取用户权限的接口
-export const POWERS_URL = 'http://116.62.231.156:8599/';
+export const POWERS_URL = 'http://47.117.123.129:8599/';
 // RSA加密公钥
 export const PUB_KEY =
   'MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCISLP98M/56HexX/9FDM8iuIEQozy6kn2JMcbZS5/BhJ+U4PZIChJfggYlWnd8NWn4BYr2kxxyO8Qgvc8rpRZCkN0OSLqLgZGmNvoSlDw80UXq90ZsVHDTOHuSFHw8Bv//B4evUNJBB8g9tpVxr6P5EJ6FMoR/kY2dVFQCQM4+5QIDAQAB';

@@ -1,7 +1,7 @@
 /*
  * @Author: your name
  * @Date: 2021-04-18 15:41:45
- * @LastEditTime: 2021-08-22 15:15:45
+ * @LastEditTime: 2021-09-03 15:27:54
  * @LastEditors: Please set LastEditors
  * @Description: In User Settings Edit
  * @FilePath: /web/hy/hyApp/src/pages/Login/index.js
@@ -94,7 +94,7 @@ const Login = props => {
                 onChangeText={text => {
                   setIdCard(text);
                   // !测试阶段
-                  setUserPwd(text.substring(text.length - 6));
+                  // setUserPwd(text.substring(text.length - 6));
                 }}
                 style={styles.login_input}
                 placeholder="请输入账号"

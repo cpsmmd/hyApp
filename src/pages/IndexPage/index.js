@@ -141,7 +141,7 @@ const IndexPage = props => {
             setNewsNum(count * 1);
           }
         } else {
-          // dealFail(props, res.data.code, res.data.message);
+          dealFail(props, res.data.code, res.data.message);
         }
       } catch (error) {
         console.error(error);
@@ -149,10 +149,10 @@ const IndexPage = props => {
     }
   };
   const dealMqtt = () => {
-    // mqtt://116.62.231.156:8900/warning/app/data
+    // mqtt://47.117.123.129:8900/warning/app/data
     // console.log('ready');
     MQTT.createClient({
-      uri: 'ws://116.62.231.156:1883',
+      uri: 'ws://47.117.123.129:1883',
       clientId: 'mqttx_5afa9f86hhdjsdwefiwe22i',
       user: 'admin',
       pass: 'admin',

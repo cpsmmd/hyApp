@@ -2,7 +2,7 @@
 /*
  * @Author: your name
  * @Date: 2021-07-11 22:18:27
- * @LastEditTime: 2021-08-30 11:47:04
+ * @LastEditTime: 2021-09-03 15:26:58
  * @LastEditors: Please set LastEditors
  * @Description: 入库管理
  * @FilePath: /web/hy/hyApp/src/pages/Stuff/Input/index.js
@@ -206,7 +206,13 @@ export default function Approach(props) {
     <View style={{position: 'relative', width: '100%', height: '100%'}}>
       {drawer && (
         <View
-          style={{position: 'absolute', width: '100%', height: '100%', top: 0}}>
+          style={{
+            position: 'absolute',
+            width: '100%',
+            height: '100%',
+            top: 0,
+            zIndex: 999,
+          }}>
           <TouchableWithoutFeedback
             onPress={() => {
               setDrawer(false);
@@ -471,7 +477,7 @@ const styles = StyleSheet.create({
     color: '#108EE9',
     fontSize: 14,
     fontWeight: '500',
-    width: 70,
+    width: 76,
     textAlign: 'right',
     paddingRight: 4,
   },
